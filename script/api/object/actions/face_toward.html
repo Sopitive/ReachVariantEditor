@@ -179,7 +179,7 @@ Multiplied int cos/sin: ${Math.round(least_error_item.x)}, ${Math.round(least_er
         <div id="result"></div>
         <input id="conversionBox" type="number" onchange="document.querySelector('#result').innerHTML = sincos_int(this.value)">
         <pre>
-<span class="namespace">global</span>.<span class="variable">object</span>[0].<span class="function">copy_rotation_from</span>(<span class="namespace">global</span>.<span class="variable">object</span>[1]<span class="variable">, true</span>)</pre>
+<span class="namespace">global</span>.<span class="variable">object</span>[0].<span class="function">face_toward</span>(<span class="namespace">global</span>.<span class="variable">object</span>[1]<span class="variable">, 0, 0, 0</span>)</pre>
         <h2>Notes</h2>
         <ul>
             <li>
@@ -207,7 +207,7 @@ Multiplied int cos/sin: ${Math.round(least_error_item.x)}, ${Math.round(least_er
             <span class="variable">adjust</span>.<span class="function">face_toward</span>(<span class="variable">adjust</span><span class="variable">, -1, -1, 0</span>)
             <span class="variable">offset</span>.<span class="function">detach</span>()
             <span class="variable">offset</span>.<span class="function">attach_to</span>(<span class="variable">base</span><span class="variable">, 0, 0, 0, relative</span>)
-            <span class="variable">base</span>.<span class="function">copy_rotation_from</span>(<span class="iterator">current_object</span><span class="variable">, true</span>)
+            <span class="variable">base</span>.<span class="function">face_toward</span>(<span class="iterator">current_object</span><span class="variable">, true</span>)
             <span class="variable">offset</span>.<span class="function">detach</span>()
             <span class="variable">offset</span>.<span class="function">attach_to</span>(<span class="variable">current_object</span><span class="variable">, 0, 0, 0, relative</span>)
         <span class="keyword">end</span>
