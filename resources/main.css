@@ -48,7 +48,7 @@ body>* {
 
 #sidebar li {
     list-style: none;
-    position: relative
+    position: relative;
 }
 
 #sidebar li a {
@@ -72,21 +72,23 @@ body>* {
 /*spacing*/
 
 #sidebar li a.you-are-here {
-    font-weight: bold
+    font-weight: bold;
 }
 
 #sidebar li.collapsed ul {
-    display: none
+    height: 0;
+    opacity: 0;
 }
 
 #sidebar>ul {
     list-style: none;
     margin: 0;
-    padding: 0
+    padding: 0;
+    height: 100%;
 }
 
 #sidebar>ul>li {
-    list-style: none
+    list-style: none;
 }
 
 a:not([href]),
@@ -110,7 +112,7 @@ a[href=""] {
 }
 
 #sidebar .toggle {
-    margin: 0
+    margin: 0;
 }
 
 
