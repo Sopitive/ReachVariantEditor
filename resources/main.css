@@ -17,6 +17,14 @@ html {
     padding: 0
 }
 
+nav:not([class^="afterload"]) * {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -ms-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
+}
+
 body {
     background: var(--sidebar-back);
     min-height: 100vh;
@@ -39,7 +47,7 @@ body>* {
     padding: .5rem 1rem;
     font-size: .875rem;
     flex: 0 0 auto;
-    transition: width 500ms, height 500ms, min-width 1s, opacity 1s;
+    transition: width 200ms, height 200ms, min-width 500ms, opacity 200ms;
 }
 
 .hide {
@@ -47,12 +55,14 @@ body>* {
     height: 0;
     min-width: 0 !important;
     opacity: 0;
-    transition: width 500ms, height 500ms, min-width 1s, opacity 1s;
+    transition: width 300ms, height 300ms, opacity 1ms 500ms;
 }
 
 #sidebar ul {
     margin: 0;
-    padding: 0 0 0 1.5em
+    padding: 0 0 0 1.5em;
+    max-height: 1000px;
+    transition: max-height 500ms;
 }
 
 #sidebar li {
@@ -94,19 +104,26 @@ body>* {
 }
 
 #sidebar li.collapsed ul {
-    height: 0;
+    max-height: 0;
     opacity: 0;
+    transition: max-height 500ms, opacity 200ms 300ms;
+}
+
+#sidebar li.collapsed ul li {
+    max-height: 0;
+    transition: max-height 400ms;
+}
+
+#sidebar li ul li {
+    max-height: 1000px;
 }
 
 #sidebar>ul {
     list-style: none;
     margin: 0;
     padding: 0;
-    height: 100%;
-}
-
-#sidebar>ul>li {
-    list-style: none;
+    max-height: 1000px;
+    transition: max-height 1s ease-in;
 }
 
 a:not([href]),
@@ -126,7 +143,7 @@ a[href=""] {
     background: #BFBFBF;
     color: #000;
     border-radius: .2rem 0 0 .2rem;
-    cursor: default
+    cursor: default;
 }
 
 #sidebar .toggle {

@@ -88,4 +88,7 @@
             }
         }
     }
+    window.onload = function() {
+        sidebar.classList.add("afterload")
+    }
 })();
