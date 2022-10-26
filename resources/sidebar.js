@@ -1,4 +1,19 @@
 (function() {
+    const sidebar = document.querySelector("#sidebar");
+    const main = document.querySelector("main");
+    const collapse = document.createElement("button");
+    collapse.classList.add("collapse");
+    const initialText = "<<";
+    collapse.textContent = initialText;
+    main.parentNode.insertBefore(collapse, main);
+    collapse.addEventListener("click", () => {
+        sidebar.classList.toggle("hide");
+        if (collapse.textContent.toLocaleLowerCase().includes(initialText.toLocaleLowerCase())) {
+            collapse.textContent = ">>";
+        } else {
+            collapse.textContent = initialText;
+        }
+    });
     let node = document.querySelector("#sidebar>ul");
     let items = node.querySelectorAll("li");
     let found = null;

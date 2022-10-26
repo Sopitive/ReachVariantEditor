@@ -38,7 +38,16 @@ body>* {
     min-width: 18em;
     padding: .5rem 1rem;
     font-size: .875rem;
-    flex: 0 0 auto
+    flex: 0 0 auto;
+    transition: width 500ms, height 500ms, min-width 1s, opacity 1s;
+}
+
+.hide {
+    width: 0 !important;
+    height: 0;
+    min-width: 0 !important;
+    opacity: 0;
+    transition: width 500ms, height 500ms, min-width 1s, opacity 1s;
 }
 
 #sidebar ul {
@@ -66,6 +75,15 @@ body>* {
 
 #sidebar li a {
     margin: 4px 0
+}
+
+.collapse {
+    color: white;
+    font-weight: bold;
+    background: #3D3D3D;
+    height: 3em;
+    width: 4em;
+    border-color: white;
 }
 
 
