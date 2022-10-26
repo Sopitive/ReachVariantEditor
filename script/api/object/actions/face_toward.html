@@ -177,7 +177,8 @@ Multiplied int cos/sin: ${Math.round(least_error_item.x)}, ${Math.round(least_er
         </dl>
         <h2>Example</h2>
         <div id="result"></div>
-        <input id="conversionBox" type="number" onchange="document.querySelector('#result').innerHTML = sincos_int(this.value)">
+        <label for="conversion" style="font-weight: bold;">Angle to Argument Converter: </label>
+        <input name="conversion" id="conversionBox" type="number" onchange="document.querySelector('#result').innerHTML = sincos_int(this.value)">
         <pre>
 <span class="namespace">global</span>.<span class="variable">object</span>[0].<span class="function">face_toward</span>(<span class="namespace">global</span>.<span class="variable">object</span>[1]<span class="variable">, 0, 0, 0</span>)</pre>
         <h2>Notes</h2>
@@ -232,3 +233,6 @@ Multiplied int cos/sin: ${Math.round(least_error_item.x)}, ${Math.round(least_er
 </body>
 
 </html>
+
+
+
