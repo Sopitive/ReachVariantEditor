@@ -135,6 +135,7 @@ body>* {
 #sidebar li.collapsed ul li {
     max-height: 0;
     transition: max-height 400ms;
+    pointer-events: none;
 }
 
 #sidebar li ul li {
