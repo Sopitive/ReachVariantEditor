@@ -2,17 +2,82 @@
     const sidebar = document.querySelector("#sidebar");
     const main = document.querySelector("main");
     const collapse = document.createElement("button");
+    const lastItem = document.querySelector("ul:last-child");
+    const darkToggle = document.createElement("button");
+    const body = document.querySelector("body");
+    darkToggle.classList.add("dark-toggle");
+    darkToggle.textContent = "Light Mode"
+    lastItem.appendChild(darkToggle);
     collapse.classList.add("collapse");
     const initialText = "<<";
     collapse.textContent = initialText;
     main.parentNode.insertBefore(collapse, main);
+    const root = document.querySelector(':root');
     collapse.addEventListener("click", () => {
-        sidebar.classList.toggle("hide");
-        if (collapse.textContent.toLocaleLowerCase().includes(initialText.toLocaleLowerCase())) {
+        if (localStorage.getItem("darkMode") == "Dark") {
+            body.classList.toggle("hide-color");
+        }
+        if (localStorage.getItem("collapse") == "Collapsed") {
             collapse.textContent = ">>";
+            sidebar.classList.remove("hide");
+            localStorage.setItem("collapse", "Expanded");
         } else {
+            localStorage.setItem("collapse", "Collapsed");
+            sidebar.classList.add("hide");
             collapse.textContent = initialText;
         }
+    });
+
+    if (localStorage.getItem("darkMode") == "Dark") {
+        setLight();
+    } else {
+        setDark();
+    }
+
+    if (localStorage.getItem("collapse") == "Expanded") {
+        sidebar.classList.remove("hide");
+        collapse.textContent = ">>";
+    } else {
+        sidebar.classList.add("hide");
+        if (localStorage.getItem("darkMode" == "Dark")) {
+            body.classList.add("hide-color")
+        }
+        collapse.textContent = initialText;
+    }
+
+    function setStyles() {
+        if (localStorage.getItem("darkMode") == "Light") {
+            localStorage.setItem("darkMode", "Dark")
+            setLight()
+        } else {
+            localStorage.setItem("darkMode", "Light");
+            setDark();
+        }
+    }
+
+    function setLight() {
+        darkToggle.textContent = "Dark Mode";
+        root.style.setProperty('--mainColor', '#EEE');
+        root.style.setProperty('--secondMain', '#fff');
+        root.style.setProperty('--textColor', '#000');
+        root.style.setProperty('--sidebar-back', '#EEE');
+        root.style.setProperty('--sidebar-foreground', '#fff');
+        root.style.setProperty('--scrollbar', '#EEE');
+        root.style.setProperty('--scrollbarThumb', '#C1C1C1');
+    }
+
+    function setDark() {
+        darkToggle.textContent = "Light Mode";
+        root.style.setProperty('--mainColor', '#3D3D3D');
+        root.style.setProperty('--secondMain', '#333333');
+        root.style.setProperty('--textColor', 'white');
+        root.style.setProperty('--sidebar-back', '#333333');
+        root.style.setProperty('--sidebar-foreground', '#3D3D3D');
+        root.style.setProperty('--scrollbar', '#333333');
+        root.style.setProperty('--scrollbarThumb', '#3D3D3D');
+    }
+    darkToggle.addEventListener("click", () => {
+        setStyles()
     });
     let node = document.querySelector("#sidebar>ul");
     let items = node.querySelectorAll("li");
@@ -89,6 +154,6 @@
         }
     }
     window.onload = function() {
-        sidebar.classList.add("afterload")
+        sidebar.classList.add("afterload");
     }
 })();

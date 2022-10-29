@@ -1,6 +1,12 @@
 html {
     --sidebar-back: #333333;
+    --sidebar-foreground: #3D3D3D;
     --line-height: 1.215em;
+    --mainColor: #3D3D3D;
+    --textColor: white;
+    --secondMain: #333333;
+    --scrollbar: #333333;
+    --scrollbarThumb: #3D3D3D;
     /*take the firefox default for Calibri and make it explicit, so we can size/position other things relative to it*/
 }
 
@@ -12,7 +18,7 @@ html {
 /* core layout: */
 
 html {
-    background: #3D3D3D;
+    background: var(--mainColor);
     margin: 0;
     padding: 0
 }
@@ -32,13 +38,13 @@ body {
     flex-flow: row nowrap;
     max-width: 1600px;
     margin: 0 auto;
-    padding: 0
+    padding: 0;
 }
 
 body>* {
     box-sizing: border-box;
     height: 100vh;
-    overflow-y: auto
+    overflow-y: auto;
 }
 
 #sidebar {
@@ -47,7 +53,25 @@ body>* {
     padding: .5rem 1rem;
     font-size: .875rem;
     flex: 0 0 auto;
-    transition: width 200ms, height 200ms, min-width 500ms, opacity 200ms;
+    /* transition: width 200ms, height 200ms, min-width 500ms, opacity 200ms; */
+}
+
+.dark-toggle {
+    margin-top: 2em;
+    width: 100%;
+    height: 3em;
+    background-color: var(--mainColor);
+    border-color: white;
+    color: var(--textColor);
+    font-weight: bold;
+}
+
+.hide-color {
+    background-color: #fff !important;
+}
+
+.afterload {
+    transition: min-width 500ms, height 500ms, width 200ms, opacity 200ms;
 }
 
 .hide {
@@ -55,7 +79,6 @@ body>* {
     height: 0;
     min-width: 0 !important;
     opacity: 0;
-    transition: width 300ms, height 300ms, opacity 1ms 500ms;
 }
 
 #sidebar ul {
@@ -72,7 +95,7 @@ body>* {
 
 #sidebar li a {
     display: block;
-    background: #3D3D3D;
+    background: var(--sidebar-foreground);
     padding: .25em .5em;
     text-decoration: none;
     border-radius: .2rem
@@ -88,11 +111,11 @@ body>* {
 }
 
 .collapse {
-    color: white;
+    color: var(--textColor);
     font-weight: bold;
-    background: #3D3D3D;
+    background: var(--mainColor);
     height: 3em;
-    width: 4em;
+    width: 3em;
     border-color: white;
 }
 
@@ -128,7 +151,7 @@ body>* {
 
 a:not([href]),
 a[href=""] {
-    color: white;
+    color: var(--textColor);
 }
 
 #sidebar .toggle {
@@ -172,8 +195,8 @@ a[href=""] {
 }
 
 main {
-    background: #333333;
-    color: white;
+    background: var(--secondMain);
+    color: var(--textColor);
     padding: 1rem;
     flex: 1 1 auto
 }
@@ -348,17 +371,17 @@ main ul>li+li {
 }
 
 code {
-    background: #3D3D3D;
+    background: var(--mainColor);
 }
 
 input {
-    background: #3D3D3D;
-    color: white;
+    background: var(--mainColor);
+    color: var(--textColor);
 }
 
 pre {
     padding: .5em;
-    background: #3D3D3D;
+    background: var(--mainColor);
     border: 1px solid #DDD;
     overflow-x: auto;
 }
@@ -373,11 +396,15 @@ pre .string {
 }
 
 ::-webkit-scrollbar {
-    background: #333333;
+    background: var(--scrollbar);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #3d3d3d;
+    background: var(--scrollbarThumb);
+}
+
+::-webkit-scrollbar-button {
+    display: none;
 }
 
 pre .keyword {
