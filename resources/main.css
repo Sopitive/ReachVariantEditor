@@ -18,9 +18,10 @@ html {
 /* core layout: */
 
 html {
-    background: var(--mainColor);
+    background-color: var(--mainColor);
     margin: 0;
-    padding: 0
+    padding: 0;
+    transition: background-color 500ms;
 }
 
 nav:not([class^="afterload"]) * {
@@ -32,13 +33,14 @@ nav:not([class^="afterload"]) * {
 }
 
 body {
-    background: var(--sidebar-back);
+    background-color: var(--sidebar-back);
     min-height: 100vh;
     display: flex;
     flex-flow: row nowrap;
     max-width: 1600px;
     margin: 0 auto;
     padding: 0;
+    transition: background-color 500ms;
 }
 
 body>* {
@@ -64,6 +66,7 @@ body>* {
     border-color: white;
     color: var(--textColor);
     font-weight: bold;
+    transition: background-color 500ms;
 }
 
 .hide-color {
@@ -95,10 +98,11 @@ body>* {
 
 #sidebar li a {
     display: block;
-    background: var(--sidebar-foreground);
+    background-color: var(--sidebar-foreground);
     padding: .25em .5em;
     text-decoration: none;
-    border-radius: .2rem
+    border-radius: .2rem;
+    transition: background-color 500ms;
 }
 
 #sidebar li a {
@@ -113,10 +117,11 @@ body>* {
 .collapse {
     color: var(--textColor);
     font-weight: bold;
-    background: var(--mainColor);
+    background-color: var(--mainColor);
     height: 3em;
     width: 3em;
     border-color: white;
+    transition: background-color 500ms;
 }
 
 
@@ -196,10 +201,11 @@ a[href=""] {
 }
 
 main {
-    background: var(--secondMain);
+    background-color: var(--secondMain);
     color: var(--textColor);
     padding: 1rem;
-    flex: 1 1 auto
+    flex: 1 1 auto;
+    transition: background-color 500ms;
 }
 
 
@@ -397,11 +403,13 @@ pre .string {
 }
 
 ::-webkit-scrollbar {
-    background: var(--scrollbar);
+    background-color: var(--scrollbar);
+    transition: background-color 500ms;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--scrollbarThumb);
+    background-color: var(--scrollbarThumb);
+    transition: background-color 500ms;
 }
 
 ::-webkit-scrollbar-button {
