@@ -24,7 +24,8 @@ html {
     transition: background-color 500ms;
 }
 
-nav:not([class^="afterload"]) * {
+nav:not([class^="afterload"]) *,
+html:not([class^="afterload"]) * {
     -webkit-transition: none !important;
     -moz-transition: none !important;
     -ms-transition: none !important;
@@ -33,7 +34,6 @@ nav:not([class^="afterload"]) * {
 }
 
 body {
-    background-color: var(--sidebar-back);
     min-height: 100vh;
     display: flex;
     flex-flow: row nowrap;
@@ -50,6 +50,7 @@ body>* {
 }
 
 #sidebar {
+    background-color: var(--sidebar-back);
     width: 25%;
     min-width: 18em;
     padding: .5rem 1rem;
@@ -60,12 +61,16 @@ body>* {
 
 .dark-toggle {
     margin-top: 2em;
-    width: 100%;
+    width: 10em;
     height: 3em;
     background-color: var(--mainColor);
-    border-color: white;
+    border-color: var(--textColor);
     color: var(--textColor);
     font-weight: bold;
+    position: absolute;
+    bottom: 1%;
+    right: 2%;
+    box-shadow: -5px -1px 5px gray;
     transition: background-color 500ms;
 }
 
@@ -121,7 +126,14 @@ body>* {
     height: 3em;
     width: 3em;
     border-color: white;
-    transition: background-color 500ms;
+    box-shadow: -2px 5px 5px gray;
+    position: absolute;
+    left: 25%;
+    transition: background-color 500ms, left 200ms;
+}
+
+.left {
+    left: 3%;
 }
 
 
@@ -151,7 +163,7 @@ body>* {
     list-style: none;
     margin: 0;
     padding: 0;
-    max-height: 1000px;
+    max-height: 10em;
     transition: max-height 1s ease-in;
 }
 
@@ -229,7 +241,8 @@ main {
 /* use a pseudo-element instead of padding */
 
 main {
-    padding-bottom: 0
+    padding-bottom: 0;
+    margin-left: 3em;
 }
 
 

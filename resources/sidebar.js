@@ -1,13 +1,14 @@
 (function() {
     const sidebar = document.querySelector("#sidebar");
+    const html = document.querySelector("html");
     const main = document.querySelector("main");
     const collapse = document.createElement("button");
-    const lastItem = document.querySelector("ul:last-child");
+    const lastItem = document.querySelector("ul");
     const darkToggle = document.createElement("button");
     const body = document.querySelector("body");
     darkToggle.classList.add("dark-toggle");
     darkToggle.textContent = "Light Mode"
-    lastItem.appendChild(darkToggle);
+    lastItem.after(darkToggle);
     collapse.classList.add("collapse");
     const initialText = "<<";
     collapse.textContent = initialText;
@@ -19,11 +20,13 @@
         }
         if (localStorage.getItem("collapse") == "Collapsed") {
             collapse.textContent = ">>";
+            collapse.classList.remove("left")
             sidebar.classList.remove("hide");
             localStorage.setItem("collapse", "Expanded");
         } else {
             localStorage.setItem("collapse", "Collapsed");
             sidebar.classList.add("hide");
+            collapse.classList.add("left")
             collapse.textContent = initialText;
         }
     });
@@ -37,11 +40,13 @@
     if (localStorage.getItem("collapse") == "Expanded") {
         sidebar.classList.remove("hide");
         collapse.textContent = ">>";
+        collapse.classList.remove("left")
     } else {
         sidebar.classList.add("hide");
-        if (localStorage.getItem("darkMode" == "Dark")) {
-            body.classList.add("hide-color")
+        if (localStorage.getItem("darkMode") == "Dark") {
+            body.classList.add("hide-color");
         }
+        collapse.classList.add("left")
         collapse.textContent = initialText;
     }
 
@@ -57,7 +62,7 @@
 
     function setLight() {
         darkToggle.textContent = "Dark Mode";
-        root.style.setProperty('--mainColor', '#EEE');
+        root.style.setProperty('--mainColor', '#FFF');
         root.style.setProperty('--secondMain', '#fff');
         root.style.setProperty('--textColor', '#000');
         root.style.setProperty('--sidebar-back', '#EEE');
@@ -155,5 +160,6 @@
     }
     window.onload = function() {
         sidebar.classList.add("afterload");
+        html.classList.add("afterload");
     }
 })();
