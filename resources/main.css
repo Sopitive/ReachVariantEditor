@@ -8,6 +8,8 @@ html {
     --scrollbar: #333333;
     --scrollbarThumb: #3D3D3D;
     --linkColor: #00C2EE;
+    --string: #39B339;
+    --linkVisited: #E77BD5;
     /*take the firefox default for Calibri and make it explicit, so we can size/position other things relative to it*/
 }
 
@@ -414,7 +416,7 @@ pre .comment {
 }
 
 pre .string {
-    color: #292;
+    color: var(--string);
 }
 
 ::-webkit-scrollbar {
@@ -432,12 +434,12 @@ pre .string {
 }
 
 pre .keyword {
-    color: #4EB7FF;
+    color: var(--linkColor);
     font-weight: bold;
 }
 
 pre .subkeyword {
-    color: #4EB7FF;
+    color: var(--linkColor);
     font-weight: bold;
 }
 
@@ -450,7 +452,7 @@ a:link {
 }
 
 a:visited {
-    color: #E77BD5;
+    color: var(--linkVisited);
 }
 
 a:link:hover {

@@ -70,6 +70,8 @@
         root.style.setProperty('--scrollbar', '#EEE');
         root.style.setProperty('--scrollbarThumb', '#C1C1C1');
         root.style.setProperty('--linkColor', '#03E');
+        root.style.setProperty('--string', '#292');
+        root.style.setProperty('--linkVisited', '#938');
     }
 
     function setDark() {
@@ -82,6 +84,8 @@
         root.style.setProperty('--scrollbar', '#333333');
         root.style.setProperty('--scrollbarThumb', '#3D3D3D');
         root.style.setProperty('--linkColor', '#00C2EE');
+        root.style.setProperty('--string', '#39B339');
+        root.style.setProperty('--linkVisited', '#E77BD5');
     }
     darkToggle.addEventListener("click", () => {
         setStyles()
