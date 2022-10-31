@@ -7,6 +7,7 @@ html {
     --secondMain: #333333;
     --scrollbar: #333333;
     --scrollbarThumb: #3D3D3D;
+    --linkColor: #00C2EE;
     /*take the firefox default for Calibri and make it explicit, so we can size/position other things relative to it*/
 }
 
@@ -71,7 +72,7 @@ body>* {
     position: absolute;
     bottom: 1%;
     right: 2%;
-    box-shadow: -5px -1px 5px gray;
+    /* box-shadow: -5px -1px 5px gray; */
     transition: background-color 500ms;
 }
 
@@ -127,7 +128,7 @@ body>* {
     height: 3em;
     width: 3em;
     border-color: white;
-    box-shadow: -2px 5px 5px gray;
+    /* box-shadow: -2px 5px 5px gray; */
     position: absolute;
     left: 25%;
     transition: background-color 500ms, left 200ms;
@@ -445,7 +446,7 @@ a {
 }
 
 a:link {
-    color: #00C2EE;
+    color: var(--linkColor);
 }
 
 a:visited {
@@ -463,4 +464,11 @@ a:link:hover {
 
 #sidebar a:visited:hover {
     color: #B5A;
+}
+
+@media (max-width: 1010px) {
+    .collapse {
+        left: 19em;
+        transition: none;
+    }
 }

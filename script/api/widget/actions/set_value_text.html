@@ -1,70 +1,95 @@
 <!doctype html>
 <html lang="en">
-   <head>
-      <meta charset="UTF-8" />
-      <title>widget.set_value_text | ReachVariantTool Documentation</title>
-      <base href="../../../../" />
-      <link rel="stylesheet" href="resources/main.css" />
-      <noscript>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>widget.set_value_text | ReachVariantTool Documentation</title>
+    <base href="../../../../" />
+    <link rel="stylesheet" href="resources/main.css" />
+    <noscript>
          <link rel="stylesheet" href="resources/noscript.css" />
       </noscript>
-      <script src="resources/head.js"></script>
-   </head>
-   <body>
-      <nav id="sidebar">
-         <ul>
+    <script src="resources/head.js"></script>
+</head>
+
+<body>
+    <nav id="sidebar">
+        <ul>
             <li><a href="index.html">Index</a></li>
             <li><a href="script/api/index.html">Script API reference</a></li>
             <hr />
             <li data-disallow-collapse>
-               <a href="script/api/widget.html">HUD Widget</a>
-               <ul>
-                  <li data-delete-if-empty data-dont-default-collapse>
-                     <a>Properties</a>
-                     <ul>
-                        
-                     </ul>
-                  </li>
-                  <li data-delete-if-empty data-dont-default-collapse>
-                     <a>Accessors</a>
-                     <ul>
-                        
-                     </ul>
-                  </li>
-                  <li data-delete-if-empty data-dont-default-collapse>
-                     <a>Member conditions</a>
-                     <ul>
-                        
-                     </ul>
-                  </li>
-                  <li data-delete-if-empty data-dont-default-collapse>
-                     <a>Member actions</a>
-                     <ul>
-                        <li><a href="script/api/widget/actions/set_icon.html">set_icon</a></li>
-<li><a href="script/api/widget/actions/set_meter_params.html">set_meter_params</a></li>
-<li><a href="script/api/widget/actions/set_text.html">set_text</a></li>
-<li><a href="script/api/widget/actions/set_value_text.html">set_value_text</a></li>
-<li><a href="script/api/widget/actions/set_visibility.html">set_visibility</a></li>
+                <a href="script/api/widget.html">HUD Widget</a>
+                <ul>
+                    <li data-delete-if-empty data-dont-default-collapse>
+                        <a>Properties</a>
+                        <ul>
 
-                     </ul>
-                  </li>
-               </ul>
+                        </ul>
+                    </li>
+                    <li data-delete-if-empty data-dont-default-collapse>
+                        <a>Accessors</a>
+                        <ul>
+
+                        </ul>
+                    </li>
+                    <li data-delete-if-empty data-dont-default-collapse>
+                        <a>Member conditions</a>
+                        <ul>
+
+                        </ul>
+                    </li>
+                    <li data-delete-if-empty data-dont-default-collapse>
+                        <a>Member actions</a>
+                        <ul>
+                            <li><a href="script/api/widget/actions/set_icon.html">set_icon</a></li>
+                            <li><a href="script/api/widget/actions/set_meter_params.html">set_meter_params</a></li>
+                            <li><a href="script/api/widget/actions/set_text.html">set_text</a></li>
+                            <li><a href="script/api/widget/actions/set_value_text.html">set_value_text</a></li>
+                            <li><a href="script/api/widget/actions/set_visibility.html">set_visibility</a></li>
+
+                        </ul>
+                    </li>
+                </ul>
             </li>
-         </ul>
-      </nav>
-      <main>
-         <header><h1>widget.set_value_text</h1></header>
-<p>Set the HUD widget's value text.</p>
-<h2>Arguments</h2>
-<dl>
-   <dt><a href="script/api/format-string.html">text</a></dt>
-      <dd><p>A string literal or an integer constant denoting a string index, optionally 
-   followed by up to two variables passed as additional arguments, which will be 
-   substituted into the string when it is displayed.</p></dd>
-</dl>
+        </ul>
+    </nav>
+    <main>
+        <header>
+            <h1>widget.set_value_text</h1>
+        </header>
+        <p>Set the HUD widget's value text, or the white text that sits below the text defined by <a href="script/api/widget/actions/set_text.html">set_text</a>.</p>
+        <h2>Arguments</h2>
+        <dl>
+            <dt><a href="script/api/format-string.html">text</a></dt>
+            <dd>
+                <p>A string literal or an integer constant denoting a string index, optionally followed by up to two variables passed as additional arguments, which will be substituted into the string when it is displayed.</p>
+            </dd>
+        </dl>
 
-      </main>
-      <script src="resources/sidebar.js"></script>
-      <script src="resources/header-links.js"></script>
-   </body>
+        <h2>Example</h2>
+
+        <pre><span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
+   script_widget[0].set_visibility(current_player, false)
+   <span class="keyword">if</span> current_player.number[0] == 1 <span class="keyword">then</span>
+      script_widget[0].set_visibility(current_player, true)
+      script_widget[0].set_value_text(<span class="string">"You are a zombie!</span>")
+   <span class="keyword">end</span>
+<span class="keyword">end</span></pre>
+
+        <h2>Notes</h2>
+        <ul>
+            <li>
+                Calling this action on an incompatible widget will prevent it from being displayed.
+            </li>
+            <li>
+                Calling this function on a compatible widget where the object's <a href="script/api/widget/actions/set_text.html">set_text</a> is not defined will result in the text color being blue and the text value will display as 0.
+            </li>
+        </ul>
+
+    </main>
+    <script src="resources/sidebar.js"></script>
+    <script src="resources/header-links.js"></script>
+</body>
+
 </html>
