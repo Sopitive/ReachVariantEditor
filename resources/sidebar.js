@@ -72,6 +72,7 @@
         root.style.setProperty('--linkColor', '#03E');
         root.style.setProperty('--string', '#292');
         root.style.setProperty('--linkVisited', '#938');
+        root.style.setProperty('--aliasName', 'darkgoldenrod');
     }
 
     function setDark() {
@@ -86,6 +87,7 @@
         root.style.setProperty('--linkColor', '#00C2EE');
         root.style.setProperty('--string', '#39B339');
         root.style.setProperty('--linkVisited', '#E77BD5');
+        root.style.setProperty('--aliasName', 'gold');
     }
     darkToggle.addEventListener("click", () => {
         setStyles()
@@ -164,8 +166,37 @@
             }
         }
     }
+
+    function htmlEncode(value) {
+        let div = document.createElement('div');
+        let text = document.createTextNode(value);
+        div.appendChild(text);
+        return div.innerHTML;
+     }
+
+    function setVariableColor() {
+        const keyword = document.querySelectorAll(".keyword");
+        keyword.forEach(word => {
+          if (word.innerHTML == "alias") {
+            let aliasName = word.nextSibling.nodeValue
+            //This is the actual name of the variable
+            aliasName = aliasName.split("=")[0]
+            //This will set the node value after the word alias to the portion after the equals sign, not including the alias name
+            word.nextSibling.nodeValue = word.nextSibling.nodeValue.substring(word.nextSibling.nodeValue.indexOf("="));
+            let newSpan = document.createElement("span");
+            newSpan.classList.add("aliasName");
+            //set the html of the span to the actual name of the alias, not including its value with the equals sign
+            newSpan.innerHTML = aliasName;
+            //append the alias name span before the value of the alias name
+            word.after(newSpan)
+        }  
+        })
+        
+    }
+
     window.onload = function() {
         sidebar.classList.add("afterload");
         html.classList.add("afterload");
+        setVariableColor()
     }
 })();

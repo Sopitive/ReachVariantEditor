@@ -10,6 +10,7 @@ html {
     --linkColor: #00C2EE;
     --string: #39B339;
     --linkVisited: #E77BD5;
+    --aliasName: gold;
     /*take the firefox default for Calibri and make it explicit, so we can size/position other things relative to it*/
 }
 
@@ -78,12 +79,42 @@ body>* {
     transition: background-color 500ms;
 }
 
+audio::-webkit-media-controls-panel {
+    background-color: var(--mainColor);
+}
+
+audio::-webkit-media-controls-mute-button,
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-timeline-container,
+audio::-webkit-media-controls-timeline,
+audio::-webkit-media-controls-volume-slider-container,
+audio::-webkit-media-controls-volume-slider,
+audio::-webkit-media-controls-seek-back-button,
+audio::-webkit-media-controls-seek-forward-button,
+audio::-webkit-media-controls-fullscreen-button,
+audio::-webkit-media-controls-rewind-button,
+audio::-webkit-media-controls-return-to-realtime-button,
+audio::-webkit-media-controls-toggle-closed-captions-button {
+    filter: invert(100%);
+    margin: 3px 3px;
+}
+
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+    color: var(--mainColor);
+    filter: invert(100%);
+}
+
 .hide-color {
     background-color: #fff !important;
 }
 
 .afterload {
     transition: min-width 500ms, height 500ms, width 200ms, opacity 200ms;
+}
+
+.aliasName  {
+    color: var(--aliasName)
 }
 
 .hide {
