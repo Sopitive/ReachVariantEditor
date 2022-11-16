@@ -11,6 +11,12 @@ html {
     --string: #39B339;
     --linkVisited: #E77BD5;
     --aliasName: gold;
+    --functionCall: mediumseagreen;
+    --property: rgb(225, 88, 88);
+    --type: rgb(103, 203, 203);
+    --title: rgb(241, 143, 250);
+    --default: var(--aliasName);
+    --symbol: var(--functionCall)
     /*take the firefox default for Calibri and make it explicit, so we can size/position other things relative to it*/
 }
 
@@ -35,6 +41,10 @@ html:not([class^="afterload"]) * {
     -ms-transition: none !important;
     -o-transition: none !important;
     transition: none !important;
+}
+
+pre {
+    margin: 0;
 }
 
 body {
@@ -429,6 +439,8 @@ code {
     background: var(--mainColor);
 }
 
+
+
 input {
     background: var(--mainColor);
     color: var(--textColor);
@@ -436,9 +448,15 @@ input {
 
 pre {
     padding: .5em;
-    background: var(--mainColor);
+    background: var(--secondMain);
     border: 1px solid #DDD;
     overflow-x: auto;
+}
+
+pre code {
+    overflow-x: auto;
+    background-color: var(--secondMain);
+    color: var(--default)
 }
 
 pre .comment {
@@ -446,8 +464,57 @@ pre .comment {
     font-style: italic;
 }
 
-pre .string {
+.hljs-keyword {
+    color: var(--linkColor);
+    font-weight: bold;
+}
+
+.hljs-comment {
     color: var(--string);
+}
+
+.hljs-string {
+    color: var(--string);
+}
+
+.hljs-type {
+    color: var(--type);
+}
+
+.hljs-property {
+    color: var(--property);
+    font-weight: bold;
+}
+
+.hljs-number {
+    color: skyblue;
+}
+
+.hljs-literal {
+    color: var(--aliasName);
+}
+
+.hljs-variable {
+    color: var(--aliasName);
+}
+
+.hljs-title {
+    color: var(--title);
+}
+
+.hljs-functionCall:not(.hljs-functionCall span){
+    color: var(--functionCall);
+    font-weight: bold;
+}
+
+.hljs-functionCall span {
+    color: var(--functionCall);
+    font-weight: bold;
+}
+
+.hljs-symbol {
+    color: var(--symbol);
+    font-weight: bold;
 }
 
 ::-webkit-scrollbar {

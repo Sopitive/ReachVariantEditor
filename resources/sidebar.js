@@ -167,12 +167,26 @@
         }
     }
 
-    function htmlEncode(value) {
-        let div = document.createElement('div');
-        let text = document.createTextNode(value);
-        div.appendChild(text);
-        return div.innerHTML;
-     }
+
+
+     const getSiblings = function (elem) {
+
+        // Setup siblings array and get the first sibling
+        var siblings = [];
+        var sibling = elem.firstChild;
+    
+        // Loop through each sibling and push to the array
+        while (sibling) {
+            if (sibling.nodeType === 1 && sibling !== elem) {
+                siblings.push(sibling);
+            }
+            sibling = sibling.nextSibling
+        }
+    
+        return siblings;
+    
+    };
+
 
     function setVariableColor() {
         const keyword = document.querySelectorAll(".keyword");
@@ -180,15 +194,53 @@
           if (word.innerHTML == "alias") {
             let aliasName = word.nextSibling.nodeValue
             //This is the actual name of the variable
+            
+            if (aliasName == null) {
+                return;
+            }
             aliasName = aliasName.split("=")[0]
+            
             //This will set the node value after the word alias to the portion after the equals sign, not including the alias name
-            word.nextSibling.nodeValue = word.nextSibling.nodeValue.substring(word.nextSibling.nodeValue.indexOf("="));
-            let newSpan = document.createElement("span");
-            newSpan.classList.add("aliasName");
-            //set the html of the span to the actual name of the alias, not including its value with the equals sign
-            newSpan.innerHTML = aliasName;
+            //word.nextSibling.nodeValue = word.nextSibling.nodeValue.substring(word.nextSibling.nodeValue.indexOf("="));
+            
             //append the alias name span before the value of the alias name
-            word.after(newSpan)
+            //word.after(newSpan)
+            const pre = document.querySelectorAll("pre");
+            pre.forEach(element => {
+                let siblings = getSiblings(element);
+                siblings.forEach(sibling => {
+                    try {
+                        let followingText = sibling.nextSibling.nodeValue;
+                        let textNode = sibling.nextSibling;
+                        let found = textNode.nodeValue.match(aliasName.trim());
+                        if (found) {
+                            console.log(aliasName.trim())
+                            let new_str = followingText.split(aliasName.trim())[0] + aliasName;
+                            new_str = new_str.split("=")[0]
+                            let newSpan = document.createElement("span");
+                            newSpan.classList.add("aliasName");
+                            //set the html of the span to the actual name of the alias, not including its value with the equals sign
+                            newSpan.innerHTML = aliasName;
+                            console.log(newSpan)
+                            //textNode.nodeValue = "=" + followingText.split("=")[1];
+                            let splitText = followingText.split("=");
+                            if (splitText[1].includes(aliasName.trim())) {
+                                textNode.nodeValue = followingText.replace(aliasName.trim(), "");
+                                textNode.after(newSpan)
+                                //newSpan.parentNode.insertBefore(textNode, newSpan)
+                                //  textNode.nodeValue = textNode.nodeValue.replace(/(\r\n|\n|\r)/, "");
+                                //textNode.nodeValue = textNode.nodeValue.replace("alias", "\n alias");
+                            } else {
+                                spaces = splitText[0].search("\s+")
+                                console.log(spaces)
+                                textNode.nodeValue = followingText.replace(aliasName.trim(), "");
+                                sibling.after(newSpan)
+                            }
+                            console.log(textNode.nodeValue)
+                        }
+                    } catch (ex) {console.log(ex)}                    
+                })
+            })
         }  
         })
         
@@ -197,6 +249,6 @@
     window.onload = function() {
         sidebar.classList.add("afterload");
         html.classList.add("afterload");
-        setVariableColor()
+        //setVariableColor()
     }
 })();
