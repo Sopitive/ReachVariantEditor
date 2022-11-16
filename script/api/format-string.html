@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>Format String | ReachVariantTool Documentation</title>
       <base href="../../" />
@@ -343,21 +346,21 @@
          displays the number of points needed to win if the game variant has a score 
          limit.
       </p>
-      <pre>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span> <span class="comment">-- round card</span>
-   <span class="keyword">if</span> game.score_to_win != 0 <span class="keyword">and</span> game.teams_enabled == 1 <span class="keyword">then</span> 
-      current_player.set_round_card_title(<span class="string">"Kill players on the enemy team.\r\n%n points to win.</span>", game.score_to_win)
-   <span class="keyword">end</span>
-   <span class="keyword">if</span> game.score_to_win != 0 <span class="keyword">and</span> game.teams_enabled == 0 <span class="keyword">then</span> 
-      current_player.set_round_card_title(<span class="string">"Score points by killing other players.\r\n%n points to win.</span>", game.score_to_win)
-   <span class="keyword">end</span>
-   <span class="keyword">if</span> game.score_to_win == 0 <span class="keyword">and</span> game.teams_enabled == 1 <span class="keyword">then</span> 
-      current_player.set_round_card_title(<span class="string">"Kill players on the enemy team.</span>")
-   <span class="keyword">end</span>
-   <span class="keyword">if</span> game.score_to_win == 0 <span class="keyword">and</span> game.teams_enabled == 0 <span class="keyword">then</span> 
-      current_player.set_round_card_title(<span class="string">"Score points by killing other players.</span>")
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+      <pre><code>
+for each player do <span class="comment">-- round card</span>
+   if game.score_to_win != 0 and game.teams_enabled == 1 then 
+      current_player.set_round_card_title("Kill players on the enemy team.\r\n%n points to win.", game.score_to_win)
+   end
+   if game.score_to_win != 0 and game.teams_enabled == 0 then 
+      current_player.set_round_card_title("Score points by killing other players.\r\n%n points to win.", game.score_to_win)
+   end
+   if game.score_to_win == 0 and game.teams_enabled == 1 then 
+      current_player.set_round_card_title("Kill players on the enemy team.")
+   end
+   if game.score_to_win == 0 and game.teams_enabled == 0 then 
+      current_player.set_round_card_title("Score points by killing other players.")
+   end
+end</code></pre>
       <p>
          Note that the game appears to handle strings with improper format codes 
          by simply refusing to display the string at all.

@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>game.grace_period_timer | ReachVariantTool Documentation</title>
       <base href="../../../" />
@@ -106,40 +109,40 @@
             </p>
          
 <h2>Example</h2>
-<pre>
-<span class="keyword">alias</span> sudden_death_enabled   = global.number[0]
-<span class="keyword">alias</span> announced_sudden_death = global.number[1] <span class="comment">-- only announce the start of Sudden Death once</span>
+<pre><code>
+alias sudden_death_enabled   = global.number[0]
+alias announced_sudden_death = global.number[1] <span class="comment">-- only announce the start of Sudden Death once</span>
 
-<span class="keyword">if</span> <span class="keyword">not</span> game.round_timer.is_zero() <span class="keyword">then</span> 
+if not game.round_timer.is_zero() then 
    game.grace_period_timer = 0
-<span class="keyword">end</span>
-<span class="keyword">if</span> game.round_time_limit &gt; 0 <span class="keyword">then</span> 
-   <span class="keyword">if</span> <span class="keyword">not</span> game.round_timer.is_zero() <span class="keyword">then</span> 
+end
+if game.round_time_limit &gt; 0 then 
+   if not game.round_timer.is_zero() then 
       announced_sudden_death = 0
-   <span class="keyword">end</span>
-   <span class="keyword">if</span> game.round_timer.is_zero() <span class="keyword">then</span> 
-      <span class="keyword">if</span> sudden_death_enabled == 1 <span class="keyword">then</span> 
+   end
+   if game.round_timer.is_zero() then 
+      if sudden_death_enabled == 1 then 
          game.sudden_death_timer.set_rate(-100%)
          game.grace_period_timer.reset()
-         <span class="keyword">if</span> announced_sudden_death == 0 <span class="keyword">then</span> 
+         if announced_sudden_death == 0 then 
             send_incident(sudden_death, all_players, all_players)
             announced_sudden_death = 1
-         <span class="keyword">end</span>
-         <span class="keyword">if</span> game.sudden_death_time &gt; 0 <span class="keyword">and</span> game.grace_period_timer &gt; game.sudden_death_timer <span class="keyword">then</span> 
+         end
+         if game.sudden_death_time &gt; 0 and game.grace_period_timer &gt; game.sudden_death_timer then 
             game.grace_period_timer = game.sudden_death_timer
-         <span class="keyword">end</span>
-      <span class="keyword">end</span>
-      <span class="keyword">if</span> sudden_death_enabled == 0 <span class="keyword">then</span> 
+         end
+      end
+      if sudden_death_enabled == 0 then 
          game.grace_period_timer.set_rate(-100%)
-         <span class="keyword">if</span> game.grace_period_timer.is_zero() <span class="keyword">then</span> 
+         if game.grace_period_timer.is_zero() then 
             game.end_round()
-         <span class="keyword">end</span>
-      <span class="keyword">end</span>
-      <span class="keyword">if</span> game.sudden_death_timer.is_zero() <span class="keyword">then</span> 
+         end
+      end
+      if game.sudden_death_timer.is_zero() then 
          game.end_round()
-      <span class="keyword">end</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+      end
+   end
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/ns_game/grace_period_time.html">game.grace_period_time</a></li>

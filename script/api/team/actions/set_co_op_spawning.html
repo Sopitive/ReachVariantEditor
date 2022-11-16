@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>team.set_co_op_spawning | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -71,10 +74,10 @@
       <dd><p>The word <var>true</var> or the word <var>false</var>.</p></dd>
 </dl>
 <h2>Example</h2>
-<pre>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">team</span> <span class="keyword">do</span>
+<pre><code>
+for each team do
    current_team.set_co_op_spawning(true) <span class="comment">-- enable it</span>
-<span class="keyword">end</span></pre>
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/object/actions/enable_spawn_zone.html">object.enable_spawn_zone</a></li>

@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>game.score_to_win | ReachVariantTool Documentation</title>
       <base href="../../../" />
@@ -87,30 +90,30 @@
          
 <p>This value is read-only.</p>
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">-- Code borrowed from Territories, with slight modifications: play announcer </span>
 <span class="comment">-- voiceovers when the player approaches the score to win.</span>
 
-<span class="keyword">alias</span> announced_30s_win = player.number[0]
-<span class="keyword">alias</span> announced_60s_win = player.number[1]
+alias announced_30s_win = player.number[0]
+alias announced_60s_win = player.number[1]
 
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-   <span class="keyword">alias</span> threshold_30s = temp_int_00
-   <span class="keyword">alias</span> threshold_60s = temp_int_02
+for each player do
+   alias threshold_30s = temp_int_00
+   alias threshold_60s = temp_int_02
    <span class="comment">--</span>
    threshold_30s = game.score_to_win
    threshold_60s = game.score_to_win
    threshold_30s -= 30
    threshold_60s -= 60
-   <span class="keyword">if</span> current_player.score &gt;= threshold_60s <span class="keyword">and</span> current_player.announced_60s_win == 0 <span class="keyword">and</span> game.score_to_win &gt; 60 <span class="keyword">then</span> 
+   if current_player.score &gt;= threshold_60s and current_player.announced_60s_win == 0 and game.score_to_win &gt; 60 then 
       send_incident(one_minute_team_win, current_player, all_players)
       current_player.announced_60s_win = 1
-   <span class="keyword">end</span>
-   <span class="keyword">if</span> current_player.score &gt;= threshold_30s <span class="keyword">and</span> current_player.announced_30s_win == 0 <span class="keyword">and</span> game.score_to_win &gt; 30 <span class="keyword">then</span> 
+   end
+   if current_player.score &gt;= threshold_30s and current_player.announced_30s_win == 0 and game.score_to_win &gt; 30 then 
       send_incident(half_minute_team_win, current_player, all_players)
       current_player.announced_30s_win = 1
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+   end
+end</code></pre>
 <h2>Notes</h2>
 <ul>
    <li><p>

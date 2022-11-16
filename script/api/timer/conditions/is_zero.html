@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>timer.is_zero | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -54,25 +57,25 @@
          <header><h1>timer.is_zero</h1></header>
 <p>Checks whether the timer's value is zero.</p>
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">--</span>
 <span class="comment">-- A common use of timers is to announce the gametype name at the </span>
 <span class="comment">-- start of a round, by "sending an incident" a few seconds after </span>
 <span class="comment">-- script processing begins.</span>
 <span class="comment">--</span>
-<span class="keyword">alias</span> announced_start = player.number[0]
-<span class="keyword">alias</span> announced_timer = player.timer[0]
-<span class="keyword">declare</span> player.announced_timer = 5
+alias announced_start = player.number[0]
+alias announced_timer = player.timer[0]
+declare player.announced_timer = 5
 <span class="comment">--</span>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-   <span class="keyword">if</span> current_player.announced_start == 0 <span class="keyword">then</span>
+for each player do
+   if current_player.announced_start == 0 then
       current_player.announced_timer.set_rate(-100%)
-      <span class="keyword">if</span> current_player.announced_timer.is_zero() <span class="keyword">then</span>
+      if current_player.announced_timer.is_zero() then
          current_player.announced_start = 1
          send_incident(action_sack_game_start, current_player, no_player)
-      <span class="keyword">end</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+      end
+   end
+end</code></pre>
 
       </main>
       <script src="resources/sidebar.js"></script>

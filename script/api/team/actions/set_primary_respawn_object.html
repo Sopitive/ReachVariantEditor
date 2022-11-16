@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>team.set_primary_respawn_object | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -64,21 +67,21 @@
       <dd><p>The object to use as a respawn point.</p></dd>
 </dl>
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">-- Set a team's primary respawn object to the object with a specific label </span>
 <span class="comment">-- and the lowest spawn sequence on the map.</span>
 
-<span class="keyword">do</span>
-   <span class="keyword">alias</span> lowest = global.number[0]
+do
+   alias lowest = global.number[0]
    <span class="comment">--</span>
    lowest = 32767
-   <span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">object</span> <span class="subkeyword">with</span> <span class="subkeyword">label</span> <span class="string">"defend_res_zone</span>" <span class="keyword">do</span>
-      <span class="keyword">if</span> current_object.spawn_sequence &lt; lowest <span class="keyword">then</span>
+   for each object with label "defend_res_zone" do
+      if current_object.spawn_sequence &lt; lowest then
          lowest = current_object.spawn_sequence
          team[0].set_primary_respawn_object(current_object)
-      <span class="keyword">end</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+      end
+   end
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/object/actions/enable_spawn_zone.html">object.enable_spawn_zone</a></li>

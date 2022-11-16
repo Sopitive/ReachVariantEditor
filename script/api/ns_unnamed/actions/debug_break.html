@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>debug_break | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -80,12 +83,12 @@
 <p>A non-functional debugging tool. In Halo: Reach's debug builds, 
             this probably broke into a debugger.</p>
 <h2>Example</h2>
-<pre>
-<span class="keyword">alias</span> this_should_not_be_1 = global.number[0]
+<pre><code>
+alias this_should_not_be_1 = global.number[0]
 <span class="comment">--</span>
-<span class="keyword">if</span> this_should_not_be_1 == 1 <span class="keyword">then</span>
+if this_should_not_be_1 == 1 then
    debug_break()
-<span class="keyword">end</span></pre>
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/ns_unnamed/actions/debug_force_player_view_count.html">debug_force_player_view_count</a></li>

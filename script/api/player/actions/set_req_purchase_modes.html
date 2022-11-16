@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>player.set_req_purchase_modes | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -123,10 +126,10 @@
                </dd>
 </dl>
 <h2>Example</h2>
-<pre>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
+<pre><code>
+for each player do
    current_player.set_req_purchase_modes(alive_weapons | alive_equipment | alive_vehicles | dead_weapons | dead_equipment)
-<span class="keyword">end</span></pre>
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/player/actions/increment_req_money_by.html">player.increment_req_money_by</a></li>

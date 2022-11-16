@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>If-statements | ReachVariantTool Documentation</title>
       <base href="../" />
@@ -182,14 +185,14 @@
          If you want to run a piece of code only when certain conditions are met, you 
          should use an if-statement:
       </p>
-      <pre>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-   <span class="keyword">if</span> current_player.team == team[0] <span class="keyword">then</span>
+      <pre><code>
+for each player do
+   if current_player.team == team[0] then
       <span class="comment">--</span>
       <span class="comment">-- ... do something ...</span>
       <span class="comment">--</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+   end
+end</code></pre>
       <p>
          An if-statement typically consists of the word "if," followed by one or more 
          conditions. Each condition is either a comparison statement or a function call. 
@@ -221,24 +224,24 @@
          dialect used by ReachVariantTool offers similar statements as a shortcut. The two 
          pieces of code below behave identically (in fact, the former compiles to the latter):
       </p>
-      <pre>
-<span class="keyword">if</span> x == 1 <span class="keyword">then</span>
+      <pre><code>
+if x == 1 then
    run_function_a()
-<span class="keyword">altif</span> y == 1 <span class="keyword">then</span>
+altif y == 1 then
    run_function_b()
-<span class="keyword">alt</span>
+alt
    run_function_c()
-<span class="keyword">end</span></pre>
-      <pre>
-<span class="keyword">if</span> x == 1 <span class="keyword">then</span>
+end</code></pre>
+      <pre><code>
+if x == 1 then
    run_function_a()
-<span class="keyword">end</span>
-<span class="keyword">if</span> x != 1 <span class="keyword">and</span> y == 1 <span class="keyword">then</span>
+end
+if x != 1 and y == 1 then
    run_function_b()
-<span class="keyword">end</span>
-<span class="keyword">if</span> x != 1 <span class="keyword">and</span> y != 1 <span class="keyword">then</span>
+end
+if x != 1 and y != 1 then
    run_function_c()
-<span class="keyword">end</span></pre>
+end</code></pre>
       <p>
          The main difference between this construct and "else(if)" is that if, in our example 
          above, if <var>x</var> is initially 1 but <var>run_function_a</var> changes the value 
@@ -249,38 +252,38 @@
          If you need your branches to be mutually exclusive as they would be in an "else(if)" 
          statement, then you will need to use a variable to maintain state:
       </p>
-      <pre>
-<span class="keyword">alias</span> ran_any = global.number[0]
+      <pre><code>
+alias ran_any = global.number[0]
 ran_any = 0
-<span class="keyword">if</span> x == 1 <span class="keyword">then</span>
+if x == 1 then
    ran_any = 1
    run_function_a()
-<span class="keyword">end</span>
-<span class="keyword">if</span> ran_any == 0 <span class="keyword">then</span>
-   <span class="keyword">if</span> y == 1 <span class="keyword">then</span>
+end
+if ran_any == 0 then
+   if y == 1 then
       ran_any = 1
       run_function_b()
-   <span class="keyword">end</span>
-   <span class="keyword">if</span> ran_any == 0 <span class="keyword">then</span>
-      <span class="keyword">if</span> y != 1 <span class="keyword">then</span>
+   end
+   if ran_any == 0 then
+      if y != 1 then
          run_function_c()
-      <span class="keyword">end</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+      end
+   end
+end</code></pre>
       <p>
          The example above may be easier to read if you consider that else(if) statements can 
          be written as nested else and if statements:
       </p>
-      <pre>
-<span class="keyword">if</span> x == 1 <span class="keyword">then</span>
+      <pre><code>
+if x == 1 then
    run_function_a()
 else
-   <span class="keyword">if</span> y == 1 <span class="keyword">then</span>
+   if y == 1 then
       run_function_b()
    else
       run_function_c()
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+   end
+end</code></pre>
       
       <h2>Else and else-if</h2>
       <p>
@@ -305,20 +308,20 @@ else
          In other words: the following two pieces of code do the same thing, but the second one 
          uses one less trigger and so contributes less to script size limits:
       </p>
-      <pre>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-   <span class="keyword">if</span> current_player.team == team[0] <span class="keyword">then</span>
-      game.show_message_to(current_player, none, <span class="string">"Your objective is under attack!</span>")
-   <span class="keyword">end</span>
+      <pre><code>
+for each player do
+   if current_player.team == team[0] then
+      game.show_message_to(current_player, none, "Your objective is under attack!")
+   end
    script_widget[0].set_visibility(current_player, true)
-<span class="keyword">end</span></pre>
-      <pre>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
+end</code></pre>
+      <pre><code>
+for each player do
    script_widget[0].set_visibility(current_player, true)
-   <span class="keyword">if</span> current_player.team == team[0] <span class="keyword">then</span>
-      game.show_message_to(current_player, none, <span class="string">"Your objective is under attack!</span>")
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+   if current_player.team == team[0] then
+      game.show_message_to(current_player, none, "Your objective is under attack!")
+   end
+end</code></pre>
    
       </main>
       <script src="resources/sidebar.js"></script>

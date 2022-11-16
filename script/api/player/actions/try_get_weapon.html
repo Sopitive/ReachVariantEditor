@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>player.try_get_weapon | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -123,20 +126,20 @@
                </dd>
 </dl>
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">--</span>
 <span class="comment">-- Delete the player's weapon if it is not a Gravity Hammer:</span>
 <span class="comment">--</span>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
+for each player do
    global.object[0] = current_player.get_weapon(secondary)
-   <span class="keyword">if</span> <span class="keyword">not</span> global.object[0].is_of_type(gravity_hammer) <span class="keyword">then</span>
+   if not global.object[0].is_of_type(gravity_hammer) then
       global.object[0].delete()
-   <span class="keyword">end</span>
+   end
    global.object[0] = current_player.get_weapon(primary)
-   <span class="keyword">if</span> <span class="keyword">not</span> global.object[0].is_of_type(gravity_hammer) <span class="keyword">then</span>
+   if not global.object[0].is_of_type(gravity_hammer) then
       global.object[0].delete()
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+   end
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/object/actions/add_weapon.html">object.add_weapon</a></li>

@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>player.assisted_kill_of | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -107,26 +110,26 @@
       <dd><p>A player that is or was present in the current match.</p></dd>
 </dl>
 <h2>Example</h2>
-<pre>
-<span class="keyword">alias</span> opt_kill_points   = script_option[0]
-<span class="keyword">alias</span> opt_assist_points = script_option[1]
+<pre><code>
+alias opt_kill_points   = script_option[0]
+alias opt_assist_points = script_option[1]
 
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-   <span class="keyword">if</span> current_player.killer_type_is(kill) <span class="keyword">then</span>
-      <span class="keyword">alias</span> killer = global.player[0]
-      <span class="keyword">alias</span> victim = global.player[1]
+for each player do
+   if current_player.killer_type_is(kill) then
+      alias killer = global.player[0]
+      alias victim = global.player[1]
       <span class="comment">--</span>
       victim = current_player
       killer = current_player.get_killer()
       killer.score += opt_kill_points
       <span class="comment">--</span>
-      <span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-         <span class="keyword">if</span> current_player != victim <span class="keyword">and</span> current_player.assisted_kill_of(victim) <span class="keyword">then</span>
+      for each player do
+         if current_player != victim and current_player.assisted_kill_of(victim) then
             current_player.score += opt_assist_points
-         <span class="keyword">end</span>
-      <span class="keyword">end</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+         end
+      end
+   end
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/player/conditions/killer_type_is.html">player.killer_type_is</a></li>

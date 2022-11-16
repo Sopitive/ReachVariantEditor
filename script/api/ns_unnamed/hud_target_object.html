@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>hud_target_object | ReachVariantTool Documentation</title>
       <base href="../../../" />
@@ -86,15 +89,15 @@
          
 <p>This value is read-only.</p>
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">--</span>
 <span class="comment">-- Have an object's waypoint display the name of a player, based on one of </span>
 <span class="comment">-- the object's player variables.</span>
 <span class="comment">--</span>
-<span class="keyword">if</span> current_object.player[0] != no_player <span class="keyword">then</span>
+if current_object.player[0] != no_player then
    current_object.set_waypoint_visibility(everyone)
-   current_object.set_waypoint_text(<span class="string">"%p</span>", hud_target_object.player[0])
-<span class="keyword">end</span></pre>
+   current_object.set_waypoint_text("%p", hud_target_object.player[0])
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/ns_unnamed/current_object.html">current_object</a></li>

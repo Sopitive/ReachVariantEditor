@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>object.team | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -104,16 +107,16 @@
          <header><h1>object.team</h1><span class="type">Type: <a href="script/api/team.html">Team</a></span></header>
 <p>The object's owner team.</p>
 <h2>Example</h2>
-<pre>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">team</span> <span class="keyword">do</span>
-   <span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">object</span> <span class="subkeyword">with</span> <span class="subkeyword">label</span> <span class="string">"ctf_res_zone</span>" <span class="keyword">do</span>
-      <span class="keyword">if</span> current_object.team == current_team <span class="keyword">then</span>
+<pre><code>
+for each team do
+   for each object with label "ctf_res_zone" do
+      if current_object.team == current_team then
          <span class="comment">--</span>
          <span class="comment">-- do something</span>
          <span class="comment">--</span>
-      <span class="keyword">end</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+      end
+   end
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/player/properties/team.html">player.team</a></li>

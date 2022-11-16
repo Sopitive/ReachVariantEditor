@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>object.place_at_me | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -144,11 +147,11 @@
                </p></dd>
 </dl>
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">--</span>
 <span class="comment">-- Spawn a Spartan with Kat's armor:</span>
 <span class="comment">--</span>
-global.object[0] = global.object[1].place_at_me(spartan, none, never_garbage_collect, 0, 0, 0, kat)</pre>
+global.object[0] = global.object[1].place_at_me(spartan, none, never_garbage_collect, 0, 0, 0, kat)</code></pre>
 <h2>Notes</h2>
 <ul>
    <li><p>

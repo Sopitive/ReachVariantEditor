@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>User-defined functions | ReachVariantTool Documentation</title>
       <base href="../" />
@@ -194,15 +197,15 @@
       <p>
          This code sample creates five skulls and pushes them upward semi-randomly:
       </p>
-      <pre>
+      <pre><code>
 <span class="comment">--</span>
 <span class="comment">-- Define the function:</span>
 <span class="comment">--</span>
-<span class="keyword">function</span> my_cool_code()
+function my_cool_code()
    global.object[1] = global.object[0].place_at_me(skull, none, none, 0, 0, 0, none)
    global.object[1].push_upward()
    global.object[1].push_upward()
-<span class="keyword">end</span>
+end
 
 <span class="comment">--</span>
 <span class="comment">-- Call the function five times:</span>
@@ -211,27 +214,27 @@ my_cool_code()
 my_cool_code()
 my_cool_code()
 my_cool_code()
-my_cool_code()</pre>
+my_cool_code()</code></pre>
       
       <h2>Recursion</h2>
       <p>
          User-defined functions can be <dfn>recursive</dfn>: that is, they can call themselves 
          in order to run under specific conditions:
       </p>
-      <pre>
+      <pre><code>
 <span class="comment">--</span>
 <span class="comment">-- This function will perform a task "global.number[0]" many times:</span>
 <span class="comment">--</span>
-<span class="keyword">function</span> spawn_skulls()
+function spawn_skulls()
    global.object[1] = global.object[0].place_at_me(skull, none, none, 0, 0, 0, none)
    global.object[1].push_upward()
    global.object[1].push_upward()
    <span class="comment">--</span>
    global.number[0] -= 1
-   <span class="keyword">if</span> global.number[0] &gt; 0 <span class="keyword">then</span>
+   if global.number[0] &gt; 0 then
       spawn_skulls()
-   <span class="keyword">end</span>
-<span class="keyword">end</span>
+   end
+end
 
 <span class="comment">--</span>
 <span class="comment">-- Let's spawn ten skulls:</span>
@@ -244,7 +247,7 @@ spawn_skulls()
 <span class="comment">--</span>
 global.number[0]  = rand(19)
 global.number[0] += 1 <span class="comment">-- ensure it's at least one</span>
-spawn_skulls()</pre>
+spawn_skulls()</code></pre>
       <p>
          When writing recursive functions, you need to be careful to ensure that the function 
          actually <em>ends</em>: there must be some circumstance under which the function 

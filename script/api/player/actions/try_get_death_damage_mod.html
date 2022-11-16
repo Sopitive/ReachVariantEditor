@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>player.try_get_death_damage_mod | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -114,22 +117,22 @@
                </p>
             
 <p>This function returns <a href="script/api/number.html">number</a>. Calling this function without storing its return value in a variable is an error.</p><h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">--</span>
 <span class="comment">-- Award points for killing any other player (including allies) with a splatter.</span>
 <span class="comment">--</span>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-   <span class="keyword">if</span> current_player.killer_type_is(guardians | suicide | kill | betrayal | quit) <span class="keyword">then</span>
+for each player do
+   if current_player.killer_type_is(guardians | suicide | kill | betrayal | quit) then
       <span class="comment">--</span>
       <span class="comment">-- The player is dead.</span>
       <span class="comment">--</span>
       global.number[0] = current_player.get_death_damage_mod()
-      <span class="keyword">if</span> global.number[0] == enums.damage_reporting_mod.splatter <span class="keyword">then</span>
+      if global.number[0] == enums.damage_reporting_mod.splatter then
          global.player[0] = current_player.get_killer()
          global.player[0].score += 1
-      <span class="keyword">end</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+      end
+   end
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/player/conditions/assisted_kill_of.html">player.assisted_kill_of</a></li>

@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>game.symmetry | ReachVariantTool Documentation</title>
       <base href="../../../" />
@@ -86,24 +89,24 @@
             </p>
          
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">-- Code taken from CTF TU:</span>
 
-<span class="keyword">enum</span> sides
+enum sides
    multi
    one
    neutral
    three
-<span class="keyword">end</span>
+end
 
-<span class="keyword">alias</span> opt_symmetry = script_option[0]
+alias opt_symmetry = script_option[0]
 
-<span class="keyword">on</span> pregame: <span class="keyword">do</span>
+on pregame: do
    game.symmetry = 1
-   <span class="keyword">if</span> opt_sides == sides.one <span class="keyword">then</span> 
+   if opt_sides == sides.one then 
       game.symmetry = 0
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+   end
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/ns_game/symmetry_get.html">game.symmetry_get</a></li>

@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>get_random_object | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -96,10 +99,10 @@
                function is not allowed to return this object.</p></dd>
 </dl>
 <h2>Example</h2>
-<pre>
-<span class="keyword">alias</span> current_hill = global.object[0]
+<pre><code>
+alias current_hill = global.object[0]
 
-current_hill = get_random_object(<span class="string">"koth_hill</span>", current_hill)</pre>
+current_hill = get_random_object("koth_hill", current_hill)</code></pre>
 
       </main>
       <script src="resources/sidebar.js"></script>

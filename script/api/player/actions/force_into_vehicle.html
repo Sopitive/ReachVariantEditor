@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>player.force_into_vehicle | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -102,22 +105,22 @@
       <dd><p>The vehicle to force the player into.</p></dd>
 </dl>
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">--</span>
 <span class="comment">-- Force players into Sabres.</span>
 <span class="comment">--</span>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
+for each player do
    <span class="comment">--</span>
    <span class="comment">-- First, let's make sure the player is actually spawned on the map.</span>
    <span class="comment">--</span>
-   <span class="keyword">if</span> current_player.biped != no_object <span class="keyword">then</span>
+   if current_player.biped != no_object then
       global.object[0] = current_player.get_vehicle()
-      <span class="keyword">if</span> global.object[0] == no_object <span class="keyword">then</span>
+      if global.object[0] == no_object then
          global.object[0] = current_player.biped.place_at_me(sabre, none, none, 0, 0, 0, none)
          current_player.force_into_vehicle(global.object[0])
-      <span class="keyword">end</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+      end
+   end
+end</code></pre>
 <h2>Notes</h2>
 <ul>
    <li><p>

@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>team.get_scoreboard_pos | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -64,16 +67,16 @@
                </p>
             
 <p>This function returns <a href="script/api/number.html">number</a>. Calling this function without storing its return value in a variable is an error.</p><h2>Example</h2>
-<pre>
-<span class="keyword">alias</span> leader = global.team[0]
+<pre><code>
+alias leader = global.team[0]
 
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">team</span> <span class="keyword">do</span>
+for each team do
    leader = no_team
    global.number[0] = current_team.get_scoreboard_pos()
-   <span class="keyword">if</span> global.number[0] == 1 <span class="keyword">then</span>
+   if global.number[0] == 1 then
       leader = current_team
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+   end
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/player/actions/get_scoreboard_pos.html">player.get_scoreboard_pos</a></li>

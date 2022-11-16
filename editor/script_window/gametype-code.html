@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>Gametype Code | ReachVariantTool Documentation</title>
       <base href="../../" />
@@ -202,10 +205,10 @@
          that you use to the <a href="editor/script_window/string-table.html">string table</a> in advance. You can just 
          <em>use</em> a string literal, and ReachVariantTool will try to handle it:
       </p>
-      <pre>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-   current_player.set_round_card_title(<span class="string">"i didn't bother defining this text\nin advance lol</span>")
-<span class="keyword">end</span></pre>
+      <pre><code>
+for each player do
+   current_player.set_round_card_title("i didn't bother defining this text\nin advance lol")
+end</code></pre>
       <p>
          <em>However</em>, ReachVariantTool needs just a little bit of help to handle these. 
          When it detects a new string literal in your script, it will display this dialog box:

@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>timer.reset | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -54,21 +57,21 @@
          <header><h1>timer.reset</h1></header>
 <p>Reset a timer to its initial value.</p>
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">--</span>
 <span class="comment">-- Do something every ten seconds:</span>
 <span class="comment">--</span>
-<span class="keyword">declare</span> global.timer[0] = 10
+declare global.timer[0] = 10
 
-<span class="keyword">do</span>
+do
    global.timer[0].set_rate(-100%)
-   <span class="keyword">if</span> global.timer[0].is_zero() <span class="keyword">then</span>
+   if global.timer[0].is_zero() then
       global.timer[0].reset()
       <span class="comment">--</span>
       <span class="comment">-- ...and do the thing here</span>
       <span class="comment">--</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+   end
+end</code></pre>
 
       </main>
       <script src="resources/sidebar.js"></script>

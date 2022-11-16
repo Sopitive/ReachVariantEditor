@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>object.attach_to | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -153,9 +156,9 @@
                </p></dd>
 </dl>
 <h2>Example</h2>
-<pre>
-<span class="keyword">alias</span> basis = global.object[0]
-current_object.attach_to(basis, 0, 0, 20, relative)</pre>
+<pre><code>
+alias basis = global.object[0]
+current_object.attach_to(basis, 0, 0, 20, relative)</code></pre>
 <h2>Notes</h2>
 <h3><a name="anchoring">Anchoring</a></h3>
 
@@ -165,11 +168,11 @@ current_object.attach_to(basis, 0, 0, 20, relative)</pre>
                   of code would create a skull and anchor that skull to a Warthog's 
                   steering wheel:
                </p>
-               <pre>
-<span class="keyword">alias</span> some_warthog = ...
+               <pre><code>
+alias some_warthog = ...
 <span class="comment">--</span>
 global.object[0] = some_warthog.place_at_me(skull, none, none, 0, 0, 0, none)
-global.object[0].attach_to(some_warthog, 0, 0, 20, relative)</pre>
+global.object[0].attach_to(some_warthog, 0, 0, 20, relative)</code></pre>
                <p>
                   Even though the skull is attached to a point two full Forge units 
                   above the Warthog, it still attaches to the nearest node in the 

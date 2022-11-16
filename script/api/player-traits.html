@@ -2,6 +2,9 @@
 <html lang="en">
 
 <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
     <meta charset="UTF-8" />
     <title>Player Traits | ReachVariantTool Documentation</title>
     <base href="../../" />
@@ -185,11 +188,11 @@
             Traits can be applied to each player using <code>script_traits[n]</code>, where <code>n</code> is equal to the index of the traits to be applied.
         </p>
         <h2>Example</h2>
-        <pre><span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-    <span class="keyword">if</span> current_player.biped.is_of_type(spartan) then
+        <pre><code>for each player do
+    if current_player.biped.is_of_type(spartan) then
         current_player.apply_traits(script_traits[0])
-    <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+    end
+end</code></pre>
         <h2>Notes</h2>
         <ul>
             <li>

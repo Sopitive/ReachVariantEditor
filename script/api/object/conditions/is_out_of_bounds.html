@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>object.is_out_of_bounds | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -110,15 +113,15 @@
                </p>
             
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">--</span>
 <span class="comment">-- Delete objects that fall out of bounds.</span>
 <span class="comment">--</span>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">object</span> <span class="keyword">do</span>
-   <span class="keyword">if</span> current_object.is_out_of_bounds() <span class="keyword">then</span>
+for each object do
+   if current_object.is_out_of_bounds() then
       current_object.delete()
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+   end
+end</code></pre>
 
       </main>
       <script src="resources/sidebar.js"></script>

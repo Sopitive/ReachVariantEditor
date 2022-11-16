@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>object.set_spawn_location_fireteams | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -114,11 +117,11 @@
 The word none, the word all, or a comma-separated 
                list of fireteam indices (starting at 0) that should be able to use this 
                object as a spawn location.<h2>Example</h2>
-<pre>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">object</span> <span class="subkeyword">with</span> <span class="subkeyword">label</span> <span class="string">"fireteam_1_spawn</span>" <span class="keyword">do</span>
+<pre><code>
+for each object with label "fireteam_1_spawn" do
    current_object.set_spawn_location_fireteams(0)
    current_object.set_spawn_location_permissions(allies)
-<span class="keyword">end</span></pre>
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/object/actions/enable_spawn_zone.html">object.enable_spawn_zone</a></li>

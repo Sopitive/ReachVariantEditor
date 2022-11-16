@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>send_incident | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -102,31 +105,31 @@
       <dd><p>A numeric constant or variable.</p></dd>
 </dl>
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">--</span>
 <span class="comment">-- Code for awarding the "Dive Bomber" DLC achievement, which you earn by </span>
 <span class="comment">-- killing a player with an assassination while they're using a jetpack:</span>
 <span class="comment">--</span>
 <span class="comment">-- (Assumes Forge Label #0 is an unnamed label referring to jetpacks.)</span>
 <span class="comment">--</span>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span> <span class="comment">-- award Dive Bomber achievement as appropriate</span>
-   <span class="keyword">alias</span> killer    = global.player[0]
-   <span class="keyword">alias</span> killer_aa = global.object[0]
-   <span class="keyword">alias</span> death_mod = global.number[2]
-   <span class="keyword">if</span> current_player.killer_type_is(kill) <span class="keyword">then</span> 
+for each player do <span class="comment">-- award Dive Bomber achievement as appropriate</span>
+   alias killer    = global.player[0]
+   alias killer_aa = global.object[0]
+   alias death_mod = global.number[2]
+   if current_player.killer_type_is(kill) then 
       killer    = no_player
       killer    = current_player.try_get_killer()
       death_mod = 0
       death_mod = current_player.try_get_death_damage_mod()
-      <span class="keyword">if</span> death_mod == enums.damage_reporting_modifier.assassination <span class="keyword">then</span> 
+      if death_mod == enums.damage_reporting_modifier.assassination then 
          killer_aa = no_object
          killer_aa = killer.try_get_armor_ability()
-         <span class="keyword">if</span> killer_aa.has_forge_label(0) <span class="keyword">and</span> killer_aa.is_in_use() <span class="keyword">then</span> 
+         if killer_aa.has_forge_label(0) and killer_aa.is_in_use() then 
             send_incident(dlc_achieve_2, killer, killer, 65)
-         <span class="keyword">end</span>
-      <span class="keyword">end</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+         end
+      end
+   end
+end</code></pre>
 
       </main>
       <script src="resources/sidebar.js"></script>

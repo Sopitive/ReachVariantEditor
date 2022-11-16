@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>object.apply_shape_color_from_player_member | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -122,17 +125,17 @@
                   or an alias of such.</p></dd>
 </dl>
 <h2>Example</h2>
-<pre>
-<span class="keyword">alias</span> owner = object.player[1]
+<pre><code>
+alias owner = object.player[1]
 
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">object</span> <span class="subkeyword">with</span> <span class="subkeyword">label</span> <span class="string">"koth_hill</span>" <span class="keyword">do</span>
+for each object with label "koth_hill" do
    <span class="comment">--</span>
    <span class="comment">-- The next three lines do the exact same thing:</span>
    <span class="comment">--</span>
    current_object.apply_shape_color_from_player_member(1)
    current_object.apply_shape_color_from_player_member(object.player[1])
    current_object.apply_shape_color_from_player_member(object.owner)
-<span class="keyword">end</span></pre>
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/object/actions/set_shape.html">object.set_shape</a></li>

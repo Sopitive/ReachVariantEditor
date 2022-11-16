@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>object.has_forge_label | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -110,13 +113,13 @@
    denoting the index of a Forge label in the game variant's label list.</p></dd>
 </dl>
 <h2>Example</h2>
-<pre>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
+<pre><code>
+for each player do
    global.object[0] = current_player.get_weapon(primary)
-   <span class="keyword">if</span> global.object[0].has_forge_label(<span class="string">"bad_weapon</span>") <span class="keyword">then</span>
+   if global.object[0].has_forge_label("bad_weapon") then
       current_player.biped.kill(false)
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+   end
+end</code></pre>
 
       </main>
       <script src="resources/sidebar.js"></script>

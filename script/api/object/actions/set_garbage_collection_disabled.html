@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>object.set_garbage_collection_disabled | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -121,35 +124,35 @@
                </p></dd>
 </dl>
 <h2>Example</h2>
-<pre>
-<span class="keyword">alias</span> has_been_carried = object.number[0]
-<span class="keyword">alias</span> expire_timer     = object.timer[0]
-<span class="keyword">declare</span> object.has_been_carried <span class="subkeyword">with</span> <span class="subkeyword">network</span> <span class="subkeyword">priority</span> <span class="subkeyword">low</span> = 0
-<span class="keyword">declare</span> object.expire_timer = 60
+<pre><code>
+alias has_been_carried = object.number[0]
+alias expire_timer     = object.timer[0]
+declare object.has_been_carried with network priority low = 0
+declare object.expire_timer = 60
 
 <span class="comment">-- pretend this is a Forge label with no name, targeted to Rocket Launchers:</span>
-<span class="keyword">alias</span> all_rockets  = 1
+alias all_rockets  = 1
 
 <span class="comment">-- Let's say we want to prevent dropped Rocket Launchers from </span>
 <span class="comment">-- despawning for a full minute.</span>
 
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">object</span> <span class="subkeyword">with</span> <span class="subkeyword">label</span> all_rockets <span class="keyword">do</span>
+for each object with label all_rockets do
    global.player[0] = current_object.get_carrier()
-   <span class="keyword">if</span> global.player[0] != no_player <span class="keyword">then</span>
+   if global.player[0] != no_player then
       current_object.set_garbage_collection_disabled(0)
       current_object.expire_timer.set_rate(0%)
       current_object.expire_timer.reset()
       current_object.has_been_carried = 1
-   <span class="keyword">end</span>
-   <span class="keyword">if</span> current_object.has_been_carried == 1 <span class="keyword">and</span> global.player[0] == no_player <span class="keyword">then</span>
+   end
+   if current_object.has_been_carried == 1 and global.player[0] == no_player then
       current_object.set_garbage_collection_disabled(1)
       current_object.expire_timer.set_rate(-100%)
-      <span class="keyword">if</span> current_object.expire_timer.is_zero() <span class="keyword">then</span>
+      if current_object.expire_timer.is_zero() then
          current_object.set_garbage_collection_disabled(0)
          current_object.has_been_carried = 0
-      <span class="keyword">end</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+      end
+   end
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/object/actions/delete.html">object.delete</a></li>

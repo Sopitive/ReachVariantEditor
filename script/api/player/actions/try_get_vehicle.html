@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>player.try_get_vehicle | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -110,27 +113,27 @@
                </p>
             
 <p>This function returns <a href="script/api/object.html">object</a>. Calling this function without storing its return value in a variable is an error.</p><h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">--</span>
 <span class="comment">-- Award points for killing an enemy using a sniper rifle while riding in a revenant.</span>
 <span class="comment">--</span>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-   <span class="keyword">alias</span> killer  = global.player[0]
-   <span class="keyword">alias</span> vehicle = global.object[0]
-   <span class="keyword">if</span> current_player.killer_type_is(kill) <span class="keyword">then</span>
+for each player do
+   alias killer  = global.player[0]
+   alias vehicle = global.object[0]
+   if current_player.killer_type_is(kill) then
       <span class="comment">--</span>
       <span class="comment">-- The player is dead.</span>
       <span class="comment">--</span>
       global.number[0] = current_player.get_death_damage_type()
-      <span class="keyword">if</span> global.number[0] == enums.damage_reporting_type.sniper_rifle <span class="keyword">then</span>
+      if global.number[0] == enums.damage_reporting_type.sniper_rifle then
          killer  = current_player.get_killer()
          vehicle = killer.get_vehicle()
-         <span class="keyword">if</span> vehicle.is_of_type(revenant) <span class="keyword">then</span>
+         if vehicle.is_of_type(revenant) then
             killer.score += 1
-         <span class="keyword">end</span>
-      <span class="keyword">end</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+         end
+      end
+   end
+end</code></pre>
 <h2>Notes</h2>
 <ul>
    <li><p>

@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>player.set_round_card_text | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -110,22 +113,22 @@
    substituted into the string when it is displayed.</p></dd>
 </dl>
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">--</span>
 <span class="comment">-- Relevant code from Invasion:</span>
 <span class="comment">--</span>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-   <span class="keyword">if</span> current_player.team == team[1] <span class="keyword">then</span> 
+for each player do
+   if current_player.team == team[1] then 
       current_player.set_round_card_icon(covenant)
-      current_player.set_round_card_text(<span class="string">"Elite</span>")
-   <span class="keyword">end</span>
-<span class="keyword">end</span>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-   <span class="keyword">if</span> current_player.team == team[0] <span class="keyword">then</span> 
+      current_player.set_round_card_text("Elite")
+   end
+end
+for each player do
+   if current_player.team == team[0] then 
       current_player.set_round_card_icon(noble)
-      current_player.set_round_card_text(<span class="string">"Spartan</span>")
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+      current_player.set_round_card_text("Spartan")
+   end
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/player/actions/set_round_card_icon.html">player.set_round_card_icon</a></li>

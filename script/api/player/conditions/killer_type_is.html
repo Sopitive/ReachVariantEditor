@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>player.killer_type_is | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -124,26 +127,26 @@
                </dd>
 </dl>
 <h2>Example</h2>
-<pre>
-<span class="keyword">alias</span> opt_kill_points = script_option[1]
-<span class="keyword">alias</span> opt_spree_bonus = script_option[0]
+<pre><code>
+alias opt_kill_points = script_option[1]
+alias opt_spree_bonus = script_option[0]
 
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-   <span class="keyword">if</span> current_player.killer_type_is(kill) <span class="keyword">then</span>
-      <span class="keyword">alias</span> killer = global.player[0]
+for each player do
+   if current_player.killer_type_is(kill) then
+      alias killer = global.player[0]
       <span class="comment">--</span>
       killer = current_player.get_killer()
       killer.score += opt_kill_points
       global.number[0]  = killer.get_spree_count()
       global.number[0] %= 5
-      <span class="keyword">if</span> global.number[0] == 0 <span class="keyword">then</span>
+      if global.number[0] == 0 then
          <span class="comment">--</span>
          <span class="comment">-- This is the player's 5th, 10th, 15th, etc., kill.</span>
          <span class="comment">--</span>
          killer.score += opt_spree_bonus
-      <span class="keyword">end</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+      end
+   end
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/player/conditions/assisted_kill_of.html">player.assisted_kill_of</a></li>

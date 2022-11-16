@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>object.spawn_sequence | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -105,14 +108,14 @@
 <p>The object's Spawn Sequence value set in Forge.</p>
 <p>This value is read-only.</p>
 <h2>Example</h2>
-<pre>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">object</span> <span class="subkeyword">with</span> <span class="subkeyword">label</span> <span class="string">"koth_hill</span>" <span class="keyword">do</span>
-   <span class="keyword">if</span> current_object.spawn_sequence == 1 <span class="keyword">then</span>
+<pre><code>
+for each object with label "koth_hill" do
+   if current_object.spawn_sequence == 1 then
       <span class="comment">--</span>
       <span class="comment">-- ... do something ...</span>
       <span class="comment">--</span>
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+   end
+end</code></pre>
 
       </main>
       <script src="resources/sidebar.js"></script>

@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>player.score | ReachVariantTool Documentation</title>
       <base href="../../../../" />
@@ -102,18 +105,18 @@
             </p>
          
 <h2>Example</h2>
-<pre>
+<pre><code>
 <span class="comment">--</span>
 <span class="comment">-- Award a player one point for every frame they spend alive:</span>
 <span class="comment">--</span>
-<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
-   <span class="keyword">if</span> current_player.biped != no_object <span class="keyword">then</span>
+for each player do
+   if current_player.biped != no_object then
       <span class="comment">--</span>
       <span class="comment">-- If the player has a biped on the map, then they must be alive.</span>
       <span class="comment">--</span>
       current_player.score += 1
-   <span class="keyword">end</span>
-<span class="keyword">end</span></pre>
+   end
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/player/actions/get_scoreboard_pos.html">player.get_scoreboard_pos</a></li>

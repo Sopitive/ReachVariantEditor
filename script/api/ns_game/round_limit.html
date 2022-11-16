@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
       <title>game.round_limit | ReachVariantTool Documentation</title>
       <base href="../../../" />
@@ -87,14 +90,14 @@
          
 <p>This value is read-only.</p>
 <h2>Example</h2>
-<pre>
+<pre><code>
 global.number[0]  = game.round_limit
 global.number[0] -= 1
-<span class="keyword">if</span> game.current_round == global.number[0] <span class="keyword">then</span>
+if game.current_round == global.number[0] then
    <span class="comment">--</span>
    <span class="comment">-- This is the final round!</span>
    <span class="comment">--</span>
-<span class="keyword">end</span></pre>
+end</code></pre>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/ns_game/current_round.html">game.current_round</a></li>
