@@ -16,7 +16,8 @@ html {
     --type: rgb(103, 203, 203);
     --title: rgb(241, 143, 250);
     --default: var(--aliasName);
-    --symbol: var(--functionCall)
+    --symbol: var(--functionCall);
+    --literal: var(--linkColor)
     /*take the firefox default for Calibri and make it explicit, so we can size/position other things relative to it*/
 }
 
@@ -499,7 +500,7 @@ pre .comment {
 }
 
 .hljs-literal {
-    color: var(--aliasName);
+    color: var(--literal);
 }
 
 .hljs-variable {

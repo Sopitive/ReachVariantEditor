@@ -188,6 +188,8 @@
     };
 
     function highlightTextBox() {
+        let text = ""
+        let el = ""
         document.querySelector('.text').addEventListener('keydown', function(e) {
             document.querySelector(".easter-egg").textContent = "Script Playground"
             if (e.key == 'Tab') {
@@ -205,16 +207,19 @@
             }
           });
         document.addEventListener('keyup', event => {
-            //console.log(event.code)
-            //if (event.code === "Space" | "Enter") {
-                let text = document.querySelector(".text");
+            console.log(event.code)
+            if (event.code != "Escape") {
+                text = document.querySelector(".text");
                 text.focus()
-        document.querySelectorAll('pre.code').forEach(el => {
+            el = document.querySelector('pre.code');
             // then highlight each
-            el.textContent = text.value
+            el.textContent = text.value + "|"
             hljs.highlightBlock(el);
-          });
-            //}
+            let hasFocus = (document.activeElement === text)
+            } else {
+                el.textContent = text.value;
+                hljs.highlightBlock(el);
+            }
           })
         
     }
