@@ -12,9 +12,6 @@
     <link rel="stylesheet" href="resources/main.css" />
     <!-- <link rel="stylesheet"
       href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dark.min.css"> -->
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
-<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
     <noscript>
          <link rel="stylesheet" href="resources/noscript.css" />
       </noscript>
@@ -249,11 +246,11 @@ end</code></code></pre>
         <p>
             Aliases are also good for script options, so that you can reorder them within your gametype without having to change option indices all over the code. I prefer to put these aliases near the start of the code:
         </p>
+<pre>
+
     <pre><code>
-<code>
 alias opt_leader_points = script_option[0]
-alias opt_kill_points   = script_option[1]
-</code></code></pre>
+alias opt_kill_points   = script_option[1]</code></pre>
         <p>
             And of course, it's also useful to do that for script traits, script widgets, and the indices of unnamed Forge labels:
         </p>
@@ -287,7 +284,7 @@ end
             Code comments are a great way to make sure that other people can easily understand your code. They're also very helpful for you, because you're gonna be "other people" in six months. It's always helpful to write informative comments which explain what
             you're doing.
         </p>
-        <pre><code>
+        <pre>
             <code class="language-rvt-script">
 if opt_draw_rule &gt; 0 and draw_turn_count &gt;= opt_draw_rule then
     --
@@ -299,16 +296,14 @@ if opt_draw_rule &gt; 0 and draw_turn_count &gt;= opt_draw_rule then
     do_endgame_ui_visibility()
     game.end_round()
 end
-            </code>
         </code></pre>
         <p>
             It's somewhat common for novice programmers to write code comments that... aren't strictly helpful, like in this deliberately exaggerated example here:
         </p>
-        <pre><code>
+        <pre>
             <code>
 -- Increase the number by five
 global.number[0] += 5
-            </code>
         </code></pre>
         <p>
             But... how does one write a good code comment? Well, a good way to view programming is as its own form of communication, in a setting where precision is required and enforced, and we don't call these things "programming <em>languages</em>"

@@ -89,6 +89,10 @@ body>* {
     transition: background-color 500ms;
 }
 
+.dark-toggle:hover {
+    filter: brightness(85%)
+}
+
 audio::-webkit-media-controls-panel {
     background-color: var(--mainColor);
 }
@@ -175,6 +179,10 @@ audio::-webkit-media-controls-time-remaining-display {
     position: absolute;
     left: 25%;
     transition: background-color 500ms, left 200ms;
+}
+
+.collapse:hover {
+    filter: brightness(85%);
 }
 
 .left {
@@ -517,6 +525,10 @@ pre .comment {
     font-weight: bold;
 }
 
+.code {
+    border: none;
+}
+
 ::-webkit-scrollbar {
     background-color: var(--scrollbar);
     transition: background-color 500ms;
@@ -553,8 +565,17 @@ a:visited {
     color: var(--linkVisited);
 }
 
-a:link:hover {
-    text-decoration: underline;
+
+dt a {
+    box-shadow: inset 0 0 0 0 var(--textColor);
+    margin: 0 -.25rem;
+    padding: 0 .25rem;
+    transition: color .3s ease-in-out, box-shadow .3s ease-in-out;
+}
+
+dt a:hover {
+    box-shadow: inset 200px 0 0 0 var(--mainColor);
+    color: var(--textColor);
 }
 
 #sidebar a:link:hover {
