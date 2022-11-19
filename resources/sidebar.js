@@ -167,6 +167,43 @@
         }
     }
 
+    function createLinks() {
+        const keywords = document.querySelectorAll(".hljs-keyword");
+        keywords.forEach(keyword => {
+            if (keyword.textContent == "alias") {
+                let link = document.createElement("a");
+                link.href = "/script/alias.html";
+                link.innerHTML = keyword.outerHTML;
+                keyword.parentNode.insertBefore(link, keyword)
+                keyword.remove()
+            } else if (keyword.textContent == "for") {
+                let link = document.createElement("a");
+                link.href = "/script/for.html";
+                link.innerHTML = keyword.outerHTML;
+                keyword.parentNode.insertBefore(link, keyword)
+                keyword.remove()
+            } else if (keyword.textContent == "if") {
+                let link = document.createElement("a");
+                link.href = "/script/if.html";
+                link.innerHTML = keyword.outerHTML;
+                keyword.parentNode.insertBefore(link, keyword)
+                keyword.remove()
+            } else if (keyword.textContent == "enum") {
+                let link = document.createElement("a");
+                link.href = "/script/enum.html";
+                link.innerHTML = keyword.outerHTML;
+                keyword.parentNode.insertBefore(link, keyword)
+                keyword.remove()
+            } else if (keyword.textContent == "function") {
+                let link = document.createElement("a");
+                link.href = "/script/function.html";
+                link.innerHTML = keyword.outerHTML;
+                keyword.parentNode.insertBefore(link, keyword)
+                keyword.remove()
+            }
+        })
+    }
+
 
 
      const getSiblings = function (elem) {
@@ -194,5 +231,6 @@
     window.onload = function() {
         sidebar.classList.add("afterload");
         html.classList.add("afterload");
+        createLinks()
     }
 })();
