@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-<link rel="icon" type="image/x-icon" href="/resources/favicon.ico">
+<link rel="icon" type="image/x-icon" href="resources/favicon.ico">
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
 <script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
@@ -14,6 +14,20 @@
         <link rel="stylesheet" href="resources/noscript.css" />
     </noscript>
     <script src="resources/head.js"></script>
+    <script>
+        let resultX = ""
+        let resultY = ""
+        function changeNumbers() {
+        let numbers = document.querySelectorAll(".hljs-number");
+        numbers.forEach((number, index) => {
+            if (index == 2) {
+                number.innerHTML = resultX;
+            } else if (index == 3) {
+                number.innerHTML = resultY;
+            }
+        });
+    }
+    </script>
     <script>
         function sincos_int(deg) {
             let rad = deg * Math.PI / 180;
@@ -40,6 +54,9 @@
                     least_error = error;
                     least_error_item = item;
                 }
+                resultX = Math.round(least_error_item.x);
+                resultY = Math.round(least_error_item.y);
+                changeNumbers();
             }
             return `Raw cos/sin: ${Math.cos(rad)}, ${Math.sin(rad)}
 
@@ -180,9 +197,13 @@ Multiplied int cos/sin: ${Math.round(least_error_item.x)}, ${Math.round(least_er
             </dd>
         </dl>
         <h2>Example</h2>
-        <div id="result"></div>
-        <label for="conversion" style="font-weight: bold;">Angle to Argument Converter: </label>
-        <input name="conversion" id="conversionBox" type="number" onchange="document.querySelector('#result').innerHTML = sincos_int(this.value)">
+
+        <label class="tooltip" for="conversion" style="font-weight: bold;">Angle to Argument Converter: 
+            <div class="tooltiptext">
+                Use to convert angles to arguments for the face_toward function.
+            </div>
+        </label>
+        <input name="conversion" id="conversionBox" type="number" onchange="sincos_int(this.value)">
         <pre><code>
 global.object[0].face_toward(global.object[1]<span class="variable">, 0, 0, 0</span>)</code></pre>
         <h2>Notes</h2>

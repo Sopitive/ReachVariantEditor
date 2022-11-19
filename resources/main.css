@@ -76,9 +76,10 @@ body>* {
 }
 
 .dark-toggle {
+    opacity: 0;
     margin-top: 2em;
-    width: 10em;
-    height: 3em;
+    width: 7em;
+    height: 2em;
     background-color: var(--mainColor);
     border-color: var(--textColor);
     color: var(--textColor);
@@ -87,11 +88,13 @@ body>* {
     bottom: 1%;
     right: 2%;
     /* box-shadow: -5px -1px 5px gray; */
-    transition: background-color 500ms;
+    transition: background-color 500ms, opacity 1s 2s;
 }
 
 .dark-toggle:hover {
-    filter: brightness(85%)
+    opacity: 1;
+    filter: brightness(85%);
+    transition: opacity 100ms;
 }
 
 audio::-webkit-media-controls-panel {
@@ -170,6 +173,7 @@ audio::-webkit-media-controls-time-remaining-display {
 }
 
 .collapse {
+    opacity: 1;
     color: var(--textColor);
     font-weight: bold;
     background-color: var(--mainColor);
@@ -188,7 +192,16 @@ audio::-webkit-media-controls-time-remaining-display {
 
 .left {
     left: 3%;
+    opacity: 0;
+    transition: opacity 2s;
+    transition-delay: 2s;
 }
+
+.left:hover {
+    opacity: 1;
+    transition: opacity 100ms;
+}
+
 
 
 /*spacing*/
@@ -525,6 +538,32 @@ pre .comment {
     color: var(--symbol);
     font-weight: bold;
 }
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+  }
+
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    opacity: 0;
+    width: 200px;
+    background-color: var(--mainColor);
+    color: var(--textColor);
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+
+    position: absolute;
+    top: -4em;
+    transition: all 500ms;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 90%;
+  }
 
 .code {
     border: none;

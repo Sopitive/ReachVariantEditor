@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
    <head>
-<link rel="icon" type="image/x-icon" href="/resources/favicon.ico">
+<link rel="icon" type="image/x-icon" href="resources/favicon.ico">
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
 <script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
 <!-- <script>hljs.initHighlightingOnLoad();</script> -->
@@ -193,5 +193,46 @@
       </main>
       <script src="resources/sidebar.js"></script>
       <script src="resources/header-links.js"></script>
+      <script>
+      function highlightTextBox() {
+        let text = ""
+        let el = ""
+        document.querySelector('.text').addEventListener('keydown', function(e) {
+            document.querySelector(".easter-egg").textContent = "Script Playground"
+            if (e.key == 'Tab') {
+              e.preventDefault();
+              var start = this.selectionStart;
+              var end = this.selectionEnd;
+          
+              // set textarea value to: text before caret + tab + text after caret
+              this.value = this.value.substring(0, start) +
+                "\t" + this.value.substring(end);
+          
+              // put caret at right position again
+              this.selectionStart =
+                this.selectionEnd = start + 1;
+            }
+          });
+        document.addEventListener('keyup', event => {
+            console.log(event.code)
+            if (event.code != "Escape") {
+                text = document.querySelector(".text");
+                text.focus()
+            el = document.querySelector('pre.code');
+            // then highlight each
+            el.textContent = text.value + "|"
+            hljs.highlightBlock(el);
+            let hasFocus = (document.activeElement === text)
+            } else {
+                el.textContent = text.value;
+                hljs.highlightBlock(el);
+            }
+          })
+        
+    }
+    window.onload = function() {
+      highlightTextBox()
+    }
+      </script>
    </body>
 </html>
