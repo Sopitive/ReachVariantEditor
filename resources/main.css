@@ -622,11 +622,8 @@ dt a:hover {
         left: 0;
     }
 
-    #sidebar {
-        position: absolute;
-    }
-
     .hide {
+        position: absolute;
         width: 0 !important;
         height: 0;
         min-width: 0 !important;
