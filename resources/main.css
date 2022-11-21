@@ -536,7 +536,7 @@ pre code {
 }
 
 .light {
-    filter: brightness(90%);
+    filter: brightness(80%);
     background: none;
 }
 
@@ -582,16 +582,6 @@ pre code {
 
 ::-webkit-scrollbar-button {
     display: none;
-}
-
-pre .keyword {
-    color: var(--linkColor);
-    font-weight: bold;
-}
-
-pre .subkeyword {
-    color: var(--linkColor);
-    font-weight: bold;
 }
 
 a {
