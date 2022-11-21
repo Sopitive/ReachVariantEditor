@@ -6,6 +6,16 @@
     const lastItem = document.querySelector("ul");
     const darkToggle = document.createElement("button");
     const body = document.querySelector("body");
+    const preElements = document.querySelectorAll("pre");
+    const modelCodeDisplay = document.createElement("pre");
+    modelCodeDisplay.classList.add("code-display");
+    document.body.appendChild(modelCodeDisplay);
+    const closeButton = document.createElement("button");
+    closeButton.textContent = "X";
+    closeButton.classList.add("close-button");
+    closeButton.addEventListener('click', () => {
+        modelCodeDisplay.style.display = "none";
+    })
     darkToggle.classList.add("dark-toggle");
     darkToggle.textContent = "Light Mode"
     body.appendChild(darkToggle)
@@ -14,17 +24,33 @@
     collapse.textContent = initialText;
     main.parentNode.insertBefore(collapse, main);
     const root = document.querySelector(':root');
+
+    preElements.forEach(element => {
+        element.addEventListener('click', () => {
+            modelCodeDisplay.style.display = "block";
+            modelCodeDisplay.innerHTML = element.innerHTML;
+            modelCodeDisplay.appendChild(closeButton)
+        });
+    });
+
+    sidebar.addEventListener('mouseleave', () => {
+        localStorage.setItem("collapse", "Expanded");
+        sidebar.classList.add("hide");
+        collapse.classList.add("left");
+        collapse.textContent = initialText;
+    })
+
     collapse.addEventListener("click", () => {
         if (localStorage.getItem("darkMode") == "Dark") {
             body.classList.toggle("hide-color");
         }
-        if (localStorage.getItem("collapse") == "Collapsed") {
+        if (localStorage.getItem("collapse") == "Expanded") {
             collapse.textContent = "Ξ";
             collapse.classList.remove("left")
             sidebar.classList.remove("hide");
-            localStorage.setItem("collapse", "Expanded");
-        } else {
             localStorage.setItem("collapse", "Collapsed");
+        } else {
+            localStorage.setItem("collapse", "Expanded");
             sidebar.classList.add("hide");
             collapse.classList.add("left")
             collapse.textContent = initialText;
@@ -37,17 +63,21 @@
         setDark();
     }
 
-    if (localStorage.getItem("collapse") == "Expanded") {
+    if (localStorage.getItem("collapse") == "Collapsed") {
         sidebar.classList.remove("hide");
         collapse.textContent = "Ξ";
         collapse.classList.remove("left")
-    } else {
+    } else if (localStorage.getItem("collapse") == "Expanded") {
         sidebar.classList.add("hide");
         if (localStorage.getItem("darkMode") == "Dark") {
             body.classList.add("hide-color");
         }
-        collapse.classList.add("left")
+        collapse.classList.add("left");
         collapse.textContent = initialText;
+    } else {
+        localStorage.setItem("collapse", "Expanded");
+        sidebar.classList.add("hide");
+        collapse.classList.add("left");
     }
 
     function setStyles() {
@@ -83,7 +113,7 @@
         root.style.setProperty('--mainColor', '#3D3D3D');
         root.style.setProperty('--secondMain', '#333333');
         root.style.setProperty('--textColor', 'white');
-        root.style.setProperty('--sidebar-back', '#333333');
+        root.style.setProperty('--sidebar-back', '#2d2d2d');
         root.style.setProperty('--sidebar-foreground', '#3D3D3D');
         root.style.setProperty('--scrollbar', '#333333');
         root.style.setProperty('--scrollbarThumb', '#3D3D3D');

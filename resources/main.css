@@ -1,5 +1,5 @@
 html {
-    --sidebar-back: #333333;
+    --sidebar-back: #2d2d2d;
     --sidebar-foreground: #3D3D3D;
     --line-height: 1.215em;
     --mainColor: #3D3D3D;
@@ -456,7 +456,30 @@ code {
     background: var(--mainColor);
 }
 
+.close-button {
+    position: absolute; 
+    right: 0; 
+    top: 0;
+    background-color: var(--secondMain);
+    color: var(--textColor);
+    border: none;
+    width: 2em;
+    height: 2em;
+    font-size: large;
+}
 
+
+.code-display {
+    display: none; 
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    background-color: var(--secondMain); 
+    width: 75%; 
+    height: 50%;
+    box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .3);
+}
 
 input {
     background: var(--mainColor);
@@ -612,7 +635,7 @@ dt a:hover {
     color: #B5A;
 }
 
-@media (max-width: 1010px) {
+@media (max-width: 800px) {
     .collapse {
         left: 19em;
         display: block;
@@ -622,11 +645,15 @@ dt a:hover {
         left: 0;
     }
 
-    .hide {
+    #sidebar {
         position: absolute;
+    }
+
+    .hide {
         width: 0 !important;
         height: 0;
         min-width: 0 !important;
         opacity: 0;
     }
+
 }
