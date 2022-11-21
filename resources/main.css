@@ -166,9 +166,8 @@ audio::-webkit-media-controls-time-remaining-display {
 }
 
 .collapse {
-    display: none;
+    opacity: 0;
     margin: 1em;
-    opacity: 1;
     color: var(--textColor);
     font-weight: bold;
     height: 35px;
@@ -178,26 +177,18 @@ audio::-webkit-media-controls-time-remaining-display {
     border-color: var(--textColor);
     /* box-shadow: -2px 5px 5px gray; */
     position: absolute;
-    left: 25%;
-    transition: background-color 500ms, left 200ms;
+    left: 19em;
+    transition: background-color 500ms, left 500ms;
+}
+
+.left {
+    pointer-events: none;
+    opacity: 0;
 }
 
 .collapse:hover {
     filter: brightness(85%);
 }
-
-.left {
-    left: 2%;
-    transition: opacity 2s;
-    transition-delay: 2s;
-}
-
-.left:hover {
-    opacity: 1;
-    transition: opacity 100ms;
-}
-
-
 
 /*spacing*/
 
@@ -457,28 +448,33 @@ code {
 }
 
 .close-button {
+    display: none;
     position: absolute; 
-    right: 0; 
-    top: 0;
-    background-color: var(--secondMain);
+    top: 20%; 
+    right: 3%;
+    background-color: #a32323;
     color: var(--textColor);
+    border-radius: 25%;
     border: none;
     width: 2em;
     height: 2em;
-    font-size: large;
 }
 
+.close-button:hover {
+    filter: brightness(150%);
+}
 
 .code-display {
-    display: none; 
+    opacity: 0;
     position: absolute; 
-    top: 50%; 
-    left: 50%; 
+    top: 0; 
+    left: 0; 
     transform: translate(-50%, -50%); 
     background-color: var(--secondMain); 
-    width: 75%; 
-    height: 50%;
-    box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .3);
+    width: 0; 
+    height: 0;
+    box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .6);
+    transition: width 300ms, height 300ms, opacity 500ms, left 200ms, top 300ms;
 }
 
 input {
@@ -597,7 +593,7 @@ pre code {
     transition: background-color 500ms;
 }
 
-::-webkit-scrollbar-button {
+::-webkit-scrollbar-button, ::-webkit-scrollbar-track-piece, ::-webkit-scrollbar-corner {
     display: none;
 }
 
@@ -635,14 +631,19 @@ dt a:hover {
     color: #B5A;
 }
 
-@media (max-width: 800px) {
+@media screen and (max-width: 800px) {
     .collapse {
         left: 19em;
         display: block;
+        opacity: 1;
     }
 
     .left {
         left: 0;
+        transition: left 300ms 600ms;
+        pointer-events: all;
+        opacity: 1;
+        transition: opacity 500ms 500ms, left 500ms;
     }
 
     #sidebar {
@@ -654,6 +655,8 @@ dt a:hover {
         height: 0;
         min-width: 0 !important;
         opacity: 0;
+        pointer-events: none;
+        transition: all 300ms;
     }
 
 }

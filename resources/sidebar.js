@@ -14,8 +14,10 @@
     closeButton.textContent = "X";
     closeButton.classList.add("close-button");
     closeButton.addEventListener('click', () => {
-        modelCodeDisplay.style.display = "none";
+        modelCodeDisplay.style = "opacity: 0;";
+        closeButton.style.display = "none";
     })
+    document.body.appendChild(closeButton);
     darkToggle.classList.add("dark-toggle");
     darkToggle.textContent = "Light Mode"
     body.appendChild(darkToggle)
@@ -27,9 +29,9 @@
 
     preElements.forEach(element => {
         element.addEventListener('click', () => {
-            modelCodeDisplay.style.display = "block";
+            modelCodeDisplay.style = "opacity: 1; width: 90%; height: 50%; left: 50%; top: 50%";
             modelCodeDisplay.innerHTML = element.innerHTML;
-            modelCodeDisplay.appendChild(closeButton)
+            closeButton.style.display = "block"
         });
     });
 
@@ -38,6 +40,12 @@
         sidebar.classList.add("hide");
         collapse.classList.add("left");
         collapse.textContent = initialText;
+    })
+
+    sidebar.addEventListener('mouseover', () => {
+        localStorage.setItem("collapse", "Collapsed");
+        sidebar.classList.remove("hide");
+        collapse.classList.remove("left");
     })
 
     collapse.addEventListener("click", () => {
