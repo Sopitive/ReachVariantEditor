@@ -166,12 +166,11 @@ current_object.attach_to(basis, 0, 0, 20, relative)</code></pre>
                <p>
                   Objects appear to be attached to the nearest node on a basis object's 
                   3D model, with no apparent distance limit. For example, this piece 
-                  of code would create a skull and anchor that skull to a Warthog's 
-                  steering wheel:
-               </p>
-               <pre><code>
+                  of code would create a skull and anchor that skull to a Wartog's sterring wheel: 
+                  </p>
+               <pre><code>   
 alias some_warthog = ...
-<span class="comment">--</span>
+--
 global.object[0] = some_warthog.place_at_me(skull, none, none, 0, 0, 0, none)
 global.object[0].attach_to(some_warthog, 0, 0, 20, relative)</code></pre>
                <p>

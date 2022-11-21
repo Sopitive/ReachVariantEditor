@@ -8,16 +8,19 @@ html {
     --scrollbar: #333333;
     --scrollbarThumb: #3D3D3D;
     --linkColor: #00C2EE;
-    --string: #39B339;
+    --string: #1eca00;
+    --comment: rgb(183 183 183);
     --linkVisited: #E77BD5;
     --aliasName: gold;
-    --functionCall: mediumseagreen;
-    --property: rgb(225, 88, 88);
+    --functionCall: rgb(79, 160, 216);
+    --property: rgb(9 255 216);
     --type: rgb(103, 203, 203);
-    --title: rgb(241, 143, 250);
+    --title: #ff5454;
     --default: var(--aliasName);
     --symbol: var(--functionCall);
-    --literal: var(--linkColor)
+    --literal: var(--linkColor);
+    --keyword: #00C2EE;
+    --lighter: filter: brightness(80%);
     /*take the firefox default for Calibri and make it explicit, so we can size/position other things relative to it*/
 }
 
@@ -76,7 +79,6 @@ body>* {
 }
 
 .dark-toggle {
-    opacity: 0;
     margin-top: 2em;
     width: 7em;
     height: 2em;
@@ -88,13 +90,11 @@ body>* {
     bottom: 1%;
     right: 2%;
     /* box-shadow: -5px -1px 5px gray; */
-    transition: background-color 500ms, opacity 1s 2s;
+    transition: background-color 500ms;
 }
 
 .dark-toggle:hover {
-    opacity: 1;
     filter: brightness(85%);
-    transition: opacity 100ms;
 }
 
 audio::-webkit-media-controls-panel {
@@ -128,7 +128,7 @@ audio::-webkit-media-controls-time-remaining-display {
 }
 
 .afterload {
-    transition: min-width 500ms, height 500ms, width 200ms, opacity 200ms;
+    transition: min-width 500ms, width 200ms, opacity 200ms;
 }
 
 .aliasName  {
@@ -173,13 +173,15 @@ audio::-webkit-media-controls-time-remaining-display {
 }
 
 .collapse {
+    margin: 1em;
     opacity: 1;
     color: var(--textColor);
     font-weight: bold;
-    background-color: var(--mainColor);
-    height: 3em;
-    width: 3em;
-    border-color: white;
+    height: 35px;
+    width: 35px;
+    background-color: var(--secondMain);
+    border-radius: 25%;
+    border-color: var(--textColor);
     /* box-shadow: -2px 5px 5px gray; */
     position: absolute;
     left: 25%;
@@ -191,8 +193,7 @@ audio::-webkit-media-controls-time-remaining-display {
 }
 
 .left {
-    left: 3%;
-    opacity: 0;
+    left: 2%;
     transition: opacity 2s;
     transition-delay: 2s;
 }
@@ -481,18 +482,13 @@ pre code {
     color: var(--default)
 }
 
-pre .comment {
-    color: #292;
-    font-style: italic;
-}
-
 .hljs-keyword {
-    color: var(--linkColor);
+    color: var(--keyword);
     font-weight: bold;
 }
 
 .hljs-comment {
-    color: var(--string);
+    color: var(--comment);
 }
 
 .hljs-string {
@@ -537,6 +533,11 @@ pre .comment {
 .hljs-symbol {
     color: var(--symbol);
     font-weight: bold;
+}
+
+.light {
+    filter: brightness(90%);
+    background: none;
 }
 
 .tooltip {
@@ -630,6 +631,9 @@ dt a:hover {
 @media (max-width: 1010px) {
     .collapse {
         left: 19em;
-        transition: none;
+    }
+
+    .left {
+        left: 2%
     }
 }

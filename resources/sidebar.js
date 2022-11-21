@@ -10,7 +10,7 @@
     darkToggle.textContent = "Light Mode"
     lastItem.after(darkToggle);
     collapse.classList.add("collapse");
-    const initialText = "<<";
+    const initialText = "Ξ";
     collapse.textContent = initialText;
     main.parentNode.insertBefore(collapse, main);
     const root = document.querySelector(':root');
@@ -19,7 +19,7 @@
             body.classList.toggle("hide-color");
         }
         if (localStorage.getItem("collapse") == "Collapsed") {
-            collapse.textContent = ">>";
+            collapse.textContent = "Ξ";
             collapse.classList.remove("left")
             sidebar.classList.remove("hide");
             localStorage.setItem("collapse", "Expanded");
@@ -39,7 +39,7 @@
 
     if (localStorage.getItem("collapse") == "Expanded") {
         sidebar.classList.remove("hide");
-        collapse.textContent = ">>";
+        collapse.textContent = "Ξ";
         collapse.classList.remove("left")
     } else {
         sidebar.classList.add("hide");
@@ -70,9 +70,12 @@
         root.style.setProperty('--scrollbar', '#EEE');
         root.style.setProperty('--scrollbarThumb', '#C1C1C1');
         root.style.setProperty('--linkColor', '#03E');
-        root.style.setProperty('--string', '#292');
+        //root.style.setProperty('--string', '#292');
         root.style.setProperty('--linkVisited', '#938');
-        root.style.setProperty('--aliasName', 'darkgoldenrod');
+        document.querySelectorAll("pre code").forEach(element => {
+            element.classList.add("light");
+        })
+        //root.style.setProperty('--aliasName', 'darkgoldenrod');
     }
 
     function setDark() {
@@ -85,9 +88,12 @@
         root.style.setProperty('--scrollbar', '#333333');
         root.style.setProperty('--scrollbarThumb', '#3D3D3D');
         root.style.setProperty('--linkColor', '#00C2EE');
-        root.style.setProperty('--string', '#39B339');
+        //root.style.setProperty('--string', '#26ff00');
         root.style.setProperty('--linkVisited', '#E77BD5');
-        root.style.setProperty('--aliasName', 'gold');
+        document.querySelectorAll("pre code").forEach(element => {
+            element.classList.remove("light");
+        })
+        //root.style.setProperty('--aliasName', 'gold');
     }
     darkToggle.addEventListener("click", () => {
         setStyles()
@@ -204,29 +210,6 @@
         })
     }
 
-
-
-     const getSiblings = function (elem) {
-
-        // Setup siblings array and get the first sibling
-        var siblings = [];
-        var sibling = elem.firstChild;
-    
-        // Loop through each sibling and push to the array
-        while (sibling) {
-            if (sibling.nodeType === 1 && sibling !== elem) {
-                siblings.push(sibling);
-            }
-            sibling = sibling.nextSibling
-        }
-    
-        return siblings;
-    
-    };
-
-
-
-    
 
     window.onload = function() {
         sidebar.classList.add("afterload");
