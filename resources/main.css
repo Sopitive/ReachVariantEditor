@@ -135,13 +135,6 @@ audio::-webkit-media-controls-time-remaining-display {
     color: var(--aliasName)
 }
 
-.hide {
-    width: 0 !important;
-    height: 0;
-    min-width: 0 !important;
-    opacity: 0;
-}
-
 #sidebar ul {
     margin: 0;
     padding: 0 0 0 1.5em;
@@ -173,6 +166,7 @@ audio::-webkit-media-controls-time-remaining-display {
 }
 
 .collapse {
+    display: none;
     margin: 1em;
     opacity: 1;
     color: var(--textColor);
@@ -621,9 +615,21 @@ dt a:hover {
 @media (max-width: 1010px) {
     .collapse {
         left: 19em;
+        display: block;
     }
 
     .left {
-        left: 2%
+        left: 0;
+    }
+
+    #sidebar {
+        position: absolute;
+    }
+
+    .hide {
+        width: 0 !important;
+        height: 0;
+        min-width: 0 !important;
+        opacity: 0;
     }
 }

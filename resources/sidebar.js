@@ -8,7 +8,7 @@
     const body = document.querySelector("body");
     darkToggle.classList.add("dark-toggle");
     darkToggle.textContent = "Light Mode"
-    lastItem.after(darkToggle);
+    body.appendChild(darkToggle)
     collapse.classList.add("collapse");
     const initialText = "Ξ";
     collapse.textContent = initialText;
