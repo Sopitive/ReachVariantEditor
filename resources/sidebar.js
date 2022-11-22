@@ -33,6 +33,30 @@
             modelCodeDisplay.innerHTML = element.innerHTML;
             closeButton.style.display = "block"
         });
+        let copyButton = document.createElement("button");
+        copyButton.classList.add("copy-button");
+        let icon = document.createElement("i");
+        icon.classList.add("fa");
+        icon.classList.add("fa-copy");
+        copyButton.appendChild(icon);
+        let text = element.textContent;
+        const copyContent = async () => {
+            try {
+              await navigator.clipboard.writeText(text);
+              icon.classList.remove("fa-copy");
+              icon.classList.add("fa-check");
+            } catch (err) {
+              console.error('Failed to copy: ', err);
+            }
+          }
+        copyButton.addEventListener('click', () => {
+            copyContent();
+        });
+        copyButton.addEventListener('mouseleave', () => {
+            icon.classList.remove("fa-check");
+              icon.classList.add("fa-copy");
+        })
+        element.parentNode.insertBefore(copyButton, element);
     });
 
     sidebar.addEventListener('mouseleave', () => {

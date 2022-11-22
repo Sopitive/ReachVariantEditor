@@ -478,6 +478,21 @@ code {
     transition: width 300ms, height 300ms, opacity 500ms, left 200ms, top 300ms, background-color 300ms;
 }
 
+.copy-button {
+    float: right;
+    top: -2px;
+    background-color: var(--mainColor);
+    border-radius: 25%;
+    border: none;
+    color: var(--textColor);
+    height: 2em;
+    width: 2em;
+}
+
+.copy-button:hover {
+    filter: brightness(120%);
+}
+
 input {
     background: var(--mainColor);
     color: var(--textColor);
@@ -488,6 +503,10 @@ pre {
     background: var(--secondMain);
     border: 1px solid #DDD;
     overflow-x: auto;
+}
+
+pre:hover {
+    filter: brightness(95%);
 }
 
 pre code {
