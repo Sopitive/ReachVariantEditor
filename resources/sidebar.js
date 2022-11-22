@@ -56,7 +56,7 @@
             icon.classList.remove("fa-check");
               icon.classList.add("fa-copy");
         })
-        element.parentNode.insertBefore(copyButton, element);
+        element.appendChild(copyButton);
     });
 
     sidebar.addEventListener('mouseleave', () => {
