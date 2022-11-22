@@ -35,6 +35,7 @@
         });
         let copyButton = document.createElement("button");
         copyButton.classList.add("copy-button");
+        copyButton.name = "copyButton";
         let icon = document.createElement("i");
         icon.classList.add("fa");
         icon.classList.add("fa-copy");
@@ -49,12 +50,13 @@
               console.error('Failed to copy: ', err);
             }
           }
-        copyButton.addEventListener('click', () => {
+        copyButton.addEventListener('click', (e) => {
+            e.stopPropagation();
             copyContent();
         });
         copyButton.addEventListener('mouseleave', () => {
             icon.classList.remove("fa-check");
-              icon.classList.add("fa-copy");
+            icon.classList.add("fa-copy");
         })
         element.appendChild(copyButton);
     });
