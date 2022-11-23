@@ -104,6 +104,11 @@ body>* {
 }
 
 .dropdown-content li {
+    padding: 0;
+    transition: padding 200ms;
+}
+
+.dropdown:hover .dropdown-content li {
     padding: 1em;
 }
 
@@ -113,11 +118,12 @@ body>* {
     pointer-events: none;
     min-width: 7em;
     background-color: var(--mainColor);
-    transition: opacity 500ms;
+    transition: opacity 200ms, top 200ms;
     white-space: nowrap;
     padding: 0;
     margin: 0;
     list-style-type: none;
+    top: 0;
 }
 
 .dropdown {
@@ -133,6 +139,7 @@ body>* {
     opacity: 1;
     pointer-events: all;
     min-height: 2em;
+    top: 40px;
 }
 
 
