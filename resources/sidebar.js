@@ -96,11 +96,10 @@
         }
     });
 
-    if (localStorage.getItem("darkMode") == "Dark") {
+    if (localStorage.getItem("darkMode") == "Light") {
         setLight();
     } else {
         setDark();
-        darkToggle.checked = "true";
     }
 
     if (localStorage.getItem("collapse") == "Collapsed") {
@@ -119,15 +118,14 @@
 
     function setStyles() {
         if (localStorage.getItem("darkMode") == "Light") {
-            localStorage.setItem("darkMode", "Dark")
             setLight()
         } else {
-            localStorage.setItem("darkMode", "Light");
             setDark();
         }
     }
 
     function setLight() {
+        localStorage.setItem("darkMode", "Light");
         root.style.setProperty('--mainColor', '#FFF');
         root.style.setProperty('--secondMain', '#fff');
         root.style.setProperty('--textColor', '#000');
@@ -145,6 +143,8 @@
     }
 
     function setDark() {
+        darkToggle.checked = "true";
+        localStorage.setItem("darkMode", "Dark");
         root.style.setProperty('--mainColor', '#3D3D3D');
         root.style.setProperty('--secondMain', '#333333');
         root.style.setProperty('--textColor', 'white');
@@ -171,7 +171,7 @@
             setLight()
         }
     }
-    toggleDarkTheme()
+
     let node = document.querySelector("#sidebar>ul");
     let items = node.querySelectorAll("li");
     let found = null;

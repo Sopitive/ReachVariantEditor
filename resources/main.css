@@ -60,7 +60,7 @@ body {
     padding: 0;
     background-color: var(--secondMain);
     transition: background-color 500ms;
-    margin-top: 4em;
+    margin-top: 3em;
     overflow: hidden;
 }
 
@@ -89,16 +89,17 @@ body>* {
     background-color: var(--sidebar-back);
     width: 100%;
     height: 3em;
-    padding: 2em;
+    padding: 1em;
     overflow: hidden;
     align-items: center;
+    justify-content: left;
 }
 
 .dropdown-content li a {
     color: var(--textColor);
 }
 
-.dropdown-content li a:hover {
+.dropdown-content li:hover {
     filter: brightness(80%)
 }
 
@@ -120,7 +121,7 @@ body>* {
 }
 
 .dropdown {
-    margin-left: 12em;
+    margin-right: 2em;
     color: var(--textColor);
 }
 
