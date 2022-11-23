@@ -100,9 +100,6 @@
         collapse.classList.remove("left")
     } else if (localStorage.getItem("collapse") == "Expanded") {
         sidebar.classList.add("hide");
-        if (localStorage.getItem("darkMode") == "Dark") {
-            body.classList.add("hide-color");
-        }
         collapse.classList.add("left");
         collapse.textContent = initialText;
     } else {
@@ -133,7 +130,7 @@
         root.style.setProperty('--linkColor', '#03E');
         //root.style.setProperty('--string', '#292');
         root.style.setProperty('--linkVisited', '#938');
-        document.querySelectorAll("pre code").forEach(element => {
+        document.querySelectorAll("pre").forEach(element => {
             element.classList.add("light");
         })
         //root.style.setProperty('--aliasName', 'darkgoldenrod');
@@ -151,7 +148,7 @@
         root.style.setProperty('--linkColor', '#00C2EE');
         //root.style.setProperty('--string', '#26ff00');
         root.style.setProperty('--linkVisited', '#E77BD5');
-        document.querySelectorAll("pre code").forEach(element => {
+        document.querySelectorAll("pre").forEach(element => {
             element.classList.remove("light");
         })
         //root.style.setProperty('--aliasName', 'gold');

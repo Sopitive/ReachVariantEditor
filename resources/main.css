@@ -443,6 +443,7 @@ main ul>li+li {
     margin-top: .5em;
 }
 
+
 code {
     background: var(--mainColor);
 }
@@ -573,11 +574,6 @@ pre code {
     font-weight: bold;
 }
 
-.light {
-    filter: brightness(80%);
-    background: none;
-}
-
 .tooltip {
     display: inline-block;
     border-bottom: 1px dotted black;
@@ -665,6 +661,17 @@ dt a:hover {
         opacity: 1;
     }
 
+    .light {
+        position: relative;
+        z-index: 0;
+    }
+    
+    .light code {
+        background: none;
+        filter: brightness(80%);
+        position: relative;
+    }
+
     .left {
         left: 0;
         transition: left 300ms 600ms;
@@ -675,6 +682,7 @@ dt a:hover {
 
     #sidebar {
         position: absolute;
+        z-index: 1;
     }
 
     .hide {
