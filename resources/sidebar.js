@@ -4,7 +4,7 @@
     const main = document.querySelector("main");
     const collapse = document.createElement("button");
     const lastItem = document.querySelector("ul");
-    const darkToggle = document.createElement("button");
+    const darkToggle = document.querySelector("#dark-mode");
     const body = document.querySelector("body");
     const preElements = document.querySelectorAll("pre");
     const modelCodeDisplay = document.createElement("pre");
@@ -16,11 +16,18 @@
     closeButton.addEventListener('click', () => {
         modelCodeDisplay.style = "opacity: 0;";
         closeButton.style.display = "none";
-    })
+    });
+    modelCodeDisplay.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    document.body.addEventListener('click', () => {
+        modelCodeDisplay.style = "opacity: 0;";
+        closeButton.style.display = "none";
+    });
     document.body.appendChild(closeButton);
-    darkToggle.classList.add("dark-toggle");
-    darkToggle.textContent = "Light Mode"
-    body.appendChild(darkToggle)
+    //darkToggle.classList.add("dark-toggle");
+    //darkToggle.textContent = "Light Mode";
+    //body.appendChild(darkToggle);
     collapse.classList.add("collapse");
     const initialText = "Ξ";
     collapse.textContent = initialText;
@@ -28,10 +35,11 @@
     const root = document.querySelector(':root');
 
     preElements.forEach(element => {
-        element.addEventListener('click', () => {
+        element.addEventListener('click', (e) => {
             modelCodeDisplay.style = "opacity: 1; width: 90%; left: 50%; top: 50%";
             modelCodeDisplay.innerHTML = element.innerHTML;
-            closeButton.style.display = "block"
+            closeButton.style.display = "block";
+            e.stopPropagation()
         });
         let copyButton = document.createElement("button");
         copyButton.classList.add("copy-button");
@@ -92,6 +100,7 @@
         setLight();
     } else {
         setDark();
+        darkToggle.checked = "true";
     }
 
     if (localStorage.getItem("collapse") == "Collapsed") {
@@ -119,7 +128,6 @@
     }
 
     function setLight() {
-        darkToggle.textContent = "Dark Mode";
         root.style.setProperty('--mainColor', '#FFF');
         root.style.setProperty('--secondMain', '#fff');
         root.style.setProperty('--textColor', '#000');
@@ -137,7 +145,6 @@
     }
 
     function setDark() {
-        darkToggle.textContent = "Light Mode";
         root.style.setProperty('--mainColor', '#3D3D3D');
         root.style.setProperty('--secondMain', '#333333');
         root.style.setProperty('--textColor', 'white');
@@ -153,9 +160,18 @@
         })
         //root.style.setProperty('--aliasName', 'gold');
     }
-    darkToggle.addEventListener("click", () => {
-        setStyles()
-    });
+    darkToggle.addEventListener('click', () => {
+        toggleDarkTheme()
+    })
+
+    function toggleDarkTheme() {
+        if (darkToggle.checked) {
+            setDark()
+        } else {
+            setLight()
+        }
+    }
+    toggleDarkTheme()
     let node = document.querySelector("#sidebar>ul");
     let items = node.querySelectorAll("li");
     let found = null;

@@ -60,6 +60,8 @@ body {
     padding: 0;
     background-color: var(--secondMain);
     transition: background-color 500ms;
+    margin-top: 4em;
+    overflow: hidden;
 }
 
 body>* {
@@ -78,20 +80,60 @@ body>* {
     /* transition: width 200ms, height 200ms, min-width 500ms, opacity 200ms; */
 }
 
-.dark-toggle {
-    margin-top: 2em;
-    width: 7em;
-    height: 2em;
-    background-color: var(--mainColor);
-    border-color: var(--textColor);
-    color: var(--textColor);
-    font-weight: bold;
-    position: absolute;
-    bottom: 1%;
-    right: 2%;
-    /* box-shadow: -5px -1px 5px gray; */
-    transition: background-color 500ms;
+.header {
+    display: flex;
+    flex-direction: row;
+    position: fixed;
+    top: 0;
+    z-index: 1;
+    background-color: var(--sidebar-back);
+    width: 100%;
+    height: 3em;
+    padding: 2em;
+    overflow: hidden;
+    align-items: center;
 }
+
+.dropdown-content li a {
+    color: var(--textColor);
+}
+
+.dropdown-content li a:hover {
+    filter: brightness(80%)
+}
+
+.dropdown-content li {
+    padding: 1em;
+}
+
+.dropdown-content {
+    position: fixed;
+    opacity: 0;
+    pointer-events: none;
+    min-width: 7em;
+    background-color: var(--mainColor);
+    transition: opacity 500ms;
+    white-space: nowrap;
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+
+.dropdown {
+    margin-left: 12em;
+    color: var(--textColor);
+}
+
+.dropdown:hover {
+    background-color: var(--secondMain);
+}
+
+.dropdown:hover .dropdown-content {
+    opacity: 1;
+    pointer-events: all;
+    min-height: 2em;
+}
+
 
 .dark-toggle:hover {
     filter: brightness(85%);
@@ -451,7 +493,7 @@ code {
 .close-button {
     display: none;
     position: absolute; 
-    top: 2%; 
+    top: 10%; 
     right: 1%;
     background-color: #a32323;
     color: white;
