@@ -29,7 +29,7 @@
 
     preElements.forEach(element => {
         element.addEventListener('click', () => {
-            modelCodeDisplay.style = "opacity: 1; width: 90%; height: 50%; left: 50%; top: 50%";
+            modelCodeDisplay.style = "opacity: 1; width: 90%; left: 50%; top: 50%";
             modelCodeDisplay.innerHTML = element.innerHTML;
             closeButton.style.display = "block"
         });
@@ -75,9 +75,6 @@
     })
 
     collapse.addEventListener("click", () => {
-        if (localStorage.getItem("darkMode") == "Dark") {
-            body.classList.toggle("hide-color");
-        }
         if (localStorage.getItem("collapse") == "Expanded") {
             collapse.textContent = "Ξ";
             collapse.classList.remove("left")

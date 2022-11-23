@@ -450,8 +450,8 @@ code {
 .close-button {
     display: none;
     position: absolute; 
-    top: 20%; 
-    right: 3%;
+    top: 2%; 
+    right: 1%;
     background-color: #a32323;
     color: white;
     font-weight: bold;
@@ -465,6 +465,10 @@ code {
     filter: brightness(150%);
 }
 
+pre:hover {
+    filter: brightness(95%);
+}
+
 .code-display {
     opacity: 0;
     position: absolute; 
@@ -473,9 +477,14 @@ code {
     transform: translate(-50%, -50%); 
     background-color: var(--secondMain); 
     width: 0; 
-    height: 0;
+    height: auto;
+    max-height: 75%;
     box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .6);
     transition: width 300ms, height 300ms, opacity 500ms, left 200ms, top 300ms, background-color 300ms;
+}
+
+.code-display:hover {
+    filter: none;
 }
 
 .copy-button {
@@ -503,10 +512,6 @@ pre {
     background: var(--secondMain);
     border: 1px solid #DDD;
     overflow-x: auto;
-}
-
-pre:hover {
-    filter: brightness(95%);
 }
 
 pre code {
