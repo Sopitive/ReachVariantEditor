@@ -330,7 +330,7 @@ header .type {
     padding: .25rem .5rem;
     border: 1px solid #AAA;
     border-radius: 3px;
-    background: #FCFCFC
+    background: var(--mainColor)
 }
 
 #toc::before {
@@ -490,7 +490,6 @@ pre:hover {
 
 .copy-button {
     float: right;
-    top: -2px;
     background-color: var(--mainColor);
     border-radius: 25%;
     border: none;
@@ -513,6 +512,7 @@ pre {
     background: var(--secondMain);
     border: 1px solid #DDD;
     overflow-x: auto;
+    margin-bottom: 3em;
 }
 
 pre code {
@@ -654,6 +654,12 @@ dt a:hover {
     color: #B5A;
 }
 
+.light code {
+    background: none;
+    filter: brightness(80%);
+    position: relative;
+}
+
 @media screen and (max-width: 800px) {
     .collapse {
         left: 19em;
@@ -666,11 +672,6 @@ dt a:hover {
         z-index: 0;
     }
     
-    .light code {
-        background: none;
-        filter: brightness(80%);
-        position: relative;
-    }
 
     .left {
         left: 0;

@@ -207,6 +207,8 @@
          <li><a href="script/snippets.html#round-timer">Round timer code (basic)</a></li>
          <li><a href="script/snippets.html#round-timer-sd">Round timer code (with Sudden Death)</a></li>
          <li><a href="script/snippets.html#super-shields">Super Shields</a></li>
+         <li><a href="script/snippets.html#rotation">Pitch/Yaw Rotation</a></li>
+         <li><a href="script/snippets.html#projectiles">Projectile Getter</a></li>
       </ul>
 
       <section>
@@ -605,6 +607,95 @@ for each object with label all_fire_particles do <span class="comment">-- clean 
       current_object.delete()
    end
 end</code></pre>
+      </section>
+
+      <section>
+         <h2><a name="rotation">Pitch/Yaw Rotation</a></h2>
+         <p>
+            Normally in megalo, it is not possible to use <code>face_toward</code> or <code>copy_rotation_from </code> to affect an object's pitch and yaw rotations
+            consistently. This code works around that by first spawning an object, rotating it on one axis, then attaching a new object to this object before rotating the first
+            object again.
+         </p>
+         <pre><code>
+--Each temporary object below corresponds to a player, object, or global object variable. 
+--You will need to set up each beforehand with the appropriate alias.
+alias lookat_obj = temp_obj3
+alias basis = temp_obj5
+alias offset_scale = temp_num0
+alias yaw_obj = temp_obj0
+alias pitch_obj = temp_obj1
+alias offset_obj = temp_obj2
+-- yaw_obj - create a new object at basis that looks at "lookat_obj" on both pitch and yaw
+-- then take a variable number offset_scale and create offset_obj at that distance forward from yaw_obj
+function pitchYawRotation()
+   -- place pitch and yaw objects
+   pitch_obj = basis.place_between_me_and(basis, hill_marker, 0) -- currently setup as ROLL, opposed to pitch, a correction we will make in a moment
+   yaw_obj = pitch_obj.place_at_me(hill_marker, none, none, 0,0,0, none)
+   -- make sure the yaw object is at the center of our object, pitch already is because we used place_between(on self) for it
+   yaw_obj.attach_to(basis, 0,0,0, relative)
+   yaw_obj.detach()
+   -- convert roll rotation to pitch via 90 degrees yaw rotation on world axis
+   pitch_obj.attach_to(yaw_obj, 0,0,0, relative)
+   yaw_obj.face_toward(yaw_obj,0,1,0)
+   pitch_obj.detach()
+   -- reorient yaw axis to how its supposed to be (-90 degrees rotation)
+   yaw_obj.face_toward(yaw_obj,0,-1,0)
+   -- rotate the pitch to be relative to direction (as in so its pointing towards our lookat_obj)
+   pitch_obj.attach_to(yaw_obj, 0,0,0, relative)
+   yaw_obj.face_toward(lookat_obj,0,0,0)
+   pitch_obj.detach()
+   -- setup offset object & attach-offset it in the forward direction
+   offset_obj = pitch_obj.place_at_me(hill_marker, none, none, 0,0,0, none)
+   offset_obj.attach_to(yaw_obj, 1,0,0, relative)
+   -- apply the relative pitch rotation to our yaw axis
+   yaw_obj.attach_to(pitch_obj, 0,0,0, relative) 
+   pitch_obj.face_toward(lookat_obj,0,0,0)
+   pitch_obj.face_toward(pitch_obj,0,-1,0)
+   yaw_obj.detach()
+   -- now we just do the attaching forward
+   -- convert our forge units to scale units
+   offset_scale *= 100
+   -- set scale of yaw obj, thus scaling the attachment offset of offset_obj
+   yaw_obj.set_scale(offset_scale)
+   yaw_obj.copy_rotation_from(yaw_obj, true) -- update yaw_obj's scale
+end
+-- you will have to cleanup (delete pitch, yaw & offset objects after you're done with them)</code></pre>
+      </section>
+
+      <section>
+         <h2><a name="projectiles">Projectile Getter</a></h2>
+         <p>
+            It isn't possible to get projectiles with a normal <code>for each object</code> loop, however, it is possible to get projectiles
+            using a for each object with label loop. If you create a forge label and do not give it a name, the gametype code will loop through all
+            objects on the map, including projectiles. You can then filter out the projectiles from regular objects.
+         </p>
+
+         <pre>
+            <code>
+alias temp_obj0 = global.object[0]
+alias checkNumber = global.number[0]
+alias projectileTargeted = current_object.number[0]
+for each object with label 0 do
+   checkNumber = 100
+   temp_obj0 = current_object
+   if checkNumber == 100 then
+      --Filter out all objects contained in a regular object loop. Nothing in this loop will contain projectiles.
+      for each object do
+         if current_object == temp_obj0 then
+            checkNumber = -1
+         end
+      end
+   end
+   if checkNumber == 100 then 
+      --Object is a projectile
+      if projectileTargeted != 1 then
+         projectileTargeted = 1
+         --Do something with the projectile.
+      end
+   end
+end
+            </code>
+         </pre>
       </section>
    
       </main>
