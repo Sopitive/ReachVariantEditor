@@ -52,12 +52,14 @@ pre {
 }
 
 body {
+    max-height: 100vh;
     display: flex;
     flex-flow: row nowrap;
     max-width: 1600px;
     background-color: var(--secondMain);
     transition: background-color 500ms;
     overflow: hidden;
+    margin: 0 auto;
 }
 
 body>* {
@@ -73,6 +75,7 @@ body>* {
     padding: .5rem 1rem;
     font-size: .875rem;
     flex: 0 0 auto;
+    margin-top: 40px;
     /* transition: width 200ms, height 200ms, min-width 500ms, opacity 200ms; */
 }
 
@@ -710,6 +713,7 @@ dt a:hover {
 @media screen and (max-width: 800px) {
     .collapse {
         left: 19em;
+        top: 3em;
         display: block;
         opacity: 1;
     }
