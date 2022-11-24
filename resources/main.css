@@ -52,7 +52,8 @@ pre {
 }
 
 body {
-    max-height: 100vh;
+    position: relative;
+    min-height: 100vh;
     display: flex;
     flex-flow: row nowrap;
     max-width: 1600px;
@@ -75,7 +76,7 @@ body>* {
     padding: .5rem 1rem;
     font-size: .875rem;
     flex: 0 0 auto;
-    margin-top: 40px;
+    padding-top: 50px;
     /* transition: width 200ms, height 200ms, min-width 500ms, opacity 200ms; */
 }
 
@@ -92,14 +93,16 @@ body>* {
     overflow: hidden;
     align-items: center;
     justify-content: left;
+    font-weight: bold;
 }
 
-.dropdown-content li a {
+.dropdown-content a li {
     color: var(--textColor);
+    border-top: 2px solid var(--sidebar-back);
 }
 
-.dropdown-content li:hover {
-    filter: brightness(80%)
+.dropdown-content a li:hover {
+    color: var(--linkColor);
 }
 
 .dropdown-content li {
@@ -117,12 +120,11 @@ body>* {
     pointer-events: none;
     min-width: 7em;
     background-color: var(--mainColor);
-    transition: opacity 200ms, top 200ms;
+    transition: opacity 200ms, pointer-events 500ms;
     white-space: nowrap;
     padding: 0;
     margin: 0;
     list-style-type: none;
-    top: 0;
 }
 
 .dropdown {
@@ -321,6 +323,7 @@ main {
     padding-top: 3em;
     flex: 1 1 auto;
     transition: background-color 500ms;
+    margin-left: 3em;
 }
 
 
@@ -328,7 +331,7 @@ main {
    kicks in i.e. there effectively is no bottom padding */
 
 #sidebar {
-    padding-bottom: 0
+    padding-bottom: 0;
 }
 
 
@@ -340,13 +343,6 @@ main {
     display: block
 }
 
-
-/* use a pseudo-element instead of padding */
-
-main {
-    padding-bottom: 0;
-    margin-left: 3em;
-}
 
 
 /* this bug affects main, too */
@@ -734,7 +730,7 @@ dt a:hover {
 
     #sidebar {
         position: absolute;
-        z-index: 1;
+        z-index: 0;
     }
 
     .hide {

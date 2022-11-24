@@ -3,11 +3,10 @@
     const html = document.querySelector("html");
     const main = document.querySelector("main");
     const collapse = document.createElement("button");
-    const lastItem = document.querySelector("ul");
     const darkToggle = document.querySelector("#dark-mode");
-    const body = document.querySelector("body");
     const preElements = document.querySelectorAll("pre");
     const modelCodeDisplay = document.createElement("pre");
+    const dropdowns = document.querySelectorAll(".dropdown");
     modelCodeDisplay.classList.add("code-display");
     document.body.appendChild(modelCodeDisplay);
     const closeButton = document.createElement("button");
@@ -17,6 +16,7 @@
         modelCodeDisplay.style = "opacity: 0;";
         closeButton.style.display = "none";
     });
+
     modelCodeDisplay.addEventListener('click', (e) => {
         e.stopPropagation();
     });
