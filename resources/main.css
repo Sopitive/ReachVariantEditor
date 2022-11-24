@@ -52,15 +52,11 @@ pre {
 }
 
 body {
-    min-height: 100vh;
     display: flex;
     flex-flow: row nowrap;
     max-width: 1600px;
-    margin: 0 auto;
-    padding: 0;
     background-color: var(--secondMain);
     transition: background-color 500ms;
-    margin-top: 3em;
     overflow: hidden;
 }
 
@@ -319,6 +315,7 @@ main {
     background-color: var(--secondMain);
     color: var(--textColor);
     padding: 1rem;
+    padding-top: 3em;
     flex: 1 1 auto;
     transition: background-color 500ms;
 }
