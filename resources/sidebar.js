@@ -62,7 +62,7 @@
             e.stopPropagation();
             copyContent();
         });
-        copyButton.addEventListener('mouseleave', () => {
+        copyButton.addEventListener('focusout', () => {
             icon.classList.remove("fa-check");
             icon.classList.add("fa-copy");
         })

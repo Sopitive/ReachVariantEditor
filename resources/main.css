@@ -76,7 +76,7 @@ body>* {
     padding: .5rem 1rem;
     font-size: .875rem;
     flex: 0 0 auto;
-    padding-top: 50px;
+    margin-top: 48px;
     overflow-y: auto;
     /* transition: width 200ms, height 200ms, min-width 500ms, opacity 200ms; */
 }
@@ -321,7 +321,7 @@ main {
     background-color: var(--secondMain);
     color: var(--textColor);
     padding: 1rem;
-    padding-top: 3em;
+    padding-top: 4em;
     flex: 1 1 auto;
     transition: background-color 500ms;
     padding-left: 28%;
@@ -741,6 +741,10 @@ dt a:hover {
         opacity: 0;
         pointer-events: none;
         transition: all 300ms;
+    }
+
+    main {
+        padding-left: 15vh;
     }
 
 }
