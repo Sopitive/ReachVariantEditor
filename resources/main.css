@@ -51,6 +51,14 @@ pre {
     margin: 0;
 }
 
+.scrollbar {
+    background-color: var(--secondMain);
+    position: absolute;
+    right: 0;
+    width: 1em;
+    height: 4em;
+}
+
 body {
     position: relative;
     min-height: 100vh;
@@ -60,12 +68,12 @@ body {
     background-color: var(--secondMain);
     transition: background-color 500ms;
     margin: 0 auto;
-}
+}   
 
 body>* {
     box-sizing: border-box;
     height: 100vh;
-    overflow-y: auto;
+    overflow-y: visible;
 }
 
 #sidebar {
@@ -498,7 +506,7 @@ code {
 
 .close-button {
     display: none;
-    position: absolute; 
+    position: fixed; 
     top: 10%; 
     right: 1%;
     background-color: #a32323;
@@ -520,7 +528,7 @@ pre:hover {
 
 .code-display {
     opacity: 0;
-    position: absolute; 
+    position: fixed; 
     top: 0; 
     left: 0; 
     transform: translate(-50%, -50%); 
