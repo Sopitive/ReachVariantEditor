@@ -33,7 +33,7 @@
     window.onscroll = () => {
         let scrollPosition = mainHtml.scrollTop;
         scrollbarPos = ((scrollPosition/limit)*100)
-        scrollbar.style = `top: ${scrollbarPos}%; height: ${72000/limit}%;`;
+        scrollbar.style = `top: ${scrollbarPos}%; height: ${75000/limit}%;`;
         console.log(scrollPosition);
     }
 
@@ -51,9 +51,8 @@
     mainHtml.addEventListener('mousemove', (e) => {
         currentY = e.clientY;
         if (scrolling) {
-            let scrollPosition = mainHtml.scrollTop;
             let adjustmentY = initialY - currentY
-            window.scrollBy(0, adjustmentY * -3)
+            window.scrollBy(0, adjustmentY * -4)
             initialY = currentY
         }
     })
