@@ -36,6 +36,8 @@ html {
     margin: 0;
     padding: 0;
     transition: background-color 500ms;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 
 nav:not([class^="afterload"]) *,
@@ -52,11 +54,11 @@ pre {
 }
 
 .scrollbar {
-    background-color: var(--secondMain);
-    position: absolute;
+    background-color: var(--scrollbarThumb);
+    position: fixed;
     right: 0;
     width: 1em;
-    height: 4em;
+    z-index: 2;
 }
 
 body {
@@ -334,6 +336,7 @@ main {
     transition: background-color 500ms;
     padding-left: 28%;
     height: 100%;
+    overflow-y: scroll;
 }
 
 
@@ -663,16 +666,6 @@ pre code {
 }
 
 ::-webkit-scrollbar {
-    background-color: var(--scrollbar);
-    transition: background-color 500ms;
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: var(--scrollbarThumb);
-    transition: background-color 500ms;
-}
-
-::-webkit-scrollbar-button, ::-webkit-scrollbar-track-piece, ::-webkit-scrollbar-corner {
     display: none;
 }
 

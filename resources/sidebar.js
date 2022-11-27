@@ -7,6 +7,18 @@
     const preElements = document.querySelectorAll("pre");
     const modelCodeDisplay = document.createElement("pre");
     const dropdowns = document.querySelectorAll(".dropdown");
+    const scrollbar = document.querySelector(".scrollbar");
+    const mainHtml = document.querySelector("html");
+    let scrollbarPos = ""
+    let initialY = "";
+    let currentY = "";
+    let scrolling = false;
+    let _docHeight = (document.height !== undefined) ? document.height : document.body.offsetHeight;
+    let limit = Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );
+    console.log(_docHeight)
+    let height = _docHeight/100;
+    scrollbar.style = `height: ${72000/limit}%;`;
+    
     modelCodeDisplay.classList.add("code-display");
     document.body.appendChild(modelCodeDisplay);
     const closeButton = document.createElement("button");
@@ -16,6 +28,35 @@
         modelCodeDisplay.style = "opacity: 0;";
         closeButton.style.display = "none";
     });
+
+
+    window.onscroll = () => {
+        let scrollPosition = mainHtml.scrollTop;
+        scrollbarPos = ((scrollPosition/limit)*100)
+        scrollbar.style = `top: ${scrollbarPos}%; height: ${72000/limit}%;`;
+        console.log(scrollPosition);
+    }
+
+    scrollbar.addEventListener('mousedown', (e) => {
+        initialY = e.clientY;
+        scrolling = true;
+        e.preventDefault()
+    })
+
+    mainHtml.addEventListener('mouseup', () => {
+        initialY = ""
+        scrolling = false;
+    })
+
+    mainHtml.addEventListener('mousemove', (e) => {
+        currentY = e.clientY;
+        if (scrolling) {
+            let scrollPosition = mainHtml.scrollTop;
+            let adjustmentY = initialY - currentY
+            window.scrollBy(0, adjustmentY * -3)
+            initialY = currentY
+        }
+    })
 
     modelCodeDisplay.addEventListener('click', (e) => {
         e.stopPropagation();
