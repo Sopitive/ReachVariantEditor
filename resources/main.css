@@ -88,6 +88,8 @@ body>* {
     flex: 0 0 auto;
     margin-top: 48px;
     overflow-y: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
     /* transition: width 200ms, height 200ms, min-width 500ms, opacity 200ms; */
 }
 
