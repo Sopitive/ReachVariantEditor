@@ -289,6 +289,11 @@ global.object[0].face_toward(global.object[1], 0, 0, 0)</code></pre>
             </li>
             <li>
                 <p>
+                    The Z-coordinate offset position doesn't affect the rotation of the object. If you wish to rotate on the Z axis, refer to <a href="script/api/object/actions/copy_rotation_from.html">object.copy_rotation_from</a>.
+                </p>
+            </li>
+            <li>
+                <p>
                     The object.face_toward function only affects the heading (yaw) by default, however you can adjust the pitch and roll of an object using clever placements and attachments. The following code will roll a warthog 45 degrees:
                 </p>
                 <pre><code>
