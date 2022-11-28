@@ -8,6 +8,7 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
 <script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <meta charset="UTF-8" />
     <title>object.face_toward | ReachVariantTool Documentation</title>
     <base href="../../../../" />
@@ -22,9 +23,9 @@
         function changeNumbers() {
         let numbers = document.querySelectorAll(".hljs-number");
         numbers.forEach((number, index) => {
-            if (index == 2) {
+            if (index == 4) {
                 number.innerHTML = resultX;
-            } else if (index == 3) {
+            } else if (index == 5) {
                 number.innerHTML = resultY;
             }
         });
@@ -60,11 +61,16 @@
                 resultY = Math.round(least_error_item.y);
                 changeNumbers();
             }
+            rotateModel(deg)
             return `Raw cos/sin: ${Math.cos(rad)}, ${Math.sin(rad)}
 
 Multiplier with least error: ${least_error_item.mult}
 Multiplied cos/sin:     ${least_error_item.x}, ${least_error_item.y}
 Multiplied int cos/sin: ${Math.round(least_error_item.x)}, ${Math.round(least_error_item.y)}`;
+        }
+        function rotateModel(deg) {
+            let viewer = document.querySelector("#model");
+            viewer.cameraOrbit = `${deg}deg 90deg auto`;
         }
     </script>
 </head>
@@ -244,6 +250,28 @@ Multiplied int cos/sin: ${Math.round(least_error_item.x)}, ${Math.round(least_er
         </dl>
         <h2>Example</h2>
 
+        <div class="models">
+            <p class="reference-obj">
+                <span class="hljs-title">global</span><span class="hljs-symbol">.</span><span class="hljs-type">object</span><span class="hljs-symbol"><span class="hljs-symbol">[</span></span><span class="hljs-number">0</span><span class="hljs-symbol">]</span>
+            </p>
+
+            <p class="target-obj">
+                <span class="hljs-title">global</span><span class="hljs-symbol">.</span><span class="hljs-type">object</span><span class="hljs-symbol">[</span><span class="hljs-number">1</span><span class="hljs-symbol">]</span>
+            </p>
+
+        <model-viewer id="model" loading="lazy" src="resources/models/spartan.glb" ar ar-modes="webxr scene-viewer quick-look" poster="poster.webp" shadow-intensity="1" camera-orbit="0deg 90deg auto">
+            <div class="progress-bar hide" slot="progress-bar">
+                <div class="update-bar"></div>
+            </div>
+        </model-viewer>
+
+        <model-viewer id="model2" loading="lazy" src="resources/models/spartan.glb" ar ar-modes="webxr scene-viewer quick-look" poster="poster.webp" shadow-intensity="1" camera-orbit="180deg 90deg auto">
+            <div class="progress-bar hide" slot="progress-bar">
+                <div class="update-bar"></div>
+            </div>
+        </model-viewer>
+        </div>
+
         <label class="tooltip" for="conversion" style="font-weight: bold;">Angle to Argument Converter: 
             <div class="tooltiptext">
                 Use to convert angles to arguments for the face_toward function.
@@ -251,7 +279,7 @@ Multiplied int cos/sin: ${Math.round(least_error_item.x)}, ${Math.round(least_er
         </label>
         <input name="conversion" id="conversionBox" type="number" onchange="sincos_int(this.value)">
         <pre><code>
-global.object[0].face_toward(global.object[1]<span class="variable">, 0, 0, 0</span>)</code></pre>
+global.object[0].face_toward(global.object[1], 0, 0, 0)</code></pre>
         <h2>Notes</h2>
         <ul>
             <li>
@@ -265,25 +293,25 @@ global.object[0].face_toward(global.object[1]<span class="variable">, 0, 0, 0</s
                 </p>
                 <pre><code>
 
-alias adjust <span class="operator"> =</span> current_object.object[0]
-alias offset <span class="operator"> =</span> current_object.object[1]
-alias base <span class="operator"> =</span> current_object.object[2]
+alias adjust = current_object.object[0]
+alias offset = current_object.object[1]
+alias base   = current_object.object[2]
 
-for <span class="subkeyword">each object do</span>
-    if current_object<span class="function">.is_of_type</span>(warthog) then
-        if adjust <span class="operator">==</span> no_object then
-            offset <span class="operator">=</span> current_object<span class="function">.place_between_me_and</span>(current_object<span class="variable">, hill_marker, 0</span>)
-            adjust <span class="operator">=</span> current_object<span class="function">.place_at_me</span>(<span class="variable">hill_marker, none, none, 0, 0, 0, none</span>)
-            base <span class="operator">=</span> current_object<span class="function">.place_between_me_and</span>(current_object<span class="variable">, hill_marker, 0</span>)
-            offset.attach_to(adjust<span class="variable">, 0, 0, 0, relative</span>)
-            adjust.face_toward(adjust<span class="variable">, -1, -1, 0</span>)
+for each object do
+    if current_object.is_of_type(warthog) then
+        if adjust == no_object then
+            offset = current_object.place_between_me_and(current_object, hill_marker, 0)
+            adjust = current_object.place_at_me(hill_marker, none, none, 0, 0, 0, none)
+            base   = current_object.place_between_me_and(current_object, hill_marker, 0)
+            offset.attach_to(adjust, 0, 0, 0, relative)
+            adjust.face_toward(adjust, -1, -1, 0)
             offset.detach()
-            offset.attach_to(base<span class="variable">, 0, 0, 0, relative</span>)
-            base.face_toward(current_object<span class="variable">, true</span>)
+            offset.attach_to(base, 0, 0, 0, relative)
+            base.face_toward(current_object, true)
             offset.detach()
-            offset.attach_to(current_object<span class="variable">, 0, 0, 0, relative</span>)
+            offset.attach_to(current_object, 0, 0, 0, relative)
         end
-        current_object<span class="function">.copy_rotation_from</span>(offset<span class="variable">, true</span>)
+        current_object.copy_rotation_from(offset, true)
     end
 end
 </code></pre>

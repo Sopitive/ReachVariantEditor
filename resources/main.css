@@ -58,7 +58,7 @@ pre {
     position: fixed;
     right: 0;
     width: 1em;
-    z-index: 2;
+    z-index: 3;
 }
 
 body {
@@ -98,7 +98,7 @@ body>* {
     display: flex;
     flex-direction: row;
     top: 0;
-    z-index: 1;
+    z-index: 2;
     background-color: var(--sidebar-back);
     width: 100%;
     height: 3em;
@@ -107,6 +107,31 @@ body>* {
     align-items: center;
     justify-content: left;
     font-weight: bold;
+}
+
+.models {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    padding-top: 4em;
+}
+
+.models * {
+    width: 100%;
+}
+
+.reference-obj {
+    position: absolute;
+    left: 18%;
+    top: 1em;
+    z-index: 1;
+}
+
+.target-obj {
+    position: absolute;
+    left: 69%;
+    top: 0;
+    z-index: 1;
 }
 
 .dropdown-content a li {
@@ -564,6 +589,8 @@ pre:hover {
 }
 
 input {
+    margin-top: 2em;
+    margin-bottom: 2em;
     background: var(--mainColor);
     color: var(--textColor);
 }
@@ -637,7 +664,6 @@ pre code {
 
 .tooltip {
     display: inline-block;
-    border-bottom: 1px dotted black;
   }
 
   .tooltip .tooltiptext {
