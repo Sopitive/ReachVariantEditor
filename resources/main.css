@@ -86,7 +86,7 @@ body>* {
     padding: .5rem 1rem;
     font-size: .875rem;
     flex: 0 0 auto;
-    margin-top: 48px;
+    padding-top: 48px;
     overflow-y: auto;
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
