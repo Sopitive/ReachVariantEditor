@@ -81,12 +81,13 @@ body>* {
 #sidebar {
     position: fixed;
     background-color: var(--sidebar-back);
-    width: 25%;
+    width: 15%;
     min-width: 18em;
-    padding: .5rem 1rem;
+    padding: 60px 20px;
     font-size: .875rem;
     flex: 0 0 auto;
-    padding-top: 48px;
+    /* padding-top: 48px;
+    padding-bottom: 40px; */
     overflow-y: auto;
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
@@ -168,7 +169,6 @@ body>* {
 
 .dropdown {
     width: 12em;
-    margin-right: 2em;
     color: var(--textColor);
     background: none;
     border: none;
@@ -189,6 +189,7 @@ body>* {
     pointer-events: all;
     min-height: 2em;
     top: 44px;
+    border: 1px solid var(--textColor)
 }
 
 #dark-mode {
@@ -303,7 +304,15 @@ audio::-webkit-media-controls-time-remaining-display {
 
 #sidebar li a.you-are-here {
     font-weight: bold;
+    filter: brightness(120%);
+    border: 1px solid var(--textColor);
+    border-radius: 0.3rem;
+    margin-left: 1em;
 }
+
+/* #sidebar li:has(>a.you-are-here) {
+    background-color: var(--sidebar-back);
+} */
 
 #sidebar li.collapsed ul {
     max-height: 0;
@@ -319,6 +328,10 @@ audio::-webkit-media-controls-time-remaining-display {
 
 #sidebar li ul li {
     max-height: 1000px;
+}
+
+#sidebar ul li:last-child {
+    padding-bottom: 1em;
 }
 
 #sidebar>ul {
@@ -381,7 +394,7 @@ main {
     padding-top: 4em;
     flex: 1 1 auto;
     transition: background-color 500ms;
-    padding-left: 28%;
+    padding-left: 18em;
     height: 100%;
     overflow-y: scroll;
 }
