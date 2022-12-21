@@ -15,7 +15,6 @@
     let scrolling = false;
     let _docHeight = (document.height !== undefined) ? document.height : document.body.offsetHeight;
     let limit = Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );
-    console.log(_docHeight)
     let height = _docHeight/100;
     scrollbar.style = `height: ${72000/limit}%;`;
     
@@ -33,8 +32,7 @@
     window.onscroll = () => {
         let scrollPosition = mainHtml.scrollTop;
         scrollbarPos = ((scrollPosition/limit)*100)
-        scrollbar.style = `top: ${scrollbarPos}%; height: ${75000/limit}%;`;
-        console.log(scrollPosition);
+        scrollbar.style = `top: ${scrollbarPos}%; height: ${74000/limit}%;`;
     }
 
     scrollbar.addEventListener('mousedown', (e) => {
@@ -52,7 +50,7 @@
         currentY = e.clientY;
         if (scrolling) {
             let adjustmentY = initialY - currentY
-            window.scrollBy(0, adjustmentY * -4)
+            window.scrollBy(0, adjustmentY * limit / -750)
             initialY = currentY
         }
     })
@@ -205,9 +203,11 @@
     })
 
     function toggleDarkTheme() {
-        if (darkToggle.checked) {
+        if (darkToggle.classList.contains("light")) {
             setDark()
+            darkToggle.classList.remove("light")
         } else {
+            darkToggle.classList.add("light")
             setLight()
         }
     }
