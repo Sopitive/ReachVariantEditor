@@ -331,7 +331,7 @@ audio::-webkit-media-controls-time-remaining-display {
 }
 
 #sidebar ul li:last-child {
-    padding-bottom: 1em;
+    padding-bottom: 5px;
 }
 
 #sidebar>ul {
