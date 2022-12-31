@@ -11,6 +11,7 @@
     const mainHtml = document.querySelector("html");
     const bottomButton = document.querySelector(".bottom-button");
     const topButton = document.querySelector(".top-button");
+    const scrollbarContainer = document.querySelector(".scroll-container");
     let scrollbarPos = ""
     let initialY = "";
     let currentY = "";
@@ -18,7 +19,10 @@
     let _docHeight = (document.height !== undefined) ? document.height : document.body.offsetHeight;
     let limit = Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );
     let height = _docHeight/100;
-    scrollbar.style = `height: ${72000/limit}%;`;
+    scrollbar.style = `height: ${75000/limit}%;`;
+    if (72000/limit > 93) {
+        scrollbarContainer.style.display = "none";
+    }
     
     modelCodeDisplay.classList.add("code-display");
     document.body.appendChild(modelCodeDisplay);
@@ -32,9 +36,14 @@
 
 
     window.onscroll = () => {
+        if (72000/limit > 93) {
+            scrollbarContainer.style.display = "none";
+        } else {
+            scrollbarContainer.style.display = "block";
+        }
         let scrollPosition = mainHtml.scrollTop;
         scrollbarPos = (((scrollPosition)/(limit))*700)+20;
-        scrollbar.style = `margin-top: min(${scrollbarPos}px, 665px); height: ${75000/limit}%;`;
+        scrollbar.style = `margin-top: min(${scrollbarPos}px, 100vh - ${75000/limit}vh - 20px); height: ${75000/limit}%;`;
     }
 
     scrollbar.addEventListener('mousedown', (e) => {
