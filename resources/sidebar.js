@@ -9,6 +9,8 @@
     const dropdowns = document.querySelectorAll(".dropdown");
     const scrollbar = document.querySelector(".scrollbar");
     const mainHtml = document.querySelector("html");
+    const bottomButton = document.querySelector(".bottom-button");
+    const topButton = document.querySelector(".top-button");
     let scrollbarPos = ""
     let initialY = "";
     let currentY = "";
@@ -31,8 +33,8 @@
 
     window.onscroll = () => {
         let scrollPosition = mainHtml.scrollTop;
-        scrollbarPos = ((scrollPosition/limit)*100)
-        scrollbar.style = `top: ${scrollbarPos}%; height: ${74000/limit}%;`;
+        scrollbarPos = (((scrollPosition)/(limit))*700)+20;
+        scrollbar.style = `margin-top: min(${scrollbarPos}px, 665px); height: ${75000/limit}%;`;
     }
 
     scrollbar.addEventListener('mousedown', (e) => {
@@ -53,6 +55,14 @@
             window.scrollBy(0, adjustmentY * limit / -750)
             initialY = currentY
         }
+    })
+
+    topButton.addEventListener("click", () => {
+        window.scrollBy(0, -20);
+    })
+
+    bottomButton.addEventListener("click", () => {
+        window.scrollBy(0, 20);
     })
 
     modelCodeDisplay.addEventListener('click', (e) => {
