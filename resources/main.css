@@ -121,7 +121,7 @@ body>* {
 #sidebar {
     position: fixed;
     background-color: var(--sidebar-back);
-    width: 15%;
+    width: 5%;
     min-width: 18em;
     padding: 60px 20px;
     font-size: .875rem;
