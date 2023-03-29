@@ -107,7 +107,6 @@ body {
     min-height: 100vh;
     display: flex;
     flex-flow: row nowrap;
-    max-width: 1600px;
     background-color: var(--secondMain);
     transition: background-color 500ms;
     margin: 0 auto;
@@ -122,7 +121,7 @@ body>* {
 #sidebar {
     position: fixed;
     background-color: var(--sidebar-back);
-    width: 15%;
+    width: 5%;
     min-width: 18em;
     padding: 60px 20px;
     font-size: .875rem;
