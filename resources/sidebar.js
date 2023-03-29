@@ -196,6 +196,9 @@
         document.querySelectorAll("pre").forEach(element => {
             element.classList.add("light");
         })
+        document.querySelectorAll(".icon").forEach(element => {
+            element.classList.add("invert");
+        })
         //root.style.setProperty('--aliasName', 'darkgoldenrod');
     }
 
@@ -214,6 +217,9 @@
         root.style.setProperty('--linkVisited', '#E77BD5');
         document.querySelectorAll("pre").forEach(element => {
             element.classList.remove("light");
+        })
+        document.querySelectorAll(".icon").forEach(element => {
+            element.classList.remove("invert");
         })
         //root.style.setProperty('--aliasName', 'gold');
     }

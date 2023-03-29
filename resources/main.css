@@ -40,6 +40,10 @@ html {
     scrollbar-width: none;  /* Firefox */
 }
 
+img.invert {
+    filter: invert(100%);
+}
+
 nav:not([class^="afterload"]) *,
 html:not([class^="afterload"]) * {
     -webkit-transition: none !important;
