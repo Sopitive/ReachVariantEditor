@@ -167,8 +167,7 @@
    <dt><a href="script/api/object-type.html">type</a></dt>
       <dd><p>A type of object that can exist in the game world.</p></dd>
    <dt><a href="script/api/number.html">radius</a></dt>
-      <dd><p>Unknown. Testing has not revealed any 
-               obvious effect. A value of 0 seems safe.</p></dd>
+      <dd><p>The radius the object is allowed to spawn near the target object.</p></dd>
 </dl>
 <h2>Example</h2>
 <pre><code>
@@ -178,7 +177,7 @@ global.object[0] = global.object[1].place_between_me_and(global.object[2], skull
    <li><p>
                Unlike <a href="script/api/object/actions/place_at_me.html">object.place_at_me</a>, 
                this function appears to spawn objects exactly in place, provided they aren't 
-               solid or obstructed.
+               solid or obstructed. It will also place an object "looking" straight upward.
             </p></li>
 </ul><h2>See also</h2>
 <ul>
