@@ -34,6 +34,11 @@ jobs:
           echo "${{ runner.temp }}/Qt/5.15.2/msvc2019_64/lib" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           echo "${{ runner.temp }}/Qt/5.15.2/msvc2019_64/plugins" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       
+      - name: Set up Visual Studio shell
+        uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
+      
       - name: Build the solution
         run: 
           msbuild ${{ github.workspace }}\native\src\ReachVariantTool.sln /p:Configuration=Debug /p:Platform=x64
