@@ -25,15 +25,7 @@ jobs:
           arch:         win64_msvc2019_64
           dir:          ${{ runner.temp }}
           setup-python: false
-          
-      - name: Prepare Qt environment
-        run: |
-          # Set Qt related environment variables
-          echo "${{ runner.temp }}/Qt/5.15.2/msvc2019_64" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo "${{ runner.temp }}/Qt/5.15.2/msvc2019_64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo "${{ runner.temp }}/Qt/5.15.2/msvc2019_64/lib" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo "${{ runner.temp }}/Qt/5.15.2/msvc2019_64/plugins" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      
+
       - name: Set up Visual Studio shell
         uses: egor-tensin/vs-shell@v2
         with:
