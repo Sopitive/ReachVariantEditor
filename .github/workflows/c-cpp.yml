@@ -13,8 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v1.0.2  # Set up MSBuild on the Windows runner
+      #- name: Setup MSBuild
+       # uses: microsoft/setup-msbuild@v1.0.2  # Set up MSBuild on the Windows runner
       
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
@@ -30,6 +30,15 @@ jobs:
         uses: egor-tensin/vs-shell@v2
         with:
           arch: x64
+      
+      - name: Set up Qt Environment and Run MSBuild
+        run: |
+          $env:QTDIR = "${{ runner.temp }}/Qt/5.15.2/msvc2019_64"
+          $env:PATH = "${{ runner.temp }}/Qt/5.15.2/msvc2019_64/bin;$env:PATH"
+          $env:INCLUDE = "${{ runner.temp }}/Qt/5.15.2/msvc2019_64/include;$env:INCLUDE"
+          $env:LIB = "${{ runner.temp }}/Qt/5.15.2/msvc2019_64/lib;$env:LIB"
+          msbuild path/to/your/solution.sln /p:Configuration=Debug /p:Platform=x64
+
       
       - name: Build the solution
         run: 
