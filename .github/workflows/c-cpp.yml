@@ -29,10 +29,10 @@ jobs:
       - name: Prepare Qt environment
         run: |
           # Set Qt related environment variables
-          echo "QTDIR=${{ runner.temp }}/Qt/5.15.2/msvc2019_64" >> $GITHUB_ENV
-          echo "QTDIR/bin" >> $GITHUB_PATH
-          echo "QTDIR/lib" >> $GITHUB_PATH
-          echo "QTDIR/plugins" >> $GITHUB_PATH
+          echo "${{ runner.temp }}/Qt/5.15.2/msvc2019_64" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "${{ runner.temp }}/Qt/5.15.2/msvc2019_64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "${{ runner.temp }}/Qt/5.15.2/msvc2019_64/lib" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "${{ runner.temp }}/Qt/5.15.2/msvc2019_64/plugins" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       
       - name: Build the solution
         run: 
