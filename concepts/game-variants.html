@@ -240,7 +240,7 @@
           max-width: 0;
           opacity: 0;
           overflow: hidden;
-          
+          display: none;
         }
 
         pre {
@@ -255,8 +255,20 @@
           font-size: 14px;
           margin-left: 10px;
           border: 1px solid #ccc;
-          padding: 10px;
+          padding-left: 10px;
+            padding-right: 10px;
         }
+
+        main.span {
+            padding: none;
+        }
+
+        #text-files-container {
+            display: flex;
+            flex-flow: column;
+            gap: 0.5em;
+        }
+
       </style>
 
       <main id="text-files-container">
@@ -293,7 +305,12 @@
                 });
 
 
-                const filenameWithoutExtension = filename.replace('.txt', '');
+                let filenameWithoutExtension = filename.replace('.txt', '');
+                //Capitalize the first letter of each the text file's name
+                filenameWithoutExtension = filenameWithoutExtension.charAt(0).toUpperCase() + filenameWithoutExtension.slice(1);
+                
+
+                
                 const filenameSpan = document.createElement('span');
                 filenameSpan.textContent = filenameWithoutExtension + ': ';
                 filenameSpan.appendChild(expandButton);
