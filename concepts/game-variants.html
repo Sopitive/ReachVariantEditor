@@ -237,30 +237,35 @@
         /* Styling for the collapsed code block */
         pre.collapsed {
           max-height: 0;
+          padding: 0;
+          margin: 0;
           max-width: 0;
           opacity: 0;
-          overflow: hidden;
-          display: none;
+          /* overflow: hidden; */
         }
 
         pre {
             max-width: 100%;
-            transition: max-width 200ms ease-in-out;
+            transition: max-height 100ms ease-in-out, max-width 100ms ease-in-out;
+            max-height: 500px;
         }
     
         /* Styling for the expand button */
         .expand-button {
-          display: inline-block;
-          cursor: pointer;
-          font-size: 14px;
-          margin-left: 10px;
-          border: 1px solid #ccc;
-          padding-left: 10px;
+            display: inline-block;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+            border: 1px solid #ccc;
+            padding-left: 10px;
             padding-right: 10px;
         }
 
+
         main.span {
             padding: none;
+            color: skyblue !important;
+            font-size: large !important;
         }
 
         #text-files-container {
@@ -274,70 +279,67 @@
       <main id="text-files-container">
 
       </main>
-    <script src="resources/sidebar.js"></script>
-    <script src="resources/header-links.js"></script>
+    
     <script>
         function fetchAndDisplayTextFiles() {
 
-          const folderPath = 'https://sopitive.github.io/ReachVariantEditor/resources/commented_variants/';
+        const folderPath = '../../resources/commented_variants/';
     
 
-          const filenames = ['assault.txt', 'ctf_tu.txt', 'escalation_slayer.txt', 'freeze_tag.txt', 'headhunter.txt', 'invasion_breakpoint.txt', 'invasion_slayer.txt', 'invasion.txt', 'juggernaut.txt', 'koth_tu.txt', 'oddball.txt', 'power_slayer.txt', 'race.txt', 'rally.txt', 'rocket_hog_race.txt', 'skeeball.txt', 'slayer_tu.txt', 'territories.txt', 'slayer.txt', 'stockpile.txt', 'speedpile.txt', 'speedflag.txt', 'alpha_zombies.txt'];
+        let filenames = ['alpha_zombies.txt', 'assault.txt', 'ctf_tu.txt', 'escalation_slayer.txt', 'freeze_tag.txt', 'headhunter.txt', 'invasion_breakpoint.txt', 'invasion_slayer.txt', 'invasion.txt', 'juggernaut.txt', 'koth_tu.txt', 'oddball.txt', 'power_slayer.txt', 'race.txt', 'rally.txt', 'rocket_hog_race.txt', 'skeeball.txt', 'slayer_tu.txt', 'territories.txt', 'scarab.txt', 'slayer.txt', 'stockpile.txt', 'speedpile.txt', 'speedflag.txt'];
+        //Sort filenames alphabetically
+        filenames.sort();
+        const container = document.getElementById('text-files-container');
+            // Map filenames to an array of fetch promises
+        let fetchPromises = filenames.map(filename => fetch(folderPath + filename).then(response => response.text()));
+
+        // Use Promise.all to wait for all fetch requests to complete
+        Promise.all(fetchPromises).then(texts => {
+
+            for (i = 0; i<filenames.length; i++) {
+
+let filenameWithoutExtension = filenames[i].replace('.txt', '');
+    //Capitalize the first letter of each the text file's name
+    filenameWithoutExtension = filenameWithoutExtension.charAt(0).toUpperCase() + filenameWithoutExtension.slice(1);
     
 
-          const container = document.getElementById('text-files-container');
+    const expandButton = document.createElement('span');
+    expandButton.className = 'expand-button';
+    expandButton.textContent = '+';
+    expandButton.addEventListener('click', function() {
+
+    preElement.classList.toggle('collapsed');
+
+    expandButton.textContent = preElement.classList.contains('collapsed') ? '+' : '-';
     
+    });
 
-          filenames.forEach(filename => {
-            fetch(folderPath + filename)
-              .then(response => response.text())
-              .then(text => {
+    const filenameSpan = document.createElement('span');
+    filenameSpan.textContent = filenameWithoutExtension + ': ';
+    filenameSpan.appendChild(expandButton);
+    container.appendChild(filenameSpan);
 
-
-                const expandButton = document.createElement('span');
-                expandButton.className = 'expand-button';
-                expandButton.textContent = '+';
-                expandButton.addEventListener('click', function() {
-
-                  preElement.classList.toggle('collapsed');
-
-                  expandButton.textContent = preElement.classList.contains('collapsed') ? '+' : '-';
-                });
+    const preElement = document.createElement('pre');
+    preElement.className = 'collapsed'; 
+    const codeElement = document.createElement('code');
+    codeElement.textContent = texts[i];
+    preElement.appendChild(codeElement);
+    container.appendChild(preElement);
+    hljs.highlightBlock(codeElement);
 
 
-                let filenameWithoutExtension = filename.replace('.txt', '');
-                //Capitalize the first letter of each the text file's name
-                filenameWithoutExtension = filenameWithoutExtension.charAt(0).toUpperCase() + filenameWithoutExtension.slice(1);
-                
-
-                
-                const filenameSpan = document.createElement('span');
-                filenameSpan.textContent = filenameWithoutExtension + ': ';
-                filenameSpan.appendChild(expandButton);
-                container.appendChild(filenameSpan);
+}
+            });
+        
 
 
-                const preElement = document.createElement('pre');
-                preElement.className = 'collapsed'; 
-                const codeElement = document.createElement('code');
-                codeElement.textContent = text;
-                preElement.appendChild(codeElement);
-                container.appendChild(preElement);
-                hljs.highlightBlock(codeElement); 
-    
-                
-    
-                
-              })
-              .catch(error => {
-                console.error('Error fetching ' + filename + ':', error);
-              });
-          });
         }
     
 
         fetchAndDisplayTextFiles();
       </script>
+      <script src="resources/sidebar.js"></script>
+      <script src="resources/header-links.js"></script>
 </body>
 
 </html>
