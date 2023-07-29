@@ -2,24 +2,21 @@
 <html lang="en">
 
 <head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<meta name="viewport" content="width=device-width">
-<meta name="title" content="ReachVariantTool Documentation">
-<meta name="description" content="Documentation for the ReachVariantTool">  
-<meta name="google-site-verification" content="WYezBmf_IBKSyJrsws7yainE7i0vYwZAP5zPE6wWhTc" />
-<link rel="icon" type="image/x-icon" href="resources/favicon.ico">
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
-<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-    <meta charset="UTF-8" />
-    <title>Index | ReachVariantTool Documentation</title>
-    <base />
-    <link rel="stylesheet" href="resources/main.css" />
-    <noscript>
-         <link rel="stylesheet" href="resources/noscript.css" />
-      </noscript>
-    <script src="resources/head.js"></script>
-</head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <meta name="viewport" content="width=device-width">
+    <link rel="icon" type="image/x-icon" href="resources/favicon.ico">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+        <meta charset="UTF-8" />
+        <title>Game Variants | ReachVariantTool Documentation</title>
+        <base href="../../" />
+        <link rel="stylesheet" href="resources/main.css" />
+        <noscript>
+             <link rel="stylesheet" href="resources/noscript.css" />
+          </noscript>
+        <script src="resources/head.js"></script>
+    </head>
 
 <body>
 <div class="scroll-container">
@@ -235,27 +232,51 @@
             </li>
 </ul>
     </nav>
-    <main>
-        <h1>Index</h1>
-        <p>
-            Here, you can find documentation on ReachVariantTool's UI, and on its scripting language. You can use the sidebar to navigate the documentation. Some entries in the sidebar can be expanded or collapsed by clicking the grey buttons on their left ends.
-        </p>
-        <hr>
-        <p>
-            ReachVariantTool is an unofficial tool that can be used to edit <i>Halo: Reach</i> game variants. A "game variant" is a collection of saved settings for multiplayer matches; for example, if you have fun playing Capture the Flag with 200% jump
-            height with your friends, you can save those settings as a "game variant."
-        </p>
-        <p>
-            <i>Halo: Reach</i> introduced an interesting and powerful new feature: instead of having all game modes hardcoded like in past games, game modes use a scripting language... and the script code is stored in each individual game variant. When
-            you save your Capture the Flag with 200% Jump Height game variant, you're not just saving a little post-it note that says "double jump height" on it; you're saving <em>an entire separate copy of Capture the Flag's code</em>... and ReachVariantTool
-            can modify that code. You can make entire new game modes.
-        </p>
-        <p>
-            As an example, here's Minesweeper recreated in <i>Halo: Reach</i>:
-        </p>
-        <iframe allowfullscreen="allowfullscreen" width="560" height="315" src="https://www.youtube.com/embed/-sP8ElrIdek" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" frameborder="0"></iframe>
+    <script>
+        function fetchAndDisplayAllTextFiles() {
+          // The path to the folder containing the text files
+          const folderPath = 'resources/commented_variants';
+    
+          // Container to hold the text blocks
+          const container = document.getElementById('text-files-container');
+    
+          // Fetch the list of files in the folder
+          fetch(folderPath)
+            .then(response => response.text())
+            .then(text => {
+                console.log(text);
+              // Split the response text by newlines to get filenames
+              const filenames = text.split('\n').filter(filename => filename.trim() !== '');
+            
+              // Loop through the filenames array and fetch each text file
+              filenames.forEach(filename => {
+                fetch(folderPath + filename)
+                  .then(response => response.text())
+                  .then(text => {
+                    // Create a <pre><code> block for each text file and insert the text into it
+                    const preElement = document.createElement('pre');
+                    const codeElement = document.createElement('code');
+                    codeElement.textContent = text;
+                    preElement.appendChild(codeElement);
+                    container.appendChild(preElement);
+                  })
+                  .catch(error => {
+                    console.error('Error fetching ' + filename + ':', error);
+                  });
+              });
+            })
+            .catch(error => {
+              console.error('Error fetching file list:', error);
+            });
+        }
+    
+        // Call the function to fetch and display all text files
+        fetchAndDisplayAllTextFiles();
+      </script>
 
-    </main>
+      <main id="text-files-container">
+
+      </main>
     <script src="resources/sidebar.js"></script>
     <script src="resources/header-links.js"></script>
 </body>
