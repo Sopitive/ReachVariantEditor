@@ -228,57 +228,99 @@
                 <ul>
                     <li><a href="concepts/bipeds-and-items.html">Bipeds and items</a></li>
                     <li><a href="concepts/firefight.html">Firefight</a></li>
+                    <li><a href="concepts/game-variants.html">Commented Game Variants</a></li>
                 </ul>
             </li>
 </ul>
     </nav>
-    <script>
-        function fetchAndDisplayAllTextFiles() {
-          // The path to the folder containing the text files
-          const folderPath = 'resources/commented_variants';
-    
-          // Container to hold the text blocks
-          const container = document.getElementById('text-files-container');
-    
-          // Fetch the list of files in the folder
-          fetch(folderPath)
-            .then(response => response.text())
-            .then(text => {
-                console.log(text);
-              // Split the response text by newlines to get filenames
-              const filenames = text.split('\n').filter(filename => filename.trim() !== '');
-            
-              // Loop through the filenames array and fetch each text file
-              filenames.forEach(filename => {
-                fetch(folderPath + filename)
-                  .then(response => response.text())
-                  .then(text => {
-                    // Create a <pre><code> block for each text file and insert the text into it
-                    const preElement = document.createElement('pre');
-                    const codeElement = document.createElement('code');
-                    codeElement.textContent = text;
-                    preElement.appendChild(codeElement);
-                    container.appendChild(preElement);
-                  })
-                  .catch(error => {
-                    console.error('Error fetching ' + filename + ':', error);
-                  });
-              });
-            })
-            .catch(error => {
-              console.error('Error fetching file list:', error);
-            });
+    <style>
+        /* Styling for the collapsed code block */
+        pre.collapsed {
+          max-height: 0;
+          max-width: 0;
+          opacity: 0;
+          overflow: hidden;
+          
+        }
+
+        pre {
+            max-width: 100%;
+            transition: max-width 200ms ease-in-out;
         }
     
-        // Call the function to fetch and display all text files
-        fetchAndDisplayAllTextFiles();
-      </script>
+        /* Styling for the expand button */
+        .expand-button {
+          display: inline-block;
+          cursor: pointer;
+          font-size: 14px;
+          margin-left: 10px;
+          border: 1px solid #ccc;
+          padding: 10px;
+        }
+      </style>
 
       <main id="text-files-container">
 
       </main>
     <script src="resources/sidebar.js"></script>
     <script src="resources/header-links.js"></script>
+    <script>
+        function fetchAndDisplayTextFiles() {
+
+          const folderPath = 'resources/commented_variants/';
+    
+
+          const filenames = ['assault.txt', 'ctf_tu.txt', 'escalation_slayer.txt', 'freeze_tag.txt', 'headhunter.txt', 'invasion_breakpoint.txt', 'invasion_slayer.txt', 'invasion.txt', 'juggernaut.txt', 'koth_tu.txt', 'oddball.txt', 'power_slayer.txt', 'race.txt', 'rally.txt', 'rocket_hog_race.txt', 'skeeball.txt', 'slayer_tu.txt', 'territories.txt', 'slayer.txt', 'stockpile.txt', 'speedpile.txt', 'speedflag.txt', 'alpha_zombies.txt'];
+    
+
+          const container = document.getElementById('text-files-container');
+    
+
+          filenames.forEach(filename => {
+            fetch(folderPath + filename)
+              .then(response => response.text())
+              .then(text => {
+
+
+                const expandButton = document.createElement('span');
+                expandButton.className = 'expand-button';
+                expandButton.textContent = '+';
+                expandButton.addEventListener('click', function() {
+
+                  preElement.classList.toggle('collapsed');
+
+                  expandButton.textContent = preElement.classList.contains('collapsed') ? '+' : '-';
+                });
+
+
+                const filenameWithoutExtension = filename.replace('.txt', '');
+                const filenameSpan = document.createElement('span');
+                filenameSpan.textContent = filenameWithoutExtension + ': ';
+                filenameSpan.appendChild(expandButton);
+                container.appendChild(filenameSpan);
+
+
+                const preElement = document.createElement('pre');
+                preElement.className = 'collapsed'; 
+                const codeElement = document.createElement('code');
+                codeElement.textContent = text;
+                preElement.appendChild(codeElement);
+                container.appendChild(preElement);
+                hljs.highlightBlock(codeElement); 
+    
+                
+    
+                
+              })
+              .catch(error => {
+                console.error('Error fetching ' + filename + ':', error);
+              });
+          });
+        }
+    
+
+        fetchAndDisplayTextFiles();
+      </script>
 </body>
 
 </html>
