@@ -8,7 +8,7 @@
 <script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
-      <title>player.frag_grenades | ReachVariantTool Documentation</title>
+      <title>player.try_get_vehicle | ReachVariantTool Documentation</title>
       <base href="../../../../" />
       <link rel="stylesheet" href="resources/main.css" />
       <noscript>
@@ -150,31 +150,64 @@
 </ul>
       </nav>
       <main>
-         <header><h1>player.frag_grenades</h1><span class="type">Type: <a href="script/api/number.html">Number</a></span></header>
+         <header><h1>player.get_button_time</h1><span class="a-k-a">a.k.a. player.get_button_press_duration</span></header>
 
-            <p>
-               The player's current frag grenade count. The count is capped at 4; attempting 
-               to increase it past this number will simply set it to 4 instead.
-            </p>
-         
-<p>This accessor supports write access only; you cannot read an existing value.</p>
-<h2>Example</h2>
-<pre><code>
-for each player do
-   current_player.frag_grenades += 1
-end</code></pre>
-<h2>See also</h2>
+               <p>
+                  When called on a player, this function returns the amount of ticks that the player has been holding down a button up to a max of 255 ticks. It will return 0 if the player is not holding down the button.
+               </p>
+
+            
+<p>This function returns <a href="script/api/number.html">number</a>. Calling this function without storing its return value in a variable is an error.</p>
+<h2>Arguments</h2>
+<dl>
+   <dt>types</dt>
+      <dd>
+                  <p>A button -- not a specific hardware button, like Left Bumper, but rather the button to which a given gameplay function is currently mapped.</p>
+                  <dl>
+                    <dt>jump</dt>
+                    <dd>The button used to make the player jump</dd>
+                    <dt>switch_grenade</dt>
+                    <dd>The button used to switch grenades between frags/plasmas</dd>
+                    <dt>switch_weapon</dt>
+                    <dd>The button used to switch weapons between primary/secondary</dd>
+                    <dt>context_primary</dt>
+                    <dd>The button used as the "action" button to interact with objects</dd>
+                    <dt>melee</dt>
+                    <dd>The button used to make the player melee</dd>
+                    <dt>equipment</dt>
+                    <dd>The button the player uses to activate their armor ability</dd>
+                    <dt>throw_grenade</dt>
+                    <dd>The button used to throw a grenade</dd>
+                    <dt>fire_primary</dt>
+                    <dd>The button used to fire the primary weapon</dd>
+                    <dt>crouch</dt>
+                    <dd>The button used to make the player crouch</dd>
+                    <dt>scope_zoom</dt>
+                    <dd>The button used to toggle zooming in/out</dd>
+                    <dt>night_vision</dt>
+                    <dd>The button used to toggle night vision</dd>
+                    <dt>fire_secondary</dt>
+                    <dd>The button used for vehicle function 1 </dd>
+                    <dt>fire_tertiary</dt>
+                    <dd>Appears to always trigger on the "B" button</dd>
+                    <dt>vehicle_trick</dt>
+                    <dd>The button used for vehicle function 2 and vehicle function 3</dd>
+               </dd>
+</dl>
+<h2>Notes</h2>
 <ul>
-   <li><a href="script/api/object/actions/add_weapon.html">object.add_weapon</a></li>
-   <li><a href="script/api/object/conditions/is_in_use.html">object.is_in_use</a></li>
-   <li><a href="script/api/object/actions/remove_weapon.html">object.remove_weapon</a></li>
-   <li><a href="script/api/object/actions/try_get_carrier.html">object.try_get_carrier</a></li>
-   <li><a href="script/api/player/actions/add_weapon.html">player.add_weapon</a></li>
-   <li><a href="script/api/player/accessors/plasma_grenades.html">player.plasma_grenades</a></li>
-   <li><a href="script/api/player/actions/try_get_armor_ability.html">player.try_get_armor_ability</a></li>
-   <li><a href="script/api/player/actions/try_get_weapon.html">player.try_get_weapon</a></li>
-</ul>
+    <li><p>
+        This function only appears to do anything when called on the host.
+    </p></li>
+    <li><p>
+        This function appears to only work when the player is using a controller.
+    </p></li>
+    <li><p>
+        When the player is holding down any button, this function will get the button time regardless of whether the button would normally be used in the current context.
+        For example, pressing the jump button while in a vehicle will still return the amount of time the player has been holding down the jump button.
+    </p></li>
 
+        
       </main>
       <script src="resources/sidebar.js"></script>
       <script src="resources/header-links.js"></script>
