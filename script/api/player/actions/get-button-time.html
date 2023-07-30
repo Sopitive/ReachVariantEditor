@@ -155,14 +155,14 @@
          <header><h1>player.get_button_time</h1><span class="a-k-a">a.k.a. player.get_button_press_duration</span></header>
 
                <p>
-                  When called on a player, this function returns the amount of ticks that the player has been holding down a button up to a max of 255 ticks. It will return 0 if the player is not holding down the button.
+                  When called on a player, this function returns the amount of ticks that the player has been holding down a button up to a max of 255 ticks. Returns 0 if the player is not holding down the button.
                </p>
 
             
 <p>This function returns <a href="script/api/number.html">number</a>. Calling this function without storing its return value in a variable is an error.</p>
 <h2>Arguments</h2>
 <dl>
-   <dt>types</dt>
+   <dt>button</dt>
       <dd>
                   <p>A button -- not a specific hardware button, like Left Bumper, but rather the button to which a given gameplay function is currently mapped.</p>
                   <dl>
