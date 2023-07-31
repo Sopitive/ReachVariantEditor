@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
    <head>
       <meta charset="UTF-8" />
       <title>game.show_message_to | ReachVariantTool Documentation</title>
@@ -68,6 +68,8 @@
                      <a>Member actions</a>
                      <ul>
                         <li><a href="script/api/ns_game/actions/end_round.html">end_round</a></li>
+<li><a href="script/api/ns_game/actions/hs_function_call.html">hs_function_call</a></li>
+<li><a href="script/api/ns_game/actions/show_message_to.html">hud_post_message</a></li>
 <li><a href="script/api/ns_game/actions/play_sound_for.html">play_sound_for</a></li>
 <li><a href="script/api/ns_game/actions/show_message_to.html">show_message_to</a></li>
 
@@ -78,18 +80,20 @@
          </ul>
       </nav>
       <main>
-         <h1>game.show_message_to</h1>
-<p>Display a message in the kill feed.</p><h2>Arguments</h2>
+         <header><h1>game.show_message_to</h1><span class="a-k-a">a.k.a. game.hud_post_message</span></header>
+<p>Display a message in the kill feed.</p>
+<h2>Arguments</h2>
 <dl>
    <dt>who</dt>
-      <dd>
+      <dd><p>
                   The <a href="script/api/player.html">player</a> or <a href="script/api/team.html">team</a> 
                   to display the message for, or the value <var>all_players</var>.
-               </dd>
+               </p></dd>
    <dt><a href="script/api/sound.html">sound</a></dt>
-      <dd>An optional sound to play with the message.</dd>
+      <dd><p>An optional sound to play with the message.</p></dd>
    <dt><a href="script/api/format-string.html">text</a></dt>
-      <dd>The text to display.</dd>
+      <dd><p>The text to display. This format string is 
+               non-persistent, so transient variables are allowed.</p></dd>
 </dl>
 <h2>Example</h2>
 <pre>

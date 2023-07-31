@@ -92,7 +92,7 @@ namespace cobb {
             out = value.f;
          }
          //
-         float read_compressed_float(const int bitcount, float min, float max, bool is_signed, bool unknown) noexcept;
+         float read_compressed_float(const int bitcount, float min, float max, bool is_signed, bool guarantee_exact_bounds) noexcept;
          //
          void read_string(char* out, uint32_t maxlength) noexcept;
          void read_u16string(char16_t* out, uint32_t maxlength) noexcept;
@@ -168,6 +168,9 @@ namespace cobb {
          inline uint32_t get_overshoot_bits()  const noexcept { return this->overflow; }
          inline uint32_t get_overshoot_bytes() const noexcept { return this->overflow / 8; }
          //
+         inline bool is_at_end() const noexcept {
+            return this->offset == this->length;
+         }
          inline bool is_in_bounds(uint32_t bytes = 0) const noexcept {
             if (bytes)
                return this->offset + bytes <= this->length;

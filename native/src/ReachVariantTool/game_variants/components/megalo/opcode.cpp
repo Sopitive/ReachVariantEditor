@@ -1,9 +1,82 @@
 #include "opcode.h"
 #include <cassert>
+#include <memory>
 #include "actions.h"
 #include "opcode_arg_types/variables/base.h"
 
+// for abs-assign
+#include "opcode_arg_types/all_enums.h"
+
 namespace Megalo {
+   void OpcodeBase::_decompile_property_to_set(Decompiler& out, std::vector<OpcodeArgValue*>& args) const {
+      auto& mapping = this->mapping;
+      assert(mapping.type == OpcodeFuncToScriptMapping::mapping_type::property_set);
+      assert(mapping.arg_context < args.size());
+
+      args[mapping.arg_context]->decompile(out);
+      out.write('.');
+      if (mapping.primary_name.empty()) {
+         assert(mapping.arg_name >= 0);
+         assert(mapping.arg_name < args.size());
+         args[mapping.arg_name]->decompile(out);
+      } else {
+         out.write(mapping.primary_name.c_str());
+      }
+   }
+   void OpcodeBase::_decompile_property_setter_value(Decompiler& out, std::vector<OpcodeArgValue*>& args) const {
+      auto& mapping = this->mapping;
+      assert(mapping.type == OpcodeFuncToScriptMapping::mapping_type::property_set);
+
+      //
+      // We don't explicitly specify the operand index; we instead deduce it as the 
+      // argument index that isn't being used for any other role.
+      //
+      auto& list = this->arguments;
+      size_t count = list.size();
+      for (size_t i = 0; i < count; ++i) {
+         if (i != mapping.arg_context && i != mapping.arg_operator) {
+            if (mapping.primary_name.empty()) {
+               if (i == mapping.arg_name)
+                  continue;
+            }
+            args[i]->decompile(out);
+            break;
+         }
+      }
+   }
+   bool OpcodeBase::_try_decompile_abs_assign(Decompiler& out, std::vector<OpcodeArgValue*>& args) const {
+      auto& mapping = this->mapping;
+      switch (mapping.type) {
+         case OpcodeFuncToScriptMapping::mapping_type::assign:
+            {
+               auto* op = dynamic_cast<OpcodeArgValueMathOperatorEnum*>(args[2]);
+               assert(op);
+               if (op->is_abs_assign()) {
+                  args[0]->decompile(out); // target
+                  out.write(" = abs(");
+                  args[1]->decompile(out); // source
+                  out.write(")");
+                  return true;
+               }
+            }
+            return false;
+         case OpcodeFuncToScriptMapping::mapping_type::property_set:
+            {
+               auto* op = dynamic_cast<OpcodeArgValueMathOperatorEnum*>(args[mapping.arg_operator]);
+               if (!op)
+                  return false;
+               if (!op->is_abs_assign())
+                  return false;
+               this->_decompile_property_to_set(out, args);
+               out.write(" = abs(");
+               this->_decompile_property_setter_value(out, args);
+               out.write(")");
+            }
+            return true;
+      }
+      return false;
+   }
+
    bool OpcodeBase::context_is(const OpcodeArgTypeinfo& type) const noexcept {
       auto context_type = this->get_context_type();
       if (!context_type)
@@ -21,6 +94,8 @@ namespace Megalo {
             out.write("nop");
             return;
          case OpcodeFuncToScriptMapping::mapping_type::assign:
+            if (this->_try_decompile_abs_assign(out, args))
+               return;
             args[0]->decompile(out); // target
             out.write(' ');
             args[2]->decompile(out); // operator
@@ -97,35 +172,13 @@ namespace Megalo {
             out.write(mapping.primary_name.c_str());
             return;
          case OpcodeFuncToScriptMapping::mapping_type::property_set:
-            args[mapping.arg_context]->decompile(out);
-            out.write('.');
-            if (mapping.primary_name.empty()) {
-               assert(mapping.arg_name >= 0);
-               args[mapping.arg_name]->decompile(out);
-            } else {
-               out.write(mapping.primary_name.c_str());
-            }
+            if (this->_try_decompile_abs_assign(out, args))
+               return;
+            this->_decompile_property_to_set(out, args);
             out.write(' ');
             args[mapping.arg_operator]->decompile(out);
             out.write(' ');
-            {  // operand
-               //
-               // We don't explicitly specify the operand index; we instead deduce it as the 
-               // argument index that isn't being used for any other role.
-               //
-               auto& list = this->arguments;
-               size_t count = list.size();
-               for (size_t i = 0; i < count; ++i) {
-                  if (i != mapping.arg_context && i != mapping.arg_operator) {
-                     if (mapping.primary_name.empty()) {
-                        if (i == mapping.arg_name)
-                           continue;
-                     }
-                     args[i]->decompile(out);
-                     break;
-                  }
-               }
-            }
+            this->_decompile_property_setter_value(out, args);
             return;
       }
    }
@@ -260,6 +313,8 @@ namespace Megalo {
       }
       return nullptr;
    }
+
+   // TODO: Deprecate this in favor of the non-compiler overload, once we confirm that that's working.
    const AccessorRegistry::Definition* AccessorRegistry::get_variably_named_accessor(Compiler& compiler, const QString& name, const OpcodeArgTypeinfo& property_is_on) const noexcept {
       //
       // If a property-getter or property-setter has no defined primary name, then one of the opcode arguments 
@@ -284,7 +339,29 @@ namespace Megalo {
             continue;
          //
          arg.reset((type->factory)());
-         if (arg->compile(compiler, cobb::string_scanner(name), 0).is_success())
+         auto scan = cobb::string_scanner(name);
+         if (arg->compile(compiler, scan, 0).is_success())
+            return &entry;
+      }
+      return nullptr;
+   }
+
+   const AccessorRegistry::Definition* AccessorRegistry::get_variably_named_accessor(const QString& name, const OpcodeArgTypeinfo& property_is_on) const noexcept {
+      for (auto& entry : this->definitions) {
+         if (!entry.is_variably_named())
+            continue;
+         const OpcodeBase* function = entry.get_opcode_base();
+         #if _DEBUG
+            assert(function && "An entry for a variably-named accessor should not exist unless we've identified at least one of its opcodes.");
+         #endif
+         
+         auto type = function->get_name_type();
+         if (!type)
+            continue;
+         if (!function->context_is(property_is_on))
+            continue;
+         
+         if (type->has_imported_name(name))
             return &entry;
       }
       return nullptr;

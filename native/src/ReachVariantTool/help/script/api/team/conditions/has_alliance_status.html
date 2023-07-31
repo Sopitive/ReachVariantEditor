@@ -1,7 +1,8 @@
 <!doctype html>
-<html>
+<html lang="en">
    <head>
       <meta charset="UTF-8" />
+      
       <title>team.has_alliance_status | ReachVariantTool Documentation</title>
       <base href="../../../../" />
       <link rel="stylesheet" href="resources/main.css" />
@@ -47,6 +48,8 @@
                         <li><a href="script/api/team/actions/get_scoreboard_pos.html">get_scoreboard_pos</a></li>
 <li><a href="script/api/team/actions/set_co_op_spawning.html">set_co_op_spawning</a></li>
 <li><a href="script/api/team/actions/set_primary_respawn_object.html">set_primary_respawn_object</a></li>
+<li><a href="script/api/team/actions/set_respawn_vehicle.html">set_respawn_vehicle</a></li>
+<li><a href="script/api/team/actions/set_vehicle_spawning_enabled.html">set_vehicle_spawning_enabled</a></li>
 
                      </ul>
                   </li>
@@ -55,12 +58,13 @@
          </ul>
       </nav>
       <main>
-         <h1>team.has_alliance_status</h1>
+         <header><h1>team.has_alliance_status</h1></header>
 
                <p>
                   This function checks a team's alliance status toward another team.
                </p>
-            <h2>Arguments</h2>
+            
+<h2>Arguments</h2>
 <dl>
    <dt><a href="script/api/team.html">other</a></dt>
       <dd><p>A team.</p></dd>
@@ -77,8 +81,8 @@
 <h2>Notes</h2>
 <ul>
    <li><p>
-               During the <i>Halo: Reach</i> beta, Invasion implemented fireteams as actual 
-               entire teams: instead of having two teams invisibly divided into three pairs 
+               During the <i>Halo: Reach</i> beta, Invasion apparently implemented fireteams as 
+               separate teams: instead of having two teams invisibly divided into three pairs 
                of two players, the game had six teams, and the teams' alliance statuses were 
                altered to ally them with each other.
             </p></li>

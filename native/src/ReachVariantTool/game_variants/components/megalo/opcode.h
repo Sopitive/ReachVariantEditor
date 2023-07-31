@@ -32,6 +32,7 @@ namespace Megalo {
             enum type : uint8_t {
                secondary_property_zeroes_result = 0x01, // if set, invoking this opcode via its second name sets the result argument to no_object/no_player/no_team/etc. before calling; this is the difference between try_get_killer() and get_killer(). only valid for function-type opcodes with variable-type out-arguments
                return_value_can_be_discarded    = 0x02, // if set, you can invoke this opcode without storing its return value; the return value argument should be compiled as no_object/no_player/no_team/etc.
+               secondary_name_is_deprecated     = 0x04,
             };
          };
          using flags_type = std::underlying_type_t<flags::type>;
@@ -52,13 +53,16 @@ namespace Megalo {
          int8_t       arg_index_mappings[8] = { no_argument, no_argument, no_argument, no_argument, no_argument, no_argument, no_argument, no_argument }; // map native argument order to script argument order
          flags_type   flags = 0;
          OpcodeBase*  owner = nullptr;
-         variable_scope double_context_type = variable_scope::not_a_scope; // use when the opcode is (non_global_scope.var.opcode()) where the types of both the scope and the variable are significant
+         variable_scope double_context_type = variable_scope::not_a_scope; // use for cases where a single OpcodeArgValue represents both the call context AND one or more of the arguments in parentheses
          //
          uint8_t mapped_arg_count() const noexcept {
             for (uint8_t i = 0; i < std::extent<decltype(arg_index_mappings)>::value; ++i)
                if (this->arg_index_mappings[i] == no_argument)
                   return i;
             return std::extent<decltype(arg_index_mappings)>::value;
+         }
+         inline bool is_doubly_contextual() const noexcept {
+            return this->double_context_type != variable_scope::not_a_scope;
          }
          //
          OpcodeFuncToScriptMapping() {}
@@ -108,6 +112,11 @@ namespace Megalo {
    };
 
    class OpcodeBase {
+      protected:
+         void _decompile_property_to_set(Decompiler& out, std::vector<OpcodeArgValue*>& args) const;
+         void _decompile_property_setter_value(Decompiler& out, std::vector<OpcodeArgValue*>& args) const;
+         bool _try_decompile_abs_assign(Decompiler& out, std::vector<OpcodeArgValue*>& args) const;
+
       public:
          const char* name;
          const char* desc = "";
@@ -183,6 +192,7 @@ namespace Megalo {
          Definition* get_by_name(const char*, const OpcodeArgTypeinfo& base) const noexcept;
          Definition* get_variably_named_accessor(const OpcodeArgTypeinfo& property_name_type, const OpcodeArgTypeinfo& base) const noexcept;
          const Definition* get_variably_named_accessor(Compiler&, const QString& name, const OpcodeArgTypeinfo& base) const noexcept;
+         const Definition* get_variably_named_accessor(const QString& name, const OpcodeArgTypeinfo& base) const noexcept;
          //
       protected:
          AccessorRegistry();

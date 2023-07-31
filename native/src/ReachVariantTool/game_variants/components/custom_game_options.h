@@ -61,11 +61,11 @@ class ReachCGGeneralOptions {
       };
       //
    public:
-      cobb::bitnumber<4, uint8_t> flags; // 0, 1, 2, 3 = perfection enabled, reset players on new round, reset map on new round, teams
+      cobb::bitnumber<4, uint8_t> flags; // game reads these individually (four read-bit-bool calls)
       cobb::bytenumber<uint8_t>   timeLimit; // round time limit in minutes
       cobb::bitnumber<5, uint8_t> roundLimit;
       cobb::bitnumber<4, uint8_t> roundsToWin;
-      cobb::bitnumber<7, uint8_t> suddenDeathTime; // seconds
+      cobb::bitnumber<7, int8_t, true> suddenDeathTime; // seconds
       cobb::bitnumber<5, uint8_t> gracePeriod;
 
       bool read(cobb::ibitreader& stream) noexcept;
@@ -157,6 +157,12 @@ class ReachCGMapOptions {
 
 class ReachCGTeamOptions {
    public:
+      enum class scoring_modes : uint8_t {
+         sum,
+         minimum,
+         maximum,
+      };
+
       struct species {
          species() = delete;
          enum type : uint8_t {
@@ -167,9 +173,9 @@ class ReachCGTeamOptions {
             spartans_vs_elites = 4,
          };
       };
-      //
+      
    public:
-      cobb::bitnumber<3, uint8_t> scoring; // values above 3 are treated as 0
+      cobb::bitnumber<3, scoring_modes> scoring = scoring_modes::sum; // values above 3 are treated as 0
       cobb::bitnumber<3, species::type> species;
       cobb::bitnumber<2, uint8_t> designatorSwitchType;
       ReachTeamData teams[8];

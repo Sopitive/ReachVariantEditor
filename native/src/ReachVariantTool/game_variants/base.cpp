@@ -107,13 +107,13 @@ bool ReachBlockMPVR::read(reach_block_stream& reader) {
       case ReachGameEngine::forge:
          this->data = new GameVariantDataMultiplayer(this->type == ReachGameEngine::forge);
          break;
+      case ReachGameEngine::firefight:
+         this->data = new GameVariantDataFirefight();
+         break;
       case ReachGameEngine::none: // TODO: Ask the user what type we should use.
          // fall through
       case ReachGameEngine::campaign:
          // fall through
-      case ReachGameEngine::firefight:
-         this->data = new GameVariantDataFirefight();
-         break;
       default:
          error_report.state         = GameEngineVariantLoadError::load_state::failure;
          error_report.failure_point = GameEngineVariantLoadError::load_failure_point::variant_type;
@@ -125,16 +125,19 @@ bool ReachBlockMPVR::read(reach_block_stream& reader) {
       return false;
    }
    offset_after_hashable = stream.get_bytespan();
-   if (!reader.is_in_bounds()) {
-      error_report.state  = GameEngineVariantLoadError::load_state::failure;
-      error_report.reason = GameEngineVariantLoadError::load_failure_reason::block_ended_early;
-      return false;
-   }
-   this->remainingData.read(stream, this->header.end()); // TODO: this can fail and it'll signal errors to (error_report) appropriately; should we even care?
+   if (!reader.is_at_end()) {
+      if (!reader.is_in_bounds()) {
+         error_report.state  = GameEngineVariantLoadError::load_state::failure;
+         error_report.reason = GameEngineVariantLoadError::load_failure_reason::block_ended_early;
+         return false;
+      }
+      this->remainingData.read(stream, this->header.end()); // TODO: this can fail and it'll signal errors to (error_report) appropriately; should we even care?
       //
       // Specifically, a 360-era modded gametype, "SvE Mythic Infection," ends its MPVR block early but still has a full-size block length i.e. 0x5028, so 
       // the _eof block ends up inside of here AND we hit the actual end-of-file early, causing (remainingData.read) to fail. However, we can still read 
       // the game variant data; I haven't tested whether MCC can.
+      //
+   }
    //
    if (!block_type_is_gvar) {
       auto     hasher   = cobb::sha1();
@@ -157,6 +160,28 @@ bool ReachBlockMPVR::read(reach_block_stream& reader) {
       printf("Check done.\n");
    }
    //
+   return true;
+}
+bool ReachBlockMPVR::read_mglo(const void* data, size_t size) {
+   auto& error_report = GameEngineVariantLoadError::get();
+   //
+   auto  reader = cobb::reader((const uint8_t*)data, size);
+   auto& stream = reader.bits;
+   this->data = new GameVariantDataMultiplayer(false);
+   if (!this->data->read(reader)) {
+      error_report.state = GameEngineVariantLoadError::load_state::failure;
+      if (error_report.reason == GameEngineVariantLoadError::load_failure_reason::none)
+         error_report.reason == GameEngineVariantLoadError::load_failure_reason::invalid_mpvr_data;
+      return false;
+   }
+   if (!reader.is_at_end()) {
+      if (!reader.is_in_bounds()) {
+         error_report.state  = GameEngineVariantLoadError::load_state::failure;
+         error_report.reason = GameEngineVariantLoadError::load_failure_reason::block_ended_early;
+         return false;
+      }
+      this->remainingData.read(stream, this->header.end());
+   }
    return true;
 }
 void ReachBlockMPVR::write(GameVariantSaveProcess& save_process) noexcept {
@@ -246,13 +271,13 @@ void ReachBlockMPVR::cloneTo(ReachBlockMPVR& target) const noexcept {
    this->remainingData.cloneTo(target.remainingData);
 }
 
-bool GameVariant::read(cobb::mapped_file& file) {
+bool GameVariant::read(const void* data, size_t size) {
    auto& error_report = GameEngineVariantLoadError::get();
    auto& warnings     = GameEngineVariantLoadWarningLog::get();
    error_report.reset();
    warnings.clear();
    //
-   auto reader = cobb::reader((const uint8_t*)file.data(), file.size());
+   auto reader = cobb::reader((const uint8_t*)data, size);
    auto blocks = ReachFileBlockReader(reader);
    bool athr   = false;
    bool blam   = false;
@@ -370,7 +395,37 @@ bool GameVariant::read(cobb::mapped_file& file) {
    }
    return true;
 }
+bool GameVariant::read_mglo(const void* data, size_t size) {
+   auto& error_report = GameEngineVariantLoadError::get();
+   auto& warnings     = GameEngineVariantLoadWarningLog::get();
+   error_report.reset();
+   warnings.clear();
+   //
+   if (!this->multiplayer.read_mglo(data, size)) {
+      error_report.state = GameEngineVariantLoadError::load_state::failure;
+      return false;
+   }
+   this->blamHeader.header.found = this->blamHeader.header.expected;
+   this->blamHeader.header.found.version = 1;
+   this->blamHeader.header.found.flags   = 2;
+   this->blamHeader.data.unk0C = 0xFFFE;
+   this->multiplayer.type = ReachGameEngine::multiplayer;
+   if (auto mp = this->get_multiplayer_data()) {
+      if (error_report.state == GameEngineVariantLoadError::load_state::failure) {
+         return false;
+      }
+      this->synch_chdr_to_mpvr();
+   }
+   return true;
+}
 void GameVariant::write(GameVariantSaveProcess& save_process) noexcept {
+   if (save_process.has_flag(GameVariantSaveProcess::flag::save_bare_mglo)) {
+      auto* mp = this->multiplayer.data->as_multiplayer();
+      assert(mp != nullptr && "Why was GameVariantSaveProcess::flag::save_bare_mglo set when this isn't a multiplayer variant?");
+      mp->write(save_process);
+      return;
+   }
+
    auto& writer = save_process.writer;
    //
    this->blamHeader.write(writer.bytes);

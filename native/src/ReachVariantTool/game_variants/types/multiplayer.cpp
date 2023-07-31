@@ -92,7 +92,14 @@ void ReachMPSizeData::update_from(GameVariantDataMultiplayer& mp) {
    #pragma endregion
    this->bits.script_strings = mp.scriptData.strings.get_size_to_save();
    this->bits.map_perms      = mp.mapPermissions.bitcount();
-   //
+
+   this->counts.forge_labels   = mp.scriptContent.forgeLabels.size();
+   this->counts.script_options = mp.scriptData.options.size();
+   this->counts.script_stats   = mp.scriptContent.stats.size();
+   this->counts.script_traits  = mp.scriptData.traits.size();
+   this->counts.script_widgets = mp.scriptContent.widgets.size();
+   this->counts.strings        = mp.scriptData.strings.size();
+   
    this->update_script_from(mp);
 }
 void ReachMPSizeData::update_script_from(GameVariantDataMultiplayer& mp) {
@@ -201,6 +208,12 @@ bool GameVariantDataMultiplayer::_read_script_code(cobb::ibitreader& stream) noe
          return false;
       }
    }
+   if (count >= Megalo::Limits::max_conditions) {
+      error_report.state         = GameEngineVariantLoadError::load_state::failure;
+      error_report.failure_point = GameEngineVariantLoadError::load_failure_point::megalo_conditions;
+      error_report.detail        = GameEngineVariantLoadError::load_failure_detail::too_many_opcodes;
+      return false;
+   }
    //
    count = stream.read_bits(cobb::bitcount(Megalo::Limits::max_actions)); // 11 bits
    actions.resize(count);
@@ -216,6 +229,12 @@ bool GameVariantDataMultiplayer::_read_script_code(cobb::ibitreader& stream) noe
          error_report.reason        = GameEngineVariantLoadError::load_failure_reason::block_ended_early;
          return false;
       }
+   }
+   if (count >= Megalo::Limits::max_actions) {
+      error_report.state         = GameEngineVariantLoadError::load_state::failure;
+      error_report.failure_point = GameEngineVariantLoadError::load_failure_point::megalo_actions;
+      error_report.detail        = GameEngineVariantLoadError::load_failure_detail::too_many_opcodes;
+      return false;
    }
    //
    count = stream.read_bits(cobb::bitcount(Megalo::Limits::max_triggers));
@@ -239,7 +258,7 @@ bool GameVariantDataMultiplayer::_read_script_code(cobb::ibitreader& stream) noe
 }
 
 namespace {
-   bool _error_check_count(int count, int maximum, GameEngineVariantLoadError::load_failure_detail detail) {
+   inline bool _error_check_count(int count, int maximum, GameEngineVariantLoadError::load_failure_detail detail) {
       if (count > maximum) {
          auto& error_report = GameEngineVariantLoadError::get();
          //
@@ -331,7 +350,8 @@ bool GameVariantDataMultiplayer::read(cobb::reader& reader) noexcept {
       m.hidden.read(stream);
    }
    {  // Megalo
-      this->_read_script_code(stream);
+      if (!this->_read_script_code(stream))
+         return false;
       //
       int count = stream.read_bits(cobb::bitcount(Megalo::Limits::max_script_stats));
       if (!_error_check_count(count, Megalo::Limits::max_script_stats, GameEngineVariantLoadError::load_failure_detail::too_many_script_stats))
@@ -346,6 +366,15 @@ bool GameVariantDataMultiplayer::read(cobb::reader& reader) noexcept {
          v.player.read(stream, *this);
          v.object.read(stream, *this);
          v.team.read(stream, *this);
+         //
+         size_t bad = 0;
+         bad += v.global.post_read_fixup();
+         bad += v.player.post_read_fixup();
+         bad += v.object.post_read_fixup();
+         bad += v.team.post_read_fixup();
+         if (bad > 0) {
+            GameEngineVariantLoadWarningLog::get().push_back(QString("The Megalo script data contained %1 variables with an invalid networking priority. Versions of ReachVariantTool prior to 2.1.11 could produce this due to a program bug.\n\nThe variables in question have been corrected. These corrections will take effect when you re-save the game variant.").arg(bad));
+         }
       }
       {  // HUD widget declarations
          count = stream.read_bits(cobb::bitcount(Megalo::Limits::max_script_widgets));

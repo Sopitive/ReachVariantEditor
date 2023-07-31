@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <QObject>
 
 class GameVariant;
@@ -34,6 +35,15 @@ class ReachEditorState : public QObject {
       ReachFirefightWaveTraits* currentFFWaveTraits = nullptr;
       int8_t                 currentMPTeam = -1;
       //
+      QString dirSavedVariants;
+      QString dirBuiltInVariants;
+      QString dirMatchmakingVariants;
+      //
+      struct {
+         std::optional<QString> eurostile;
+         std::optional<QString> tv_nord;
+      } reachUIFontFamilyNames;
+      
    signals:
       void variantAbandoned(GameVariant* variant); // the game variant is deleted after this is emitted
       void variantAcquired(GameVariant* variant);
@@ -53,7 +63,11 @@ class ReachEditorState : public QObject {
       void stringModified(uint32_t index); // a single string has changed (does not include reordering, creation, or deletion)
       void stringTableModified(); // strings have been reordered, created, or deleted
       void teamColorModified(ReachTeamData*); // exists to help with team editing UI, i.e. it's fired from outside, not from inside
-      //
+      
+      void forgeLabelCountChanged();
+      void scriptStatCountChanged();
+      void scriptWidgetCountChanged();
+      
    public slots:
       void abandonVariant() noexcept;
       void setCurrentFFWaveTraits(ReachFirefightWaveTraits* traits) noexcept;
@@ -64,6 +78,10 @@ class ReachEditorState : public QObject {
       void setVariantFilePath(const wchar_t* path) noexcept; /// provided for you to call after "Save As"
       void takeVariant(GameVariant* other, const wchar_t* path) noexcept;
       //
+      bool saveVariant(QWidget* parent, bool saveAs);
+      //
+      void openHelp(QWidget* parent, bool folder);
+      
    public: // getters
       ReachCustomGameOptions* customGameOptions() noexcept;
       inline ReachFirefightWaveTraits* ffWaveTraits() noexcept { return this->currentFFWaveTraits; }
@@ -76,4 +94,10 @@ class ReachEditorState : public QObject {
       inline ReachCGRespawnOptions* respawnOptions() noexcept { return this->currentRespawnOptions; }
       inline GameVariant*   variant()         noexcept { return this->currentVariant; }
       inline const wchar_t* variantFilePath() noexcept { return this->currentFile.c_str(); }
+
+      void getDefaultLoadDirectory(QString& out) const noexcept;
+      void getDefaultSaveDirectory(QString& out) const noexcept;
+
+      std::optional<QString> getReachEditingKitWidgetFontFamily() const;
+      std::optional<QString> getReachEditingKitBodyTextFontFamily() const;
 };

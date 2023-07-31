@@ -53,14 +53,21 @@ namespace Megalo {
          DetailedEnumValue("^=", DetailedEnumValueInfo::make_friendly_name("bitwise-XOR with")),
          DetailedEnumValue("~=", DetailedEnumValueInfo::make_friendly_name("bitwise-NOT with")), // (a ~= b) == (a &= ~b)
          //
-         DetailedEnumValue("+=",  DetailedEnumValueInfo::make_friendly_name("add(?)")), // KSoft calls this <<= but it acts like addition in MCC-Reach tests
-         //DetailedEnumValue("",  DetailedEnumValueInfo::make_friendly_name("crash the game with")), // KSoft calls this >>= but it crashes in tests
-         //DetailedEnumValue("<<<=", DetailedEnumValueInfo::make_friendly_name("untested-operation with")),
+         // Added in MCC:
+         //
+         DetailedEnumValue("<<=", DetailedEnumValueInfo::make_friendly_name("bitwise-left-shift by")), // acted like += pre-MCC
+         DetailedEnumValue(">>=", DetailedEnumValueInfo::make_friendly_name("arithmetic-right-shift by")), // crashed pre-MCC // preserves/extends sign bit
+
+         // `a = abs(b)`
+         // This token is safe to use because the compiler doesn't blindly pass user input to this opcode; it 
+         // also verifies the opcode itself. It specifically checks for the `a = abs(b)` syntax and if it finds 
+         // that, it quietly swaps out "=" for "__abs_assign". It's a hack, but it should work well enough.
+         DetailedEnumValue("__abs_assign", DetailedEnumValueInfo::make_friendly_name("absolute-value")),
       });
       auto pickup_priority = DetailedEnum({
-         DetailedEnumValue("normal"),
-         DetailedEnumValue("hold_action"),
-         DetailedEnumValue("automatic"),
+         DetailedEnumValue("normal"),    // MegaloEdit: normal
+         DetailedEnumValue("high"),      // MegaloEdit: special
+         DetailedEnumValue("automatic"), // MegaloEdit: auto
       });
       auto team_alliance_status = DetailedEnum({
          DetailedEnumValue("neutral"),
@@ -76,6 +83,27 @@ namespace Megalo {
       auto weapon_slot = DetailedEnum({
          DetailedEnumValue("secondary"),
          DetailedEnumValue("primary"),
+      });
+
+      //
+      // MCC extensions:
+      //
+      
+      auto mapped_control = DetailedEnum({
+         DetailedEnumValue("jump"),
+         DetailedEnumValue("switch_grenade"),
+         DetailedEnumValue("switch_weapon"),
+         DetailedEnumValue("context_primary"),
+         DetailedEnumValue("melee"),
+         DetailedEnumValue("equipment"),
+         DetailedEnumValue("throw_grenade"),
+         DetailedEnumValue("fire_primary"),
+         DetailedEnumValue("crouch"),
+         DetailedEnumValue("scope_zoom"),
+         DetailedEnumValue("night_vision"),
+         DetailedEnumValue("fire_secondary"),
+         DetailedEnumValue("fire_tertiary"),
+         DetailedEnumValue("vehicle_trick"),
       });
    }
 
@@ -134,8 +162,32 @@ namespace Megalo {
          }
       }
       auto index = this->base.lookup(word);
-      if (index < 0)
-         return arg_compile_result::failure(QString("Value \"%1\" cannot be used here.").arg(word));
+      if (index < 0) {
+         bool  failure      = true;
+         auto* deprecations = this->get_deprecations();
+         if (deprecations) {
+            for (auto& d : *deprecations) {
+               if (word.compare(d.name.c_str(), Qt::CaseInsensitive) == 0) {
+                  failure = false;
+                  index   = d.index;
+                  //
+                  auto* item = this->base.item(index);
+                  if (item) {
+                     compiler.raise_warning(
+                        QString("Here, the value \"%1\" is deprecated. It has the same meaning as \"%2\", which you should use instead.")
+                           .arg(d.name.c_str())
+                           .arg(item->name.c_str())
+                     );
+                  } else {
+                     failure = true;
+                  }
+                  break;
+               }
+            }
+         }
+         if (failure)
+            return arg_compile_result::failure(QString("Value \"%1\" cannot be used here.").arg(word));
+      }
       this->value = index;
       return arg_compile_result::success();
    }
@@ -249,7 +301,24 @@ namespace Megalo {
       OpcodeArgTypeinfo::default_factory<OpcodeArgValueMathOperatorEnum>
       // DO NOT import any names, because all of the enum values are operators and the compiler has handling for them built-in
    );
+   //
+   void OpcodeArgValueMathOperatorEnum::decompile(Decompiler& out, Decompiler::flags_t flags) noexcept {
+      auto item = this->base.item(this->value);
+      std::string temp;
+      if (!item) {
+         cobb::sprintf(temp, "<operator#%u>", this->value);
+         out.write(temp);
+         return;
+      }
+      temp = item->name;
+      if (temp.empty())
+         cobb::sprintf(temp, "<operator#%u>", this->value);
+      out.write(temp);
+   }
 
+   /*static*/ std::vector<OpcodeArgValuePickupPriorityEnum::deprecation> OpcodeArgValuePickupPriorityEnum::deprecations = {
+      { "hold_action", 1 },
+   };
    OpcodeArgValuePickupPriorityEnum::OpcodeArgValuePickupPriorityEnum() : OpcodeArgValueEnumSuperclass(enums::pickup_priority) {}
    OpcodeArgTypeinfo OpcodeArgValuePickupPriorityEnum::typeinfo = OpcodeArgTypeinfo(
       "_pickup_priority",
@@ -304,4 +373,26 @@ namespace Megalo {
       OpcodeArgTypeinfo::default_factory<OpcodeArgValueLoadoutPalette>,
       enums::loadout_palette
    );
+
+   //
+   // Added in MCC:
+   //
+
+   OpcodeArgValueMappedControl::OpcodeArgValueMappedControl() : OpcodeArgValueEnumSuperclass(enums::mapped_control) {}
+   OpcodeArgTypeinfo OpcodeArgValueMappedControl::typeinfo = OpcodeArgTypeinfo(
+      "_mapped_control",
+      "Mapped Control",
+      "A button -- not a specific hardware button, like Left Bumper, but rather the button to which a given gameplay function is currently mapped, like the Jump button.",
+      //
+      OpcodeArgTypeinfo::flags::none,
+      OpcodeArgTypeinfo::default_factory<OpcodeArgValueMappedControl>,
+      enums::mapped_control
+   );
+   bool OpcodeArgValueMappedControl::read(cobb::ibitreader& stream, GameVariantDataMultiplayer& mp) noexcept {
+      this->value = stream.read_bits(5);
+      return true;
+   }
+   void OpcodeArgValueMappedControl::write(cobb::bitwriter& stream) const noexcept {
+      stream.write(this->value, 5);
+   }
 }

@@ -259,7 +259,7 @@
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\player_set.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="game_variants\components\megalo\opcode_arg_types\tokens.cpp">
+    <ClCompile Include="game_variants\components\megalo\opcode_arg_types\format_string.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="helpers\int128.cpp">
@@ -439,6 +439,39 @@
     <ClCompile Include="helpers\qt\ini.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\generic\MegaloSyntaxHighlighter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\generic\ColorPickerButton.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\options_window\syntax_highlight_option_widget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="services\syntax_highlight_option.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="services\RVTThemeEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helpers\qt\color.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helpers\qt\string_scanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="game_variants\components\megalo\helpers\format_strings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="game_variants\components\megalo\code_block.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="game_variants\components\megalo\opcode_arg_types\megalo_scope.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\widgets\RoundCardTextPreview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="ui\generic\PlayerTraitWidgets.h">
@@ -597,6 +630,18 @@
     <QtMoc Include="helpers\qt\ini.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="ui\generic\MegaloSyntaxHighlighter.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="ui\options_window\syntax_highlight_option_widget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="ui\generic\ColorPickerButton.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="services\RVTThemeEngine.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="ui\main_window\page_multiplayer_settings_general.ui">
@@ -716,6 +761,9 @@
     <QtUic Include="ui\main_window\page_firefight_bonus_wave.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="ui\options_window\syntax_highlight_option_widget.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="Resources\main_window.qrc">
@@ -819,7 +867,7 @@
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\specific_variable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="game_variants\components\megalo\opcode_arg_types\tokens.h">
+    <ClInclude Include="game_variants\components\megalo\opcode_arg_types\format_string.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\vector3.h">
@@ -1089,14 +1137,121 @@
     <ClInclude Include="helpers\ini.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="services\syntax_highlight_option.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="helpers\qt\color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="helpers\qt\string_scanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="game_variants\components\megalo\helpers\format_strings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="game_variants\components\megalo\code_block.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="game_variants\components\megalo\opcode_arg_types\megalo_scope.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="game_variants\components\megalo\compiler\variable_usage_set.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\widgets\RoundCardTextPreview.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="ReachVariantTool.ico" />
+    <Image Include="Resources\compiler_log\error.png" />
+    <Image Include="Resources\compiler_log\fatal.png" />
+    <Image Include="Resources\compiler_log\success.png" />
+    <Image Include="Resources\compiler_log\warning.png" />
+    <Image Include="Resources\gametype_icons\-1.png" />
+    <Image Include="Resources\gametype_icons\0.png" />
+    <Image Include="Resources\gametype_icons\1.png" />
+    <Image Include="Resources\gametype_icons\10.png" />
+    <Image Include="Resources\gametype_icons\11.png" />
+    <Image Include="Resources\gametype_icons\12.png" />
+    <Image Include="Resources\gametype_icons\13.png" />
+    <Image Include="Resources\gametype_icons\14.png" />
+    <Image Include="Resources\gametype_icons\15.png" />
+    <Image Include="Resources\gametype_icons\16.png" />
+    <Image Include="Resources\gametype_icons\17.png" />
+    <Image Include="Resources\gametype_icons\18.png" />
+    <Image Include="Resources\gametype_icons\19.png" />
+    <Image Include="Resources\gametype_icons\2.png" />
+    <Image Include="Resources\gametype_icons\20.png" />
+    <Image Include="Resources\gametype_icons\21.png" />
+    <Image Include="Resources\gametype_icons\22.png" />
+    <Image Include="Resources\gametype_icons\23.png" />
+    <Image Include="Resources\gametype_icons\24.png" />
+    <Image Include="Resources\gametype_icons\25.png" />
+    <Image Include="Resources\gametype_icons\25_MCC.png" />
+    <Image Include="Resources\gametype_icons\26.png" />
+    <Image Include="Resources\gametype_icons\27.png" />
+    <Image Include="Resources\gametype_icons\28.png" />
+    <Image Include="Resources\gametype_icons\29.png" />
+    <Image Include="Resources\gametype_icons\3.png" />
+    <Image Include="Resources\gametype_icons\30.png" />
+    <Image Include="Resources\gametype_icons\4.png" />
+    <Image Include="Resources\gametype_icons\5.png" />
+    <Image Include="Resources\gametype_icons\6.png" />
+    <Image Include="Resources\gametype_icons\7.png" />
+    <Image Include="Resources\gametype_icons\8.png" />
+    <Image Include="Resources\gametype_icons\9.png" />
+    <Image Include="Resources\hud_widget_preview\0.png" />
+    <Image Include="Resources\hud_widget_preview\1.png" />
+    <Image Include="Resources\hud_widget_preview\10.png" />
+    <Image Include="Resources\hud_widget_preview\2.png" />
+    <Image Include="Resources\hud_widget_preview\3.png" />
+    <Image Include="Resources\hud_widget_preview\4.png" />
+    <Image Include="Resources\hud_widget_preview\5.png" />
+    <Image Include="Resources\hud_widget_preview\6.png" />
+    <Image Include="Resources\hud_widget_preview\7.png" />
+    <Image Include="Resources\hud_widget_preview\8.png" />
+    <Image Include="Resources\hud_widget_preview\9.png" />
+    <Image Include="Resources\hud_widget_preview\base_hud.png" />
+    <Image Include="Resources\icon_128px.png" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.txt" />
     <Text Include="game_variants\components\megalo\compiler\notes.txt" />
     <Text Include="docs\saving files that exceed file format limits.txt" />
     <Text Include="docs\plans - true else(if) statements.txt" />
+    <Text Include="docs\temporary variables.txt" />
+    <Text Include="Resources\localized_string_library\campaign.txt" />
+    <Text Include="Resources\localized_string_library\generic.txt" />
+    <Text Include="Resources\localized_string_library\invasion_slayer.txt" />
+    <Text Include="Resources\localized_string_library\items.txt" />
+    <Text Include="Resources\localized_string_library\vehicles.txt" />
+    <Text Include="Resources\localized_string_library\vip.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\gametype_files\blank_forge.bin" />
+    <None Include="Resources\gametype_files\blank_mp.bin" />
+    <None Include="Resources\gametype_files\blank_ff.bin" />
+    <None Include="game_variants\components\megalo\compiler\parsing\variable_reference_rewrite_2.h.bak" />
+    <None Include="game_variants\components\megalo\compiler\parsing\variable_reference_rewrite_2.cpp.bak" />
+    <None Include="game_variants\components\megalo\compiler\parsing\variable_reference_rewrite_2.inl.bak" />
+    <None Include="docs\working - help docs\script\api\object\actions\face_toward\calculator.js" />
+    <None Include="docs\design flaws\README.md" />
+    <None Include="docs\design flaws\df001 - representation of megalo references.md" />
+    <None Include="docs\design flaws\df002 - mapping between script identifiers and compiled references.md" />
+    <None Include="docs\design flaws\df003 - handling of variant string IDs.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="docs\working - help docs\script\api\ns_unnamed\hud_player.xml" />
+    <Xml Include="docs\working - help docs\script\api\ns_unnamed\hud_player_team.xml" />
+    <Xml Include="docs\working - help docs\script\api\ns_unnamed\hud_target_player_team.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\actions\set_round_card_icon.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\actions\set_round_card_text.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\actions\set_round_card_title.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\properties\unknown_09.xml" />
+    <Xml Include="docs\working - help docs\script\api\object\actions\try_get_carrier.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\actions\try_get_weapon.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\actions\try_get_vehicle.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\actions\try_get_armor_ability.xml" />
   </ItemGroup>
 </Project>

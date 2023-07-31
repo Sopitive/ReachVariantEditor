@@ -6,147 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>588</width>
-    <height>424</height>
+    <width>589</width>
+    <height>518</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>ReachVariantTool Options</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="0">
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="title">
-      <string>Default open directory</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <item row="5" column="0">
-       <widget class="QRadioButton" name="defaultOpenPathUseCustom">
-        <property name="text">
-         <string>Use custom path:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QLineEdit" name="defaultOpenPathCustom"/>
-      </item>
-      <item row="4" column="0" colspan="2">
-       <widget class="QRadioButton" name="defaultOpenPathCWD">
-        <property name="text">
-         <string>Use this program's current working directory</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0" colspan="2">
-       <widget class="QRadioButton" name="defaultOpenPathAutoMCCMM">
-        <property name="text">
-         <string>Auto-detect MCC Matchmaking game variant path</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="QRadioButton" name="defaultOpenPathAutoMCCBuiltIn">
-        <property name="text">
-         <string>Auto-detect MCC built-in game variant path</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="2">
-       <widget class="QRadioButton" name="defaultOpenPathAutoMCCSaved">
-        <property name="text">
-         <string>Auto-detect MCC saved game variant path</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Window title</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="optionFullFilePathsInWindowTitle">
-        <property name="text">
-         <string>Show full file paths in the window title</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="optionVariantNameInWindowTitle">
-        <property name="text">
-         <string>Show the game variant's title in the window title</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QGroupBox" name="groupBox_3">
-     <property name="title">
-      <string>Default save directory</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <item row="1" column="0">
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>0</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="0" column="0" colspan="3">
-       <widget class="QRadioButton" name="defaultSavePathCurrentFile">
-        <property name="text">
-         <string>Use current file's path</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1" colspan="2">
-       <widget class="QCheckBox" name="defaultSavePathExcludeMCCNative">
-        <property name="text">
-         <string>...unless it's the folder for MCC's built-in or Matchmaking files</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QLineEdit" name="defaultSavePathCustom"/>
-      </item>
-      <item row="4" column="0" colspan="2">
-       <widget class="QRadioButton" name="defaultSavePathUseCustom">
-        <property name="text">
-         <string>Use custom path:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="3">
-       <widget class="QRadioButton" name="defaultSavePathAutoMCCSaved">
-        <property name="text">
-         <string>Auto-detect MCC saved game variant path</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0" colspan="2">
-       <widget class="QRadioButton" name="defaultSavePathCWD">
-        <property name="text">
-         <string>Use this program's current working directory</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
    <item row="6" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
@@ -179,24 +46,397 @@
     </layout>
    </item>
    <item row="0" column="0">
-    <widget class="QGroupBox" name="groupBox_4">
-     <property name="title">
-      <string>Editing</string>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>1</number>
      </property>
-     <layout class="QGridLayout" name="gridLayout_5">
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="hideFirefightNoOps">
-        <property name="text">
-         <string>Hide or disable Firefight options that don't do anything</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <widget class="QWidget" name="tabGeneral">
+      <attribute name="title">
+       <string>General</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string>Editing</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="hideFirefightNoOps">
+            <property name="text">
+             <string>Hide or disable Firefight options that don't do anything</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Default open directory</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="5" column="0">
+           <widget class="QRadioButton" name="defaultOpenPathUseCustom">
+            <property name="text">
+             <string>Use custom path:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="defaultOpenPathCustom"/>
+          </item>
+          <item row="4" column="0" colspan="2">
+           <widget class="QRadioButton" name="defaultOpenPathCWD">
+            <property name="text">
+             <string>Use this program's current working directory</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="QRadioButton" name="defaultOpenPathAutoMCCMM">
+            <property name="text">
+             <string>Auto-detect MCC Matchmaking game variant path</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QRadioButton" name="defaultOpenPathAutoMCCBuiltIn">
+            <property name="text">
+             <string>Auto-detect MCC built-in game variant path</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QRadioButton" name="defaultOpenPathAutoMCCSaved">
+            <property name="text">
+             <string>Auto-detect MCC saved game variant path</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="title">
+          <string>Default save directory</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="1" column="0">
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="0" colspan="3">
+           <widget class="QRadioButton" name="defaultSavePathCurrentFile">
+            <property name="text">
+             <string>Use current file's path</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="2">
+           <widget class="QCheckBox" name="defaultSavePathExcludeMCCNative">
+            <property name="text">
+             <string>...unless it's the folder for MCC's built-in or Matchmaking files</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QLineEdit" name="defaultSavePathCustom"/>
+          </item>
+          <item row="4" column="0" colspan="2">
+           <widget class="QRadioButton" name="defaultSavePathUseCustom">
+            <property name="text">
+             <string>Use custom path:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="3">
+           <widget class="QRadioButton" name="defaultSavePathAutoMCCSaved">
+            <property name="text">
+             <string>Auto-detect MCC saved game variant path</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="QRadioButton" name="defaultSavePathCWD">
+            <property name="text">
+             <string>Use this program's current working directory</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Window</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="optionFullFilePathsInWindowTitle">
+            <property name="text">
+             <string>Show full file paths in the window title</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="optionVariantNameInWindowTitle">
+            <property name="text">
+             <string>Show the game variant's title in the window title</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,2,0">
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Current theme:</string>
+              </property>
+              <property name="buddy">
+               <cstring>optionTheme</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="optionTheme"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="themeFileDialog">
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabCodeEditor">
+      <attribute name="title">
+       <string>Script Code Editor</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_6">
+       <item row="1" column="0">
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="title">
+          <string>Syntax highlighting</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_7">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Edit settings for:</string>
+            </property>
+            <property name="buddy">
+             <cstring>synHighType</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="synHighType"/>
+          </item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="ColorPickerButton" name="synHighColor">
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="synHighBold">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>32</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="accessibleName">
+               <string>Bold</string>
+              </property>
+              <property name="text">
+               <string>B</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="synHighItalic">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>32</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <italic>true</italic>
+               </font>
+              </property>
+              <property name="accessibleName">
+               <string>Italics</string>
+              </property>
+              <property name="text">
+               <string>I</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="synHighUnderline">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>32</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <underline>true</underline>
+               </font>
+              </property>
+              <property name="accessibleName">
+               <string>Underline</string>
+              </property>
+              <property name="text">
+               <string>U</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="title">
+          <string>General styles</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_8">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Font</string>
+            </property>
+            <property name="buddy">
+             <cstring>codeEditFont</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="codeEditEnableBackColor">
+            <property name="text">
+             <string>Override background color</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QFontComboBox" name="codeEditFont"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="codeEditEnableTextColor">
+            <property name="text">
+             <string>Override text color</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="ColorPickerButton" name="codeEditBackColor">
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="ColorPickerButton" name="codeEditTextColor">
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ColorPickerButton</class>
+   <extends>QPushButton</extends>
+   <header>generic/ColorPickerButton.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
+  <tabstop>tabWidget</tabstop>
   <tabstop>defaultOpenPathAutoMCCSaved</tabstop>
   <tabstop>defaultOpenPathAutoMCCBuiltIn</tabstop>
   <tabstop>defaultOpenPathAutoMCCMM</tabstop>
@@ -211,6 +451,17 @@
   <tabstop>defaultSavePathCustom</tabstop>
   <tabstop>optionFullFilePathsInWindowTitle</tabstop>
   <tabstop>optionVariantNameInWindowTitle</tabstop>
+  <tabstop>hideFirefightNoOps</tabstop>
+  <tabstop>codeEditFont</tabstop>
+  <tabstop>codeEditEnableBackColor</tabstop>
+  <tabstop>codeEditBackColor</tabstop>
+  <tabstop>codeEditEnableTextColor</tabstop>
+  <tabstop>codeEditTextColor</tabstop>
+  <tabstop>synHighType</tabstop>
+  <tabstop>synHighColor</tabstop>
+  <tabstop>synHighBold</tabstop>
+  <tabstop>synHighItalic</tabstop>
+  <tabstop>synHighUnderline</tabstop>
   <tabstop>buttonSave</tabstop>
   <tabstop>buttonCancel</tabstop>
  </tabstops>

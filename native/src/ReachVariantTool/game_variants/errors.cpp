@@ -14,8 +14,21 @@ void GameEngineVariantLoadError::reset() {
       this->extra[i] = 0;
 }
 QString GameEngineVariantLoadError::_explain_opcode_failure() const noexcept {
-   constexpr char* tr_disambiguator = "GameEngineVariantLoadError";
-   //
+   static constexpr const char* tr_disambiguator = "GameEngineVariantLoadError";
+
+   if (this->detail == load_failure_detail::too_many_opcodes) {
+      QString result;
+      switch (this->failure_point) {
+         case load_failure_point::megalo_actions:
+            result = QObject::tr("The script contains too many actions.", tr_disambiguator);
+            break;
+         case load_failure_point::megalo_conditions:
+            result = QObject::tr("The script contains too many conditions.", tr_disambiguator);
+            break;
+      }
+      return result;
+   }
+   
    QString noun_single;
    QString noun_plural;
    if (this->failure_point == load_failure_point::megalo_actions) {
@@ -100,7 +113,7 @@ QString GameEngineVariantLoadError::_explain_opcode_failure() const noexcept {
    return result;
 }
 QString GameEngineVariantLoadError::to_qstring() const noexcept {
-   constexpr char* tr_disambiguator = "GameEngineVariantLoadError";
+   static constexpr const char* tr_disambiguator = "GameEngineVariantLoadError";
    //
    QString result;
    if (this->state != load_state::failure)

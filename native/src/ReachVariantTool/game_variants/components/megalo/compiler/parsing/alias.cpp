@@ -36,7 +36,7 @@ namespace Megalo::Script {
          compiler.raise_error("An alias's name cannot begin with a number.");
          return false;
       }
-      if (Compiler::is_keyword(name)) {
+      if (Compiler::is_keyword(name) || name.compare("allocate", Qt::CaseInsensitive) == 0) {
          compiler.raise_fatal(QString("Keyword \"%1\" cannot be used as the name of an alias.").arg(this->name));
          return false;
       }
@@ -149,6 +149,14 @@ namespace Megalo::Script {
       }
       return true;
    }
+   Alias::Alias(Compiler& compiler, QString name, VariableReference& vr) {
+      this->name = name;
+      this->_validate_name_initial(compiler);
+      this->target = &vr;
+      if (!this->_validate_name_final(compiler))
+         return;
+      this->invalid = this->target->is_invalid;
+   }
    Alias::Alias(Compiler& compiler, QString name, QString target) {
       this->name = name;
       //
@@ -168,6 +176,9 @@ namespace Megalo::Script {
       //
       auto check = compiler.create_log_checkpoint();
       this->target->resolve(compiler, true);
+      if (compiler.has_fatal()) {
+         return;
+      }
       if (this->target->is_invalid) {
          delete this->target;
          this->target = nullptr;
@@ -245,6 +256,18 @@ namespace Megalo::Script {
          delete this->target;
          this->target = nullptr;
       }
+   }
+
+   QString Alias::pretty_printable_name() const {
+      if (!this->target) {
+         return this->name;
+      }
+      auto* basis_type = this->target->resolved.alias_basis;
+      if (!basis_type)
+         return this->name;
+      return QString("%1.%2")
+         .arg(basis_type->internal_name.c_str())
+         .arg(this->name);
    }
 
    bool Alias::is_enumeration() const noexcept {

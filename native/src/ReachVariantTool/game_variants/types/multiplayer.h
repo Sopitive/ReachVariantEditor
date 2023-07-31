@@ -49,9 +49,15 @@ struct ReachMPSizeData {
       uint32_t title_update_1 = 0;
    } bits;
    struct {
-      uint32_t conditions = 0;
-      uint32_t actions    = 0;
-      uint32_t triggers   = 0;
+      uint32_t conditions     = 0;
+      uint32_t actions        = 0;
+      uint32_t triggers       = 0;
+      uint32_t forge_labels   = 0;
+      uint32_t strings        = 0;
+      uint32_t script_options = 0;
+      uint32_t script_stats   = 0;
+      uint32_t script_traits  = 0;
+      uint32_t script_widgets = 0;
    } counts;
    //
    void update_from(GameVariant&);
@@ -136,7 +142,7 @@ class GameVariantDataMultiplayer : public GameVariantData {
       ReachGameVariantTU1Options titleUpdateData;
       struct {
          cobb::bitnumber<2, uint8_t> flags = 0;
-         cobb::bitnumber<2, uint8_t> editModeType = 0;
+         cobb::bitnumber<2, uint8_t> editModeType = 0; // invalid if > 1
          cobb::bitnumber<6, uint8_t> respawnTime = 0; // if this is greater than 60, it gets reset to 5 on load
          ReachPlayerTraits editorTraits;
       } forgeData;

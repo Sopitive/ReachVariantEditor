@@ -12,27 +12,33 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B12702AD-ABFB-343A-A199-8E24837244A3}</ProjectGuid>
-    <Keyword>QtVS_v301</Keyword>
+    <Keyword>QtVS_v304</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <QtMsBuild Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <PropertyGroup Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">
-    <QtMsBuild>$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+    <Import Project="$(QtMsBuild)\qt_defaults.props" />
+  </ImportGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <QtInstall>5.15.2 MSVC2019 x64</QtInstall>
+    <QtModules>core;gui;help;widgets</QtModules>
+    <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <QtInstall>5.15.2 MSVC2019 x64</QtInstall>
+    <QtModules>core;gui;help;widgets</QtModules>
+    <QtBuildConfig>release</QtBuildConfig>
+    <QtDeploy>true</QtDeploy>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -45,21 +51,16 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
-    <Import Project="$(QtMsBuild)\qt_defaults.props" />
-  </ImportGroup>
-  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <QtInstall>5.12.5 MSVC2017 x64</QtInstall>
-    <QtModules>core;gui;help;widgets</QtModules>
-  </PropertyGroup>
-  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <QtInstall>5.12.5 MSVC2017 x64</QtInstall>
-    <QtModules>core;gui;help;widgets</QtModules>
-  </PropertyGroup>
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
     <Import Project="$(QtMsBuild)\qt.props" />
   </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -68,12 +69,12 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>26812;</DisableSpecificWarnings>
+      <BuildStlModules>false</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <QtUic>
@@ -87,12 +88,11 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>26812;</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
     <QtUic>
@@ -111,6 +111,7 @@
     <ClCompile Include="game_variants\components\firefight_wave_traits.cpp" />
     <ClCompile Include="game_variants\components\loadouts.cpp" />
     <ClCompile Include="game_variants\components\megalo\actions.cpp" />
+    <ClCompile Include="game_variants\components\megalo\code_block.cpp" />
     <ClCompile Include="game_variants\components\megalo\compiler\compiler.cpp" />
     <ClCompile Include="game_variants\components\megalo\compiler\enums.cpp" />
     <ClCompile Include="game_variants\components\megalo\compiler\namespaces.cpp" />
@@ -121,6 +122,7 @@
     <ClCompile Include="game_variants\components\megalo\conditions.cpp" />
     <ClCompile Include="game_variants\components\megalo\decompiler\decompiler.cpp" />
     <ClCompile Include="game_variants\components\megalo\forge_label.cpp" />
+    <ClCompile Include="game_variants\components\megalo\helpers\format_strings.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode_arg.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\all_constants.cpp" />
@@ -131,6 +133,7 @@
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\forge_label.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\icons.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\incident.cpp" />
+    <ClCompile Include="game_variants\components\megalo\opcode_arg_types\megalo_scope.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\object_type.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\player_set.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\player_traits.cpp" />
@@ -138,7 +141,7 @@
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\sound.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\specific_variable.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\timer_rate.cpp" />
-    <ClCompile Include="game_variants\components\megalo\opcode_arg_types\tokens.cpp" />
+    <ClCompile Include="game_variants\components\megalo\opcode_arg_types\format_string.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\variables\any_variable.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\variables\base.cpp" />
     <ClCompile Include="game_variants\components\megalo\opcode_arg_types\variables\number.cpp" />
@@ -176,8 +179,10 @@
     <ClCompile Include="helpers\int128.cpp" />
     <ClCompile Include="helpers\memory.cpp" />
     <ClCompile Include="helpers\miscellaneous.cpp" />
+    <ClCompile Include="helpers\qt\color.cpp" />
     <ClCompile Include="helpers\qt\ini.cpp" />
     <ClCompile Include="helpers\qt\string.cpp" />
+    <ClCompile Include="helpers\qt\string_scanner.cpp" />
     <ClCompile Include="helpers\qt\tree_widget.cpp" />
     <ClCompile Include="helpers\qt\widget.cpp" />
     <ClCompile Include="helpers\sha1.cpp" />
@@ -187,8 +192,12 @@
     <ClCompile Include="helpers\string_scanner.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="services\localization_library.cpp" />
+    <ClCompile Include="services\RVTThemeEngine.cpp" />
+    <ClCompile Include="services\syntax_highlight_option.cpp" />
     <ClCompile Include="ui\generic\AllocationMeter.cpp" />
+    <ClCompile Include="ui\generic\ColorPickerButton.cpp" />
     <ClCompile Include="ui\generic\ImageStackWidget.cpp" />
+    <ClCompile Include="ui\generic\MegaloSyntaxHighlighter.cpp" />
     <ClCompile Include="ui\generic\QListWidgetEx.cpp" />
     <ClCompile Include="ui\localized_string_editor.cpp" />
     <ClCompile Include="ui\localized_string_library.cpp" />
@@ -201,6 +210,7 @@
     <ClCompile Include="ui\main_window\page_firefight_round.cpp" />
     <ClCompile Include="ui\main_window\page_firefight_scenario.cpp" />
     <ClCompile Include="ui\main_window\page_firefight_wave_traits.cpp" />
+    <ClCompile Include="ui\options_window\syntax_highlight_option_widget.cpp" />
     <ClCompile Include="ui\script_editor\bottom_bar.cpp" />
     <ClCompile Include="ui\script_editor\compiler_unresolved_strings.cpp" />
     <ClCompile Include="ui\script_editor\page_req_obj_types.cpp" />
@@ -237,6 +247,7 @@
     <ClCompile Include="ui\script_editor\page_script_widgets.cpp" />
     <ClCompile Include="ui\script_editor\page_string_table.cpp" />
     <ClCompile Include="ui\widgets\option_toggles.cpp" />
+    <ClCompile Include="ui\widgets\RoundCardTextPreview.cpp" />
     <ClCompile Include="ui\widgets\string_picker.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -265,6 +276,7 @@
     <QtUic Include="ui\main_window\page_multiplayer_settings_team_specific.ui" />
     <QtUic Include="ui\main_window\page_multiplayer_title_update_1.ui" />
     <QtUic Include="ui\main_window\page_player_traits.ui" />
+    <QtUic Include="ui\options_window\syntax_highlight_option_widget.ui" />
     <QtUic Include="ui\script_editor.ui" />
     <QtUic Include="ui\script_editor\bottom_bar.ui" />
     <QtUic Include="ui\script_editor\compiler_unresolved_strings.ui" />
@@ -296,6 +308,7 @@
     <ClInclude Include="game_variants\components\firefight_custom_skull.h" />
     <ClInclude Include="game_variants\components\firefight_round.h" />
     <ClInclude Include="game_variants\components\firefight_wave_traits.h" />
+    <ClInclude Include="game_variants\components\megalo\code_block.h" />
     <ClInclude Include="game_variants\components\megalo\compiler\compiler.h" />
     <ClInclude Include="game_variants\components\megalo\compiler\enums.h" />
     <ClInclude Include="game_variants\components\megalo\compiler\namespaces.h" />
@@ -303,11 +316,14 @@
     <ClInclude Include="game_variants\components\megalo\compiler\parsing\base.h" />
     <ClInclude Include="game_variants\components\megalo\compiler\parsing\variable_reference.h" />
     <ClInclude Include="game_variants\components\megalo\compiler\types.h" />
+    <ClInclude Include="game_variants\components\megalo\compiler\variable_usage_set.h" />
     <ClInclude Include="game_variants\components\megalo\decompiler\decompiler.h" />
+    <ClInclude Include="game_variants\components\megalo\helpers\format_strings.h" />
     <ClInclude Include="game_variants\components\megalo\opcode.h" />
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\fireteam_list.h" />
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\icons.h" />
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\incident.h" />
+    <ClInclude Include="game_variants\components\megalo\opcode_arg_types\megalo_scope.h" />
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\object_type.h" />
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\player_traits.h" />
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\sound.h" />
@@ -337,6 +353,7 @@
     <ClInclude Include="helpers\miscellaneous.h" />
     <ClInclude Include="helpers\numeric.h" />
     <ClInclude Include="helpers\pointer_list.h" />
+    <ClInclude Include="ui\widgets\RoundCardTextPreview.h" />
     <QtMoc Include="ui\script_editor\page_script_code.h" />
     <QtMoc Include="ui\script_editor\page_map_perms.h" />
     <QtMoc Include="ui\script_editor\page_metadata_strings.h" />
@@ -366,7 +383,9 @@
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\forge_label.h" />
     <ClInclude Include="helpers\memory.h" />
     <QtMoc Include="helpers\qt\ini.h" />
+    <ClInclude Include="helpers\qt\color.h" />
     <ClInclude Include="helpers\qt\string.h" />
+    <ClInclude Include="helpers\qt\string_scanner.h" />
     <ClInclude Include="helpers\qt\tree_widget.h" />
     <ClInclude Include="helpers\qt\widget.h" />
     <ClInclude Include="helpers\refcounting.h" />
@@ -379,6 +398,10 @@
     <QtMoc Include="ui\generic\QListWidgetEx.h" />
     <ClInclude Include="services\localization_library.h" />
     <QtMoc Include="ui\localized_string_library.h" />
+    <QtMoc Include="ui\generic\MegaloSyntaxHighlighter.h" />
+    <QtMoc Include="ui\generic\ColorPickerButton.h" />
+    <QtMoc Include="services\RVTThemeEngine.h" />
+    <ClInclude Include="services\syntax_highlight_option.h" />
     <ClInclude Include="ui\main_window\debug_helper_functions.h" />
     <QtMoc Include="ui\main_window\page_firefight_metadata.h" />
     <QtMoc Include="ui\main_window\page_firefight_scenario.h" />
@@ -416,7 +439,7 @@
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\player_set.h" />
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\shape.h" />
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\specific_variable.h" />
-    <ClInclude Include="game_variants\components\megalo\opcode_arg_types\tokens.h" />
+    <ClInclude Include="game_variants\components\megalo\opcode_arg_types\format_string.h" />
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\vector3.h" />
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\waypoint_icon.h" />
     <ClInclude Include="game_variants\components\megalo\opcode_arg_types\widget_related.h" />
@@ -455,6 +478,7 @@
     <QtMoc Include="ui\widgets\firefight_squad_type.h" />
     <QtMoc Include="ui\widgets\firefight_wave.h" />
     <QtMoc Include="ui\widgets\firefight_skull_list.h" />
+    <QtMoc Include="ui\options_window\syntax_highlight_option_widget.h" />
     <ClInclude Include="ui\widgets\GametypeIconCombobox.h" />
     <QtMoc Include="ui\main_window\page_multiplayer_settings_general.h" />
     <QtMoc Include="ui\generic\IconOnlyCombobox.h" />
@@ -470,12 +494,95 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="ReachVariantTool.ico" />
+    <Image Include="Resources\compiler_log\error.png" />
+    <Image Include="Resources\compiler_log\fatal.png" />
+    <Image Include="Resources\compiler_log\success.png" />
+    <Image Include="Resources\compiler_log\warning.png" />
+    <Image Include="Resources\gametype_icons\-1.png" />
+    <Image Include="Resources\gametype_icons\0.png" />
+    <Image Include="Resources\gametype_icons\1.png" />
+    <Image Include="Resources\gametype_icons\10.png" />
+    <Image Include="Resources\gametype_icons\11.png" />
+    <Image Include="Resources\gametype_icons\12.png" />
+    <Image Include="Resources\gametype_icons\13.png" />
+    <Image Include="Resources\gametype_icons\14.png" />
+    <Image Include="Resources\gametype_icons\15.png" />
+    <Image Include="Resources\gametype_icons\16.png" />
+    <Image Include="Resources\gametype_icons\17.png" />
+    <Image Include="Resources\gametype_icons\18.png" />
+    <Image Include="Resources\gametype_icons\19.png" />
+    <Image Include="Resources\gametype_icons\2.png" />
+    <Image Include="Resources\gametype_icons\20.png" />
+    <Image Include="Resources\gametype_icons\21.png" />
+    <Image Include="Resources\gametype_icons\22.png" />
+    <Image Include="Resources\gametype_icons\23.png" />
+    <Image Include="Resources\gametype_icons\24.png" />
+    <Image Include="Resources\gametype_icons\25.png" />
+    <Image Include="Resources\gametype_icons\25_MCC.png" />
+    <Image Include="Resources\gametype_icons\26.png" />
+    <Image Include="Resources\gametype_icons\27.png" />
+    <Image Include="Resources\gametype_icons\28.png" />
+    <Image Include="Resources\gametype_icons\29.png" />
+    <Image Include="Resources\gametype_icons\3.png" />
+    <Image Include="Resources\gametype_icons\30.png" />
+    <Image Include="Resources\gametype_icons\4.png" />
+    <Image Include="Resources\gametype_icons\5.png" />
+    <Image Include="Resources\gametype_icons\6.png" />
+    <Image Include="Resources\gametype_icons\7.png" />
+    <Image Include="Resources\gametype_icons\8.png" />
+    <Image Include="Resources\gametype_icons\9.png" />
+    <Image Include="Resources\hud_widget_preview\0.png" />
+    <Image Include="Resources\hud_widget_preview\1.png" />
+    <Image Include="Resources\hud_widget_preview\10.png" />
+    <Image Include="Resources\hud_widget_preview\2.png" />
+    <Image Include="Resources\hud_widget_preview\3.png" />
+    <Image Include="Resources\hud_widget_preview\4.png" />
+    <Image Include="Resources\hud_widget_preview\5.png" />
+    <Image Include="Resources\hud_widget_preview\6.png" />
+    <Image Include="Resources\hud_widget_preview\7.png" />
+    <Image Include="Resources\hud_widget_preview\8.png" />
+    <Image Include="Resources\hud_widget_preview\9.png" />
+    <Image Include="Resources\hud_widget_preview\base_hud.png" />
+    <Image Include="Resources\icon_128px.png" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="docs\plans - true else(if) statements.txt" />
     <Text Include="docs\saving files that exceed file format limits.txt" />
+    <Text Include="docs\temporary variables.txt" />
     <Text Include="game_variants\components\megalo\compiler\notes.txt" />
     <Text Include="README.txt" />
+    <Text Include="Resources\localized_string_library\campaign.txt" />
+    <Text Include="Resources\localized_string_library\generic.txt" />
+    <Text Include="Resources\localized_string_library\invasion_slayer.txt" />
+    <Text Include="Resources\localized_string_library\items.txt" />
+    <Text Include="Resources\localized_string_library\vehicles.txt" />
+    <Text Include="Resources\localized_string_library\vip.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="docs\design flaws\df001 - representation of megalo references.md" />
+    <None Include="docs\design flaws\df002 - mapping between script identifiers and compiled references.md" />
+    <None Include="docs\design flaws\df003 - handling of variant string IDs.md" />
+    <None Include="docs\design flaws\README.md" />
+    <None Include="docs\working - help docs\script\api\object\actions\face_toward\calculator.js" />
+    <None Include="game_variants\components\megalo\compiler\parsing\variable_reference_rewrite_2.cpp.bak" />
+    <None Include="game_variants\components\megalo\compiler\parsing\variable_reference_rewrite_2.h.bak" />
+    <None Include="game_variants\components\megalo\compiler\parsing\variable_reference_rewrite_2.inl.bak" />
+    <None Include="Resources\gametype_files\blank_forge.bin" />
+    <None Include="Resources\gametype_files\blank_mp.bin" />
+    <None Include="Resources\gametype_files\blank_ff.bin" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="docs\working - help docs\script\api\ns_unnamed\hud_player.xml" />
+    <Xml Include="docs\working - help docs\script\api\ns_unnamed\hud_player_team.xml" />
+    <Xml Include="docs\working - help docs\script\api\ns_unnamed\hud_target_player_team.xml" />
+    <Xml Include="docs\working - help docs\script\api\object\actions\try_get_carrier.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\actions\set_round_card_icon.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\actions\set_round_card_text.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\actions\set_round_card_title.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\actions\try_get_armor_ability.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\actions\try_get_vehicle.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\actions\try_get_weapon.xml" />
+    <Xml Include="docs\working - help docs\script\api\player\properties\unknown_09.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

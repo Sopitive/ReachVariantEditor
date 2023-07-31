@@ -53,6 +53,7 @@ namespace Megalo {
    class OpcodeArgTypeinfo;
    namespace Script {
       class VariableReference;
+      struct variable_usage_set;
    }
 
    class OpcodeArgTypeinfo {
@@ -86,9 +87,11 @@ namespace Megalo {
          std::vector<const char*> elements; // unscoped words that the compiler should be aware of, e.g. flag/enum value names
          factory_t                factory = nullptr;
          std::vector<Script::Property> properties; // for the compiler; do not list abstract properties here
-         uint8_t static_count = 0; // e.g. 8 for player[7]
-         const VariableScopeWhichValue* first_global = nullptr;
-         const VariableScopeWhichValue* first_static = nullptr;
+         uint8_t static_count    = 0; // e.g. 8 for player[7]
+         uint8_t temporary_count = 0;
+         const VariableScopeWhichValue* first_global    = nullptr;
+         const VariableScopeWhichValue* first_static    = nullptr;
+         const VariableScopeWhichValue* first_temporary = nullptr;
          std::vector<const OpcodeArgTypeinfo*> accessor_proxy_types; // the listed types can use this type's accessors and member functions; needed for OpcodeArgValuePlayerOrGroup, etc.
          //
          OpcodeArgTypeinfo() {}
@@ -106,7 +109,8 @@ namespace Megalo {
             flags_type f,
             factory_t fac,
             std::initializer_list<Script::Property> pr,
-            uint8_t sc = 0
+            uint8_t sc = 0,
+            uint8_t tc = 0
          ) :
             internal_name(in),
             friendly_name(fn),
@@ -114,7 +118,8 @@ namespace Megalo {
             flags(f),
             factory(fac),
             properties(pr),
-            static_count(sc)
+            static_count(sc),
+            temporary_count(tc)
          {}
          //
          #pragma region Decorator methods
@@ -163,20 +168,25 @@ namespace Megalo {
                this->accessor_proxy_types = types;
                return *this;
             }
-            OpcodeArgTypeinfo& set_variable_which_values(const VariableScopeWhichValue* first_global, const VariableScopeWhichValue* first_static = nullptr) {
+            OpcodeArgTypeinfo& set_variable_which_values(
+               const VariableScopeWhichValue* first_global,
+               const VariableScopeWhichValue* first_static    = nullptr,
+               const VariableScopeWhichValue* first_temporary = nullptr
+            ) {
                this->first_global = first_global;
                this->first_static = first_static;
+               this->first_temporary = first_temporary;
                return *this;
             }
          #pragma endregion
          //
-         inline bool can_be_static() const noexcept {
+         constexpr bool can_be_static() const noexcept {
             return this->static_count > 0;
          }
-         inline bool is_variable() const noexcept {
+         constexpr bool is_variable() const noexcept {
             return (this->flags) & flags::is_variable;
          }
-         inline bool can_have_variables() const noexcept {
+         constexpr bool can_have_variables() const noexcept {
             return this->flags & flags::can_hold_variables;
          }
          const Script::Property* get_property_by_name(QString) const;
@@ -204,38 +214,46 @@ namespace Megalo {
          success,
          unresolved_string, // implies success
          base_class_is_expecting_override_behavior, // used by Variable to signal to subclasses that they should run their own logic
+         unresolved_label, // implies success
       };
       enum class more_t : uint8_t {
          no,       // we're good
          needed,   // we require another script argument
          optional, // we can take another script argument
       };
-      //
+      
       QString error; // if the (code) indicates an unresolved string, then this is the string content, not an error
       code_t  code = code_t::failure;
       more_t  more = more_t::no;
-      //
+      
       static arg_compile_result failure(bool irresolvable = false);
       static arg_compile_result failure(const char*, bool irresolvable = false); // overload needed because const char* implicitly casts to bool, not QString
       static arg_compile_result failure(QString, bool irresolvable = false);
       static arg_compile_result success();
       static arg_compile_result unresolved_string(QString);
+      static arg_compile_result unresolved_label(QString);
       //
       arg_compile_result() {}
       arg_compile_result(code_t c) : code(c) {}
+      
+      [[nodiscard]] constexpr bool is_failure() const noexcept { return this->code == code_t::failure || this->code == code_t::failure_irresolvable || this->code == code_t::base_class_is_expecting_override_behavior; }
+      [[nodiscard]] constexpr bool is_irresolvable_failure() const noexcept { return this->code == code_t::failure_irresolvable; }
+      [[nodiscard]] constexpr bool is_success() const noexcept { return this->code == code_t::success || this->code == code_t::unresolved_string || this->code == code_t::unresolved_label; }
+      [[nodiscard]] constexpr bool is_unresolved_label() const noexcept { return this->code == code_t::unresolved_label; }
+      [[nodiscard]] constexpr bool is_unresolved_string() const noexcept { return this->code == code_t::unresolved_string; }
+      [[nodiscard]] constexpr bool needs_another() const noexcept { return this->more == more_t::needed; }
+      [[nodiscard]] constexpr bool can_take_another() const noexcept { return this->more == more_t::optional; }
       //
-      [[nodiscard]] inline bool is_failure() const noexcept { return this->code == code_t::failure || this->code == code_t::failure_irresolvable || this->code == code_t::base_class_is_expecting_override_behavior; }
-      [[nodiscard]] inline bool is_irresolvable_failure() const noexcept { return this->code == code_t::failure_irresolvable; }
-      [[nodiscard]] inline bool is_success() const noexcept { return this->code == code_t::success || this->code == code_t::unresolved_string; }
-      [[nodiscard]] inline bool is_unresolved_string() const noexcept { return this->code == code_t::unresolved_string; }
-      [[nodiscard]] inline bool needs_another() const noexcept { return this->more == more_t::needed; }
-      [[nodiscard]] inline bool can_take_another() const noexcept { return this->more == more_t::optional; }
-      //
-      inline arg_compile_result& set_more(more_t more) noexcept { this->more = more; return *this; }
-      inline arg_compile_result& set_needs_more(bool yes) noexcept { this->more = yes ? more_t::needed : more_t::no; return *this; }
+      constexpr arg_compile_result& set_more(more_t more) noexcept { this->more = more; return *this; }
+      constexpr arg_compile_result& set_needs_more(bool yes) noexcept { this->more = yes ? more_t::needed : more_t::no; return *this; }
       //
       inline QString get_unresolved_string() const noexcept {
          if (this->is_unresolved_string())
+            return this->error;
+         return "";
+      }
+      inline QString get_unresolved_label() const noexcept {
+         if (this->is_unresolved_label())
             return this->error;
          return "";
       }
@@ -254,10 +272,13 @@ namespace Megalo {
          virtual OpcodeArgValue* create_of_this_type() const noexcept = 0;
          virtual void copy(const OpcodeArgValue*) noexcept = 0;
          virtual OpcodeArgValue* clone() const noexcept;
+         virtual void mark_used_variables(Script::variable_usage_set&) const noexcept {} // helper for the compiler
          //
          virtual variable_type get_variable_type() const noexcept {
             return variable_type::not_a_variable;
          }
+
+         virtual bool uses_mcc_exclusive_data() const { return false; }
    };
    #define megalo_opcode_arg_value_make_create_override virtual OpcodeArgValue* create_of_this_type() const noexcept override { return (typeinfo.factory)(); }
    //

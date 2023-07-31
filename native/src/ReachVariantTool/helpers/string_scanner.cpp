@@ -85,9 +85,9 @@ namespace cobb {
                out += c;
                continue;
             }
-            QString str = text.mid(i + 1, digits);
+            QString str = text.mid(i + 2, digits);
             bool    ok  = false;
-            short   num = str.toShort(&ok, 16);
+            short   num = str.toUShort(&ok, 16);
             if (!ok) {
                out += c;
                continue;
@@ -165,14 +165,51 @@ namespace cobb {
    }
    //
    void string_scanner::scan(scan_functor_t functor) {
-      auto&  text    = this->text;
-      size_t length  = this->text.size();
-      auto&  pos     = this->state.offset;
-      bool   comment = false; // are we inside of a line comment?
-      QChar  delim   = '\0';
-      bool   escape  = false;
+      auto&  text      = this->text;
+      size_t length    = this->text.size();
+      auto&  pos       = this->state.offset;
+      bool   comment_l = false; // are we inside of a line comment?
+      size_t comment_b = 0;     // are we inside of a block comment? if so, this is the number of equal signs between the [[s, plus 1
+      QChar  delim     = '\0';
+      bool   escape    = false;
       for (; pos < length; ++pos) {
          QChar c = text[pos];
+         if (comment_b) {
+            if (c == ']') {
+               //
+               // Possible end of block comment?
+               // 
+               // Given a block comment that started like "--[===[", we want to check for "]===]". 
+               // We'll check whether the square bracket we just found is the last one in the 
+               // closing token.
+               //
+               if (pos < comment_b)
+                  //
+                  // Not far enough ahead.
+                  //
+                  continue;
+               if (text[uint(pos - comment_b)] != ']')
+                  //
+                  // First square bracket in the closing token is missing.
+                  //
+                  continue;
+               //
+               // Check for the requisite number of equal signs.
+               //
+               bool match = true;
+               for (uint i = 0; i < (comment_b - 1); ++i) {
+                  if (text[uint(pos - (comment_b - 1) + i)] != '=') {
+                     match = false;
+                     break;
+                  }
+               }
+               if (!match)
+                  continue;
+               comment_b = false;
+               continue;
+            }
+            // ...and fall through.
+         }
          if (c == '\n') {
             if (pos != this->state.last_newline) {
                //
@@ -183,16 +220,35 @@ namespace cobb {
                ++this->state.line;
                this->state.last_newline = pos;
             }
-            if (comment) {
-               comment = false;
+            if (comment_l) {
+               comment_l = false;
                continue;
             }
          }
-         if (comment)
+         if (comment_l || comment_b)
             continue;
          if (delim == '\0') {
             if (c == '-' && pos < length - 1 && text[pos + 1] == '-') { // handle line comments
-               comment = true;
+               if (pos + 2 < length && text[pos + 2] == '[') {
+                  size_t equals = 0;
+                  bool   bounded = false;
+                  for (uint i = pos + 3; i < length; ++i) {
+                     if (text[i] == '[') {
+                        bounded = true;
+                        break;
+                     }
+                     if (text[i] == '=') {
+                        ++equals;
+                     } else {
+                        break;
+                     }
+                  }
+                  if (bounded) {
+                     comment_b = equals + 1;
+                     continue;
+                  }
+               }
+               comment_l = true;
                continue;
             }
             if (string_scanner::is_quote_char(c))
@@ -495,11 +551,12 @@ namespace cobb {
       return true;
    }
    QString string_scanner::extract_up_to_any_of(QString charset, QChar& out) {
-      auto    prior = this->backup_stream_state();
+      auto    prior  = this->backup_stream_state();
       QString result;
-      QChar   delim = '\0';
+      QChar   delim  = '\0';
+      bool    escape = false;
       out = '\0';
-      this->scan([this, &charset, &out, &delim, &result](QChar c) {
+      this->scan([this, &charset, &out, &delim, &escape, &result](QChar c) {
          if (delim == '\0') { // can't use a constexpr for the "none" value because lambdas don't like that, and can't use !delim because a null QChar doesn't test as false, UGH
             if (charset.indexOf(c) >= 0) {
                out = c;
@@ -510,8 +567,9 @@ namespace cobb {
             else if (string_scanner::is_quote_char(c))
                delim = c;
          } else {
-            if (c == delim)
+            if (c == delim && !escape)
                delim = '\0';
+            escape = (c == '\\');
          }
          result += c;
          return false;

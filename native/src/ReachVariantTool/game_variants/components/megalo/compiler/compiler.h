@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <optional>
 #include <vector>
 #include <QMultiMap>
 #include <QString>
@@ -11,12 +12,15 @@
 #include "parsing/alias.h"
 #include "parsing/variable_reference.h"
 #include "../../../types/multiplayer.h"
+#include "variable_usage_set.h"
 
 namespace Megalo {
+   class OpcodeArgValueMegaloScope;
    class Compiler;
    //
    namespace Script {
       class Enum;
+      class Namespace;
       //
       class Comparison;
       class Block : public ParsedItem {
@@ -47,16 +51,29 @@ namespace Megalo {
             };
             //
          public:
+            OpcodeArgValueMegaloScope* inlined_trigger = nullptr;
             Trigger* trigger = nullptr;
+            Trigger* tr_wrap = nullptr; // wrapper trigger; use to fix (on event: for ... do end) so that it compiles properly (since the game doesn't allow event types on loop triggers)
             QString  name; // only for functions
+            bool     has_inline_specifier = false;
             QString  label_name;
-            int32_t  label_index = -1;
+            int32_t  label_index  = -1;
+            size_t   caller_count = 0; // for functions
             Type     type  = Type::basic;
             Event    event = Event::none;
             std::vector<ParsedItem*> items; // contents are owned by this Block and deleted in the destructor
             std::vector<Comparison*> conditions_alt; // only for alt(if) blocks // contents are owned by this Block and deleted in the destructor
             std::vector<Comparison*> conditions; // only for if blocks // contents are owned by this Block and deleted in the destructor
-            //
+
+            Block* get_nearest_function() {
+               if (this->type == Type::function)
+                  return this;
+               auto* bp = dynamic_cast<Block*>(this->parent);
+               if (!bp)
+                  return nullptr;
+               return bp->get_nearest_function();
+            }
+            
             ~Block();
             void insert_condition(Comparison*);
             void insert_item(ParsedItem*);
@@ -64,14 +81,53 @@ namespace Megalo {
             void remove_item(ParsedItem*);
             int32_t index_of_item(const ParsedItem*) const noexcept;
             //
-            void get_ifs_for_alt(std::vector<Block*>& out);
+            void get_ifs_for_alt(std::vector<Block*>& out) const;
             void make_alt_of(const Block& other);
             //
             void clear(bool deleting = false);
             void compile(Compiler&);
             //
-            inline bool is_event_trigger() const noexcept { return this->event != Event::none; }
+            void for_each_function(std::function<void(Block*)>);
             //
+            constexpr bool is_event_trigger() const noexcept { return this->event != Event::none; }
+            constexpr bool is_inline_trigger() const noexcept {
+               if (!this->has_inline_specifier)
+                  return false;
+               if (this->event != Event::none)
+                  return false;
+               if (this->parent == nullptr) {
+                  //
+                  // Top-level triggers cannot be inlined. An inlined trigger is an action; 
+                  // actions must exist somewhere inside of a non-inlined trigger (including 
+                  // inside of an inlined descendant trigger).
+                  //
+                  return false;
+               }
+               switch (this->type) {
+                  case Type::basic:
+                  case Type::if_block:
+                     return true;
+                  case Type::altif_block:
+                  case Type::alt_block:
+                     /*//
+                     {
+                        std::vector<Block*> ifs;
+                        this->get_ifs_for_alt(ifs);
+                        if (ifs.empty())
+                           break;
+                        auto* base = ifs.back();
+                        assert(base != nullptr);
+                        assert(base->type == Type::if_block);
+                        if (base->is_inline_trigger())
+                           return true;
+                     }
+                     return false;
+                     //*/
+                     return true;
+               }
+               return false;
+            }
+            
          protected:
             void _get_effective_items(std::vector<ParsedItem*>& out, bool include_functions = true); // returns the list of items with only Statements and Blocks, i.e. only things that generate compiled output
             bool _is_if_block() const noexcept;
@@ -116,10 +172,13 @@ namespace Megalo {
          public:
             QString name;
             int32_t trigger_index = -1;
-            Block*  parent = nullptr; // used so we can tell when the function goes out of scope
-            //
+            Block*  content = nullptr;
+            Block*  parent  = nullptr; // used so we can tell when the function goes out of scope
+
+            std::vector<const Alias*> descendant_aliases; // used for allocation
+            
             UserDefinedFunction() {}
-            UserDefinedFunction(const QString& n, int32_t ti, Block* b) : name(n), trigger_index(ti), parent(b ? dynamic_cast<Block*>(b->parent) : nullptr) {}
+            UserDefinedFunction(const QString& n, int32_t ti, Block& b) : name(n), trigger_index(ti), content(&b), parent(dynamic_cast<Block*>(b.parent)) {}
       };
    }
    //
@@ -134,11 +193,12 @@ namespace Megalo {
          };
          using log_t = std::vector<LogEntry>;
          struct log_checkpoint {
+            size_t notices      = 0;
             size_t warnings     = 0;
             size_t errors       = 0;
             size_t fatal_errors = 0;
          };
-         //
+         
          enum class unresolved_string_pending_action {
             create,
             use_existing,
@@ -187,33 +247,60 @@ namespace Megalo {
                unresolved_str(OpcodeArgValue& v, uint8_t p) : value(&v), part(p) {}
          };
          using unresolved_str_list = QMultiMap<QString, unresolved_str>;
-         //
+         
       protected:
-         using keyword_handler_t = void (Compiler::*)();
-         //
+         using keyword_handler_t = void (Compiler::*)(const pos);
+         
       protected:
          enum class c_joiner {
             none,
-            and,
-            or,
+            c_and,
+            c_or,
          };
-         //
+
+         struct UnresolvedTriggerForgeLabel {
+            Trigger* trigger = nullptr;
+            QString  label_name;
+         };
+
+         struct UnresolvedOpcodeForgeLabel {
+            struct argument {
+               size_t  argument_index;
+               QString label_name;
+            };
+
+            Opcode* opcode = nullptr;
+            std::vector<argument> labels;
+         };
+         
          Script::Block* root  = nullptr; // Compiler has ownership of all Blocks, Statements, etc., and will delete them when it is destroyed.
          Script::Block* block = nullptr; // current block being parsed
          Script::Block::Event next_event = Script::Block::Event::none;
+         bool     inline_next_block     = false;
          bool     negate_next_condition = false;
          c_joiner next_condition_joiner = c_joiner::none;
-         std::vector<Script::Alias*> aliases_in_scope;
+         std::vector<Script::Alias*> aliases_in_scope; // unowned pointers; the aliases are owned by their containing Blocks
          std::vector<Script::UserDefinedEnum> enums_in_scope;
          std::vector<Script::UserDefinedFunction> functions_in_scope;
+         struct {
+            // see Compiler::__after_compiled_statement comments
+
+            Script::variable_usage_set is_allocated;
+            Script::variable_usage_set is_initialized;
+         } temporary_allocated_state;
+         std::vector<Script::Block*> already_compiled_blocks;
          GameVariantDataMultiplayer& variant;
          //
+         log_t notices;
          log_t warnings;
          log_t errors;
          log_t fatal_errors;
          //
+         std::vector<UnresolvedTriggerForgeLabel> triggers_pending_forge_labels;
+         std::vector<UnresolvedOpcodeForgeLabel>  opcodes_pending_forge_labels;
+         
          void _commit_unresolved_strings(unresolved_str_list&);
-         //
+         
       public:
          struct {
             bool success = false;
@@ -238,18 +325,26 @@ namespace Megalo {
          void raise_fatal(const QString& text);
          void raise_fatal(const pos& pos, const QString& text);
          void raise_warning(const QString& text);
+         void raise_warning(const pos& pos, const QString& text);
+         void raise_notice(const QString& text);
+         void raise_notice(const pos& pos, const QString& text);
+         void validate_format_string_tokens(const QString&);
          //
          void parse(QString text); // parse and compile the text
          void apply(); // applies compiled content to the game variant, and relinquishes ownership of it
          bool handle_unresolved_string_references(); // handles any strings with an action set; returns success bool (failure if any unresolved remain)
          inline unresolved_str_list& get_unresolved_string_references() noexcept { return this->results.unresolved_strings; }
          //
+         size_t get_new_forge_label_count() const;
+         bool new_forge_label_not_yet_tracked(const QString& name) const;
+         
          inline bool has_errors() const noexcept { return !this->errors.empty() || !this->fatal_errors.empty(); }
          inline bool has_fatal() const noexcept { return !this->fatal_errors.empty(); }
+         inline const log_t& get_notices() const noexcept { return this->notices; }
          inline const log_t& get_warnings() const noexcept { return this->warnings; }
          inline const log_t& get_non_fatal_errors() const noexcept { return this->errors; }
          inline const log_t& get_fatal_errors() const noexcept { return this->fatal_errors; }
-         //
+         
          [[nodiscard]] static bool is_keyword(QString word);
          [[nodiscard]] bool try_decode_enum_reference(QString word, int32_t& out) const;
          [[nodiscard]] bool try_get_integer(string_scanner&, int32_t& out) const;
@@ -267,15 +362,15 @@ namespace Megalo {
          [[nodiscard]] Script::Alias* lookup_absolute_alias(QString name) const;
          [[nodiscard]] Script::UserDefinedEnum* lookup_user_defined_enum(QString name) const;
          [[nodiscard]] Script::UserDefinedFunction* lookup_user_defined_function(QString name) const;
-         //
+         
          log_checkpoint create_log_checkpoint();
          void revert_to_log_checkpoint(log_checkpoint);
          bool checkpoint_has_errors(log_checkpoint) const noexcept;
-         //
+         
          Script::VariableReference* arg_to_variable(QString) noexcept; // caller is responsible for freeing the returned variable
          Script::VariableReference* arg_to_variable(string_scanner& arg) noexcept; // caller is responsible for freeing the returned variable // runs (arg.extract_word)
          void imply_variable(variable_scope, variable_type, uint8_t index) noexcept; // for OpcodeArgValueObjectPlayerVariable
-         //
+         
          enum class name_source {
             none,
             action,
@@ -287,12 +382,13 @@ namespace Megalo {
             variable_typename,
          };
          [[nodiscard]] static name_source check_name_is_taken(const QString& name, OpcodeArgTypeRegistry::type_list_t& name_is_imported_from);
-         //
-         int32_t _index_of_trigger(Trigger*) const noexcept; // is public for Block
-         //
+         
+         int32_t _index_of_trigger(const Trigger&) const noexcept; // is public for Block
+         void _trigger_needs_forge_label(Trigger&, QString name); // is public for Block
+         
       protected:
          VariableDeclarationSet* _get_variable_declaration_set(variable_scope) noexcept;
-         //
+         
          struct statement_side {
             statement_side() = delete;
             enum type : int {
@@ -306,7 +402,10 @@ namespace Megalo {
          statement_side_t _extract_statement_side(QString& out_str, int32_t& out_int);
          //
          static keyword_handler_t __get_handler_for_keyword(QString) noexcept;
-         //
+
+         Action* __compile_assignment_intrinsic(Script::VariableReference& lhs, Script::VariableReference& rhs, const QString& op, bool checked = true);
+         
+         Script::VariableReference* __parseActionRHS(QString& op, const pos& prior, Script::VariableReference* lhs, bool allow_abs_hack);
          void _parseAction();
          bool _parseCondition(); // return value = stop looking for more conditions
          bool __parseConditionEnding();
@@ -316,9 +415,9 @@ namespace Megalo {
          void _applyConditionModifiers(Script::Comparison*); // applies "not", "and", "or", and then resets the relevant state on the Compiler
          Script::VariableReference* __parseVariable(QString, bool is_alias_definition = false, bool is_write_access = false); // adds the variable to the appropriate VariableDeclarationSet as appropriate
          //
-         void __parseFunctionArgs(const OpcodeBase&, Opcode&, unresolved_str_list&);
+         void __parseFunctionArgs(const OpcodeBase&, Opcode&, unresolved_str_list&, UnresolvedOpcodeForgeLabel&);
          Script::Statement* _parseFunctionCall(const pos& pos, QString stem, bool is_condition, Script::VariableReference* assign_to = nullptr);
-         //
+         
          void _openBlock(Script::Block*);
          bool _closeCurrentBlock();
          //
@@ -335,20 +434,36 @@ namespace Megalo {
          //
          QString extract_operator();
          //
+         #pragma region Alias declaration helpers
+            struct _allocation_request_type {
+               const Script::Namespace* context_namespace = nullptr;
+               const OpcodeArgTypeinfo* context_type_info = nullptr;
+               const OpcodeArgTypeinfo* member_type_info  = nullptr;
+
+               bool    parse_or_fail(Compiler& compiler, const QString& member_type);
+               size_t  max_slots_available() const;
+               bool    existing_alias_matches(const Script::Alias& existing) const;
+               QString to_alias_target(size_t index) const;
+            };
+            Script::Alias* _allocate_alias(QString name, const _allocation_request_type&);
+            const Script::Alias* _alias_is_explicit_reference_to_allocated(const Script::Alias& new_alias);
+            void _store_new_alias(Script::Alias&);
+         #pragma endregion
          #pragma region Variable declaration helpers
             void _declare_variable(Script::VariableReference& variable, Script::VariableReference* initial, VariableDeclaration::network_enum networking, bool network_specified);
          #pragma endregion
          //
-         void _handleKeyword_Alias();
-         void _handleKeyword_Alt();
-         void _handleKeyword_AltIf();
-         void _handleKeyword_Declare(); // INCOMPLETE
-         void _handleKeyword_Do();
-         void _handleKeyword_End();
-         void _handleKeyword_Enum();
-         void _handleKeyword_If();
-         void _handleKeyword_For();
-         void _handleKeyword_Function();
-         void _handleKeyword_On();
+         void _handleKeyword_Alias(const pos start);
+         void _handleKeyword_Alt(const pos start);
+         void _handleKeyword_AltIf(const pos start);
+         void _handleKeyword_Declare(const pos start); // INCOMPLETE
+         void _handleKeyword_Do(const pos start);
+         void _handleKeyword_End(const pos start);
+         void _handleKeyword_Enum(const pos start);
+         void _handleKeyword_If(const pos start);
+         void _handleKeyword_Inline(const pos start);
+         void _handleKeyword_For(const pos start);
+         void _handleKeyword_Function(const pos start);
+         void _handleKeyword_On(const pos start);
    };
 }

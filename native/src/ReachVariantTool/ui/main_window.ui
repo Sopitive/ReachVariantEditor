@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>618</width>
-    <height>535</height>
+    <width>682</width>
+    <height>623</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -86,7 +86,7 @@
            </font>
           </property>
           <property name="text">
-           <string>ReachVariantTool v2.1.3</string>
+           <string>ReachVariantTool</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -378,7 +378,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>618</width>
+     <width>682</width>
      <height>21</height>
     </rect>
    </property>
@@ -386,6 +386,15 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuNew">
+     <property name="title">
+      <string>New</string>
+     </property>
+     <addaction name="actionNewMP"/>
+     <addaction name="actionNewFF"/>
+     <addaction name="actionNewForge"/>
+    </widget>
+    <addaction name="menuNew"/>
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
@@ -418,24 +427,15 @@
    <property name="text">
     <string>Open...</string>
    </property>
-   <property name="shortcut">
-    <string>O</string>
-   </property>
   </action>
   <action name="actionSave">
    <property name="text">
     <string>Save</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+S</string>
-   </property>
   </action>
   <action name="actionSaveAs">
    <property name="text">
     <string>Save As...</string>
-   </property>
-   <property name="shortcut">
-    <string>A</string>
    </property>
   </action>
   <action name="actionExit">
@@ -489,6 +489,21 @@
   <action name="actionHelpFolder">
    <property name="text">
     <string>View Help (in folder)</string>
+   </property>
+  </action>
+  <action name="actionNewMP">
+   <property name="text">
+    <string>Multiplayer game variant</string>
+   </property>
+  </action>
+  <action name="actionNewFF">
+   <property name="text">
+    <string>Firefight game variant</string>
+   </property>
+  </action>
+  <action name="actionNewForge">
+   <property name="text">
+    <string>Forge game variant</string>
    </property>
   </action>
  </widget>
@@ -625,7 +640,6 @@
   <tabstop>optionTogglesEngine</tabstop>
  </tabstops>
  <resources>
-  <include location="../Resources/main_window.qrc"/>
   <include location="../Resources/main_window.qrc"/>
  </resources>
  <connections/>

@@ -45,7 +45,7 @@ namespace Megalo {
             //
          public:
             QString content; // only retained for debugging
-            //
+            
             bool is_resolved = false;
             bool is_invalid  = false;
             //
@@ -58,13 +58,16 @@ namespace Megalo {
                //
                const OpcodeArgTypeinfo* alias_basis = nullptr; // only for aliases
                struct {
-                  const VariableScopeIndicatorValue* scope = nullptr; // needed for namespace members; indicates a "dead-end" top-level value
-                  const VariableScopeWhichValue*     which = nullptr; // needed for namespace members
+                  struct {
+                     const VariableScopeIndicatorValue* scope = nullptr; // needed for namespace members; indicates a "dead-end" top-level value
+                     const VariableScopeWhichValue*     which = nullptr; // needed for namespace members
+                  } namespace_member;
                   const OpcodeArgTypeinfo* type = nullptr;
                   const Enum* enumeration = nullptr;
-                  int32_t index       = 0;     // always present for global variables and static variables; used to hold integer constants; for scopes, used to hold the index if the scope has an index
-                  bool    is_static   = false; // if false, then we're accessing a global variable
-                  bool    is_constant = false; // true if this is an integer constant
+                  int32_t index        = 0;     // always present for global variables and static variables; used to hold integer constants; for scopes, used to hold the index if the scope has an index
+                  bool    is_static    = false; // if false, then we're accessing a global variable
+                  bool    is_constant  = false; // true if this is an integer constant
+                  bool    is_temporary = false; // disambiguates global.type[n] from temporaries.type[n]
                } top_level;
                struct {
                   const OpcodeArgTypeinfo* type = nullptr;
@@ -77,7 +80,11 @@ namespace Megalo {
                const AccessorRegistry::Definition* accessor = nullptr;
                QString accessor_name; // needed for VariableReference::to_string, for accessor-arguments e.g. player.frag_grenades
             } resolved;
-            //
+            struct {
+               bool top_level = false;
+               bool nested    = false;
+            } resolution_involved_aliases;
+            
             VariableReference(Compiler&, QString); // can throw compile_exception
             VariableReference(int32_t);
             //
@@ -104,7 +111,12 @@ namespace Megalo {
             [[nodiscard]] const_team to_const_team(bool* success) const noexcept; // only valid if the variable reference refers to a statically-indexable team, or neutral/none
             //
             void strip_accessor() noexcept;
-            //
+            
+            // MegaloEdit uses the term "transient" for any variable that doesn't exist across time, e.g. `current_player` or `temporaries.number[0]`
+            bool is_transient() const;
+
+            bool is_usable_in_pregame() const;
+
          protected:
             bool _resolve_aliases_from(Compiler&, size_t raw_index, const OpcodeArgTypeinfo* basis = nullptr); // replaces the raw part with the content of a found alias, unless it's an absolute alias that resolves to a constant integer, in which case: sets resolved.top_level
             //

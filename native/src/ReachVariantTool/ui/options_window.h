@@ -1,7 +1,14 @@
 #pragma once
-
-#include <QtWidgets/QDialog>
+#include <QDialog>
 #include "ui_options_window.h"
+#include "main_window.h"
+
+namespace cobb::ini {
+   class setting;
+}
+namespace ReachINI {
+   struct syntax_highlight_option;
+}
 
 class ProgramOptionsDialog : public QDialog {
    Q_OBJECT
@@ -10,8 +17,8 @@ class ProgramOptionsDialog : public QDialog {
       ProgramOptionsDialog(QWidget* parent = Q_NULLPTR);
       //
       static ProgramOptionsDialog& get() {
-         static ProgramOptionsDialog instance;
-         return instance;
+         static auto* instance = new ProgramOptionsDialog(&ReachVariantTool::get()); // TODO: change this someday
+         return *instance;
       }
       void open() Q_DECL_OVERRIDE {
          this->refreshWidgetsFromINI();
@@ -27,6 +34,12 @@ class ProgramOptionsDialog : public QDialog {
       void defaultLoadTypeChanged();
       void defaultSaveTypeChanged();
       //
+      void openFile();
+
    private:
       Ui::ProgramOptionsDialog ui;
+
+      QVector<cobb::ini::setting*> currentSyntaxHighlightOptions() const;
+      ReachINI::syntax_highlight_option syntaxHighlightOptionFromUI() const;
+      void setCurrentSyntaxHighlightOptions(const ReachINI::syntax_highlight_option&) const;
 };

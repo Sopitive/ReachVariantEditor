@@ -46,9 +46,13 @@ namespace Megalo {
       {
          Script::Property("spawn_sequence", OpcodeArgValueScalar::typeinfo, &Megalo::variable_scope_indicators::number::spawn_sequence),
          Script::Property("team",           OpcodeArgValueTeam::typeinfo,   &Megalo::variable_scope_indicators::team::object_owner_team),
-      }
+      },
+      0, // static count
+      8  // temporary count
    ).set_variable_which_values(
-      &variable_which_values::object::global_0
+      &variable_which_values::object::global_0,
+      nullptr,
+      &variable_which_values::object::temporary_0
    );
    //
    arg_compile_result OpcodeArgValueObject::compile(Compiler& compiler, Script::VariableReference& arg, uint8_t part) noexcept {
@@ -74,11 +78,11 @@ namespace Megalo {
                      return arg_compile_result::failure();
                   //
                   auto type = top.type;
-                  if (top.which)
-                     this->which = top.which->as_integer();
+                  if (top.namespace_member.which)
+                     this->which = top.namespace_member.which->as_integer();
                   else
                      this->which = Variable::_global_index_to_which(*type, top.index, top.is_static);
-                  this->index = res.property.index;
+                  this->index = res.nested.index;
                   //
                   if (type == &OpcodeArgValueObject::typeinfo)
                      this->scope = &variable_scope_indicators::object::object_player_biped;
@@ -99,10 +103,14 @@ namespace Megalo {
                if (top.type != &OpcodeArgValuePlayer::typeinfo)
                   return arg_compile_result::failure();
                this->scope = &variable_scope_indicators::object::player_biped;
-               if (top.which)
-                  this->which = top.which->as_integer();
-               else
-                  this->which = Variable::_global_index_to_which(*top.type, top.index, top.is_static);
+               if (top.namespace_member.which)
+                  this->which = top.namespace_member.which->as_integer();
+               else {
+                  if (top.is_temporary)
+                     this->which = Variable::_temporary_index_to_which(*top.type, top.index);
+                  else
+                     this->which = Variable::_global_index_to_which(*top.type, top.index, top.is_static);
+               }
                return arg_compile_result::success();
             }
          }

@@ -1,7 +1,8 @@
 <!doctype html>
-<html>
+<html lang="en">
    <head>
       <meta charset="UTF-8" />
+      
       <title>object.set_progress_bar | ReachVariantTool Documentation</title>
       <base href="../../../../" />
       <link rel="stylesheet" href="resources/main.css" />
@@ -57,6 +58,7 @@
 <li><a href="script/api/object/actions/push_upward.html">apply_upward_impulse</a></li>
 <li><a href="script/api/object/actions/attach_to.html">attach_to</a></li>
 <li><a href="script/api/object/actions/copy_rotation_from.html">copy_rotation_from</a></li>
+<li><a href="script/api/object/actions/place_at_me.html">create_object</a></li>
 <li><a href="script/api/object/actions/delete.html">delete</a></li>
 <li><a href="script/api/object/actions/detach.html">detach</a></li>
 <li><a href="script/api/object/actions/enable_spawn_zone.html">enable_spawn_zone</a></li>
@@ -72,14 +74,18 @@
 <li><a href="script/api/object/actions/place_between_me_and.html">place_between_me_and</a></li>
 <li><a href="script/api/object/actions/push_upward.html">push_upward</a></li>
 <li><a href="script/api/object/actions/remove_weapon.html">remove_weapon</a></li>
+<li><a href="script/api/object/actions/set_shape.html">set_boundary</a></li>
 <li><a href="script/api/object/actions/set_device_actual_position.html">set_device_actual_position</a></li>
 <li><a href="script/api/object/actions/set_device_animation_position.html">set_device_animation_position</a></li>
 <li><a href="script/api/object/actions/set_device_position.html">set_device_position</a></li>
 <li><a href="script/api/object/actions/set_device_power.html">set_device_power</a></li>
+<li><a href="script/api/object/actions/set_spawn_location_fireteams.html">set_fireteam_respawn_filter</a></li>
 <li><a href="script/api/object/actions/set_garbage_collection_disabled.html">set_garbage_collection_disabled</a></li>
+<li><a href="script/api/object/actions/set_hidden.html">set_hidden</a></li>
 <li><a href="script/api/object/actions/set_invincibility.html">set_invincibility</a></li>
 <li><a href="script/api/object/actions/set_pickup_permissions.html">set_pickup_permissions</a></li>
 <li><a href="script/api/object/actions/set_progress_bar.html">set_progress_bar</a></li>
+<li><a href="script/api/object/actions/set_spawn_location_permissions.html">set_respawn_filter</a></li>
 <li><a href="script/api/object/actions/set_scale.html">set_scale</a></li>
 <li><a href="script/api/object/actions/set_shape.html">set_shape</a></li>
 <li><a href="script/api/object/actions/set_shape_visibility.html">set_shape_visibility</a></li>
@@ -101,34 +107,39 @@
          </ul>
       </nav>
       <main>
-         <h1>object.set_progress_bar</h1>
-<p>Set whether an object displays a progress bar, and who should be able to see it.</p><h2>Arguments</h2>
+         <header><h1>object.set_progress_bar</h1></header>
+<p>Set whether an object displays a progress bar, and who should be able to see it.</p>
+<h2>Arguments</h2>
 <dl>
+   <dt>timer</dt>
+      <dd><p>
+                  The word <var>none</var>, or an integer constant indicating the index of an
+                  object.timer variable, or a relative alias of an object-timer variable
+                  prefixed with <code>object.</code> i.e. <code>object.alias_name</code>.
+               </p></dd>
    <dt><a href="script/api/player-set.html">who</a></dt>
       <dd><p>A group of players.</p></dd>
-   <dt>timer</dt>
-      <dd>
-                  The word <var>none</var>, or an integer constant indicating the index of an 
-                  object.timer variable, or a relative alias of an object-timer variable 
-                  prefixed with <code>object.</code> i.e. <code>object.alias_name</code>.
-               </dd>
 </dl>
 <h2>Example</h2>
 <pre>
-<span class="keyword">for</span> each object with label <span class="string">"koth_hill</span>" <span class="keyword">do</span>
-   current_object.set_progress_bar(everyone, 3)
+<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">object</span> <span class="subkeyword">with</span> <span class="subkeyword">label</span> <span class="string">"koth_hill</span>" <span class="keyword">do</span>
+   current_object.set_progress_bar(3, everyone)
 <span class="keyword">end</span>
 
 <span class="keyword">alias</span> capture_timer = object.timer[0]
-<span class="keyword">for</span> each object with label <span class="string">"territory</span>" <span class="keyword">do</span>
-   <span class="keyword">for</span> each player <span class="keyword">do</span>
-      current_object.set_progress_bar(mod_player, current_player, 1, object.capture_timer)
+<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">object</span> <span class="subkeyword">with</span> <span class="subkeyword">label</span> <span class="string">"territory</span>" <span class="keyword">do</span>
+   <span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">player</span> <span class="keyword">do</span>
+      current_object.set_progress_bar(object.capture_timer, mod_player, current_player, 1)
    <span class="keyword">end</span>
 <span class="keyword">end</span>
 
-<span class="keyword">for</span> each object with label <span class="string">"ignore_me</span>" <span class="keyword">do</span>
-   current_object.set_progress_bar(everyone, none)
+<span class="keyword">for</span> <span class="subkeyword">each</span> <span class="subkeyword">object</span> <span class="subkeyword">with</span> <span class="subkeyword">label</span> <span class="string">"ignore_me</span>" <span class="keyword">do</span>
+   current_object.set_progress_bar(none, everyone)
 <span class="keyword">end</span></pre>
+<h2>See also</h2>
+<ul>
+   <li><a href="script/api/object/actions/set_shape_visibility.html">object.set_shape_visibility</a></li>
+</ul>
 
       </main>
       <script src="resources/sidebar.js"></script>

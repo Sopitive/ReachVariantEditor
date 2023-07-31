@@ -1,7 +1,8 @@
 <!doctype html>
-<html>
+<html lang="en">
    <head>
       <meta charset="UTF-8" />
+      
       <title>player.set_requisition_palette | ReachVariantTool Documentation</title>
       <base href="../../../../" />
       <link rel="stylesheet" href="resources/main.css" />
@@ -23,11 +24,11 @@
                      <a>Properties</a>
                      <ul>
                         <li><a href="script/api/player/properties/biped.html">biped</a></li>
+<li><a href="script/api/player/properties/money.html">money</a></li>
 <li><a href="script/api/player/properties/rating.html">rating</a></li>
 <li><a href="script/api/player/properties/score.html">score</a></li>
 <li><a href="script/api/player/properties/script_stat.html">script_stat[<var>n</var>]</a></li>
 <li><a href="script/api/player/properties/team.html">team</a></li>
-<li><a href="script/api/player/properties/unknown_09.html">unknown_09</a></li>
 
                      </ul>
                   </li>
@@ -59,6 +60,8 @@
 <li><a href="script/api/player/actions/apply_traits.html">apply_traits</a></li>
 <li><a href="script/api/player/actions/force_into_vehicle.html">force_into_vehicle</a></li>
 <li><a href="script/api/player/actions/try_get_armor_ability.html">get_armor_ability</a></li>
+<li><a href="script/api/player/actions/get_button_press_duration.html">get_button_press_duration</a></li>
+<li><a href="script/api/player/actions/get_button_press_duration.html">get_button_time</a></li>
 <li><a href="script/api/player/actions/get_crosshair_target.html">get_crosshair_target</a></li>
 <li><a href="script/api/player/actions/try_get_death_damage_mod.html">get_death_damage_mod</a></li>
 <li><a href="script/api/player/actions/try_get_death_damage_type.html">get_death_damage_type</a></li>
@@ -74,12 +77,17 @@
 <li><a href="script/api/player/actions/set_co_op_spawning.html">set_co_op_spawning</a></li>
 <li><a href="script/api/player/actions/set_fireteam.html">set_fireteam</a></li>
 <li><a href="script/api/player/actions/set_loadout_palette.html">set_loadout_palette</a></li>
+<li><a href="script/api/player/actions/set_objective_allegiance_icon.html">set_objective_allegiance_icon</a></li>
+<li><a href="script/api/player/actions/set_objective_allegiance_name.html">set_objective_allegiance_name</a></li>
+<li><a href="script/api/player/actions/set_objective_text.html">set_objective_text</a></li>
 <li><a href="script/api/player/actions/set_primary_respawn_object.html">set_primary_respawn_object</a></li>
 <li><a href="script/api/player/actions/set_req_purchase_modes.html">set_req_purchase_modes</a></li>
 <li><a href="script/api/player/actions/set_requisition_palette.html">set_requisition_palette</a></li>
-<li><a href="script/api/player/actions/set_round_card_icon.html">set_round_card_icon</a></li>
-<li><a href="script/api/player/actions/set_round_card_text.html">set_round_card_text</a></li>
-<li><a href="script/api/player/actions/set_round_card_title.html">set_round_card_title</a></li>
+<li><a href="script/api/player/actions/set_respawn_vehicle.html">set_respawn_vehicle</a></li>
+<li><a href="script/api/player/actions/set_objective_allegiance_icon.html">set_round_card_icon</a></li>
+<li><a href="script/api/player/actions/set_objective_allegiance_name.html">set_round_card_text</a></li>
+<li><a href="script/api/player/actions/set_objective_text.html">set_round_card_title</a></li>
+<li><a href="script/api/player/actions/set_vehicle_spawning_enabled.html">set_vehicle_spawning_enabled</a></li>
 <li><a href="script/api/player/actions/try_get_armor_ability.html">try_get_armor_ability</a></li>
 <li><a href="script/api/player/actions/try_get_death_damage_mod.html">try_get_death_damage_mod</a></li>
 <li><a href="script/api/player/actions/try_get_death_damage_type.html">try_get_death_damage_type</a></li>
@@ -94,21 +102,23 @@
          </ul>
       </nav>
       <main>
-         <h1>player.set_requisition_palette</h1>
+         <header><h1>player.set_requisition_palette</h1></header>
 
                <p>
                   This function sets which requisition palette the player can use. This 
                   appears to be a development leftover for a scrapped design idea.
                </p>
-            <h2>Arguments</h2>
+            
+<h2>Arguments</h2>
 <dl>
    <dt>palette</dt>
-      <dd>The index of a palette to use. Values between 0 and 15, 
-               inclusive, are possible, but the actual valid range is not known.</dd>
+      <dd><p>The index of a palette to use. Values between 0 and 15, 
+               inclusive, are possible, but the actual valid range is not known.</p></dd>
 </dl>
 <h2>See also</h2>
 <ul>
    <li><a href="script/api/player/actions/increment_req_money_by.html">player.increment_req_money_by</a></li>
+   <li><a href="script/api/player/properties/money.html">player.money</a></li>
    <li><a href="script/api/player/actions/set_req_purchase_modes.html">player.set_req_purchase_modes</a></li>
 </ul>
 

@@ -2,6 +2,8 @@
 #include "localized_string_library.h"
 #include "../editor_state.h"
 #include "../game_variants/types/multiplayer.h"
+#include "./widgets/RoundCardTextPreview.h"
+#include <QAbstractTextDocumentLayout>
 
 namespace {
    ReachStringTable _dummy_string_owner(1, 99999);
@@ -99,6 +101,107 @@ LocalizedStringEditorModal::LocalizedStringEditorModal(QWidget* parent) : QDialo
          this->updateTextboxes(&str);
       }
    });
+   //
+   // QPlainTextEdit doesn't have a built-in max-length. If you search online for workarounds to that, 
+   // you'll find a bunch of ideas, but they all suck:
+   // 
+   //  - Set an eventFilter, and block input events that would generate input if the textbox is full. 
+   //    Problem with this is, if the textbox is nearly full and someone pastes a long string in, you 
+   //    won't stop that, so now you've gone out of bounds.
+   // 
+   //  - Truncate the textbox contents whenever it exceeds the max length, to give the illusion that 
+   //    you're preventing the user from entering text. This breaks if the user types into the middle 
+   //    of the existing value, as you end up deleting from the end. Pasting breaks it as well; you 
+   //    don't know what they pasted, so you can't truly undo their input even if they're pasting at 
+   //    the end.
+   // 
+   //  - Use QPlainTextEdit::undo. This almost works, except that if you hold down a key (say, "A") 
+   //    and have it repeat, such that the textbox fills with As, all of those As are one shared edit 
+   //    operation, and calling "undo" wipes all of them, not just the most recent one.
+   // 
+   // The approach I settled on was to hook QTextDocument::contentsChange.
+   //
+   for (auto* widget : this->languageFields) {
+      auto* doc = widget->document();
+      assert(doc);
+      QObject::connect(doc, &QTextDocument::contentsChange, this, [this, widget](int pos, int removed, int added) {
+         if (added - removed <= 0)
+            return;
+         auto maximum = this->_maxLength;
+         if (maximum < 0)
+            return;
+         auto text = widget->toPlainText();
+         if (text.size() <= maximum)
+            return;
+         //
+         auto* doc = widget->document();
+         auto  cur = QTextCursor(doc);
+         const auto blocker = QSignalBlocker(doc);
+         cur.setPosition(pos);
+         cur.setPosition(pos + added, QTextCursor::MoveMode::KeepAnchor);
+         if (cur.hasSelection()) {
+            cur.deleteChar();
+            text = widget->toPlainText();
+         }
+         if (text.size() > maximum) { // failsafe
+            text = text.left(maximum);
+            widget->setPlainText(text);
+         }
+         QApplication::beep();
+      });
+   }
+
+   if (ReachEditorState::get().getReachEditingKitBodyTextFontFamily().has_value()) {
+      this->ui.togglePreviewRoundCard->setDisabled(false);
+
+      QObject::connect(this->ui.togglePreviewRoundCard, &QCheckBox::toggled, this, [this](bool checked) {
+         if (!this->_roundCardPreview.dialog) {
+            assert(!this->_roundCardPreview.preview);
+
+            auto* dialog = this->_roundCardPreview.dialog  = new QDialog(this);
+            auto* widget = this->_roundCardPreview.preview = new RoundCardTextPreview(dialog);
+
+            auto* layout = new QVBoxLayout(dialog);
+            dialog->setLayout(layout);
+            layout->addWidget(widget);
+
+            const auto* variant = ReachEditorState::get().multiplayerData();
+            if (variant)
+               widget->setVariantName(QString::fromUtf16(variant->variantHeader.title));
+
+            // Default to showing the first non-blank text value.
+            for (auto* field : this->languageFields) {
+               auto text = field->toPlainText();
+               if (!text.isEmpty()) {
+                  widget->setObjective(text);
+                  break;
+               }
+            }
+
+            // Handle close button: uncheck the box
+            QObject::connect(dialog, &QDialog::rejected, this, [this]() {
+               const auto blocker = QSignalBlocker(this->ui.togglePreviewRoundCard);
+               this->ui.togglePreviewRoundCard->setChecked(false);
+            });
+         }
+         if (checked)
+            this->_roundCardPreview.dialog->show();
+         else
+            this->_roundCardPreview.dialog->hide();
+      });
+
+      // Show the most recently edited text value in the preview.
+      for (auto* field : this->languageFields) {
+         QObject::connect(field, &QPlainTextEdit::textChanged, this, [this, field]() {
+            if (!this->_roundCardPreview.preview)
+               return;
+            this->_roundCardPreview.preview->setObjective(field->toPlainText());
+            this->_roundCardPreview.dialog->update(); // force redraw even though that dialog is unfocused
+         });
+      }
+   } else {
+      this->ui.togglePreviewRoundCard->setDisabled(true);
+   }
 }
 /*static*/ bool LocalizedStringEditorModal::editString(QWidget* parent, uint32_t flags, ReachString* target) {
    LocalizedStringEditorModal modal(parent);
@@ -108,7 +211,17 @@ LocalizedStringEditorModal::LocalizedStringEditorModal(QWidget* parent) : QDialo
    modal._isNotInStandardStringTable   = flags & Flags::IsNotInStandardTable;
    modal._limitToSingleLanguageStrings = flags & Flags::SingleLanguageString;
    //
-   if (!modal._isNotInStandardStringTable && !modal._limitToSingleLanguageStrings) {
+   if (modal._isNotInStandardStringTable) {
+      if (modal._limitToSingleLanguageStrings) {
+         //
+         // Special-case behavior for team names:
+         //
+         auto* table = target->get_owner();
+         if (table && table->max_count == 1) {
+            modal._maxLength = table->max_buffer_size;
+         }
+      }
+   } else if (!modal._limitToSingleLanguageStrings) {
       //
       // If this string is currently in use as a Forge label, force single-language content.
       //
@@ -129,7 +242,17 @@ LocalizedStringEditorModal::LocalizedStringEditorModal(QWidget* parent) : QDialo
    modal._isNotInStandardStringTable   = flags & Flags::IsNotInStandardTable;
    modal._limitToSingleLanguageStrings = flags & Flags::SingleLanguageString;
    //
-   if (!modal._isNotInStandardStringTable && !modal._limitToSingleLanguageStrings) {
+   if (modal._isNotInStandardStringTable) {
+      if (modal._limitToSingleLanguageStrings) {
+         //
+         // Special-case behavior for team names:
+         //
+         auto* table = targetRef->get_owner();
+         if (table && table->max_count == 1) {
+            modal._maxLength = table->max_buffer_size;
+         }
+      }
+   } else if (!modal._limitToSingleLanguageStrings) {
       //
       // If this string is currently in use as a Forge label, force single-language content.
       //

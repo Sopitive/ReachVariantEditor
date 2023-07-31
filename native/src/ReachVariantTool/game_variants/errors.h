@@ -28,7 +28,7 @@ struct GameEngineVariantLoadError {
       none,
       zlib_decompress_error,
       invalid_script_opcode_function_index, // extra[0] is the function index
-      script_opcode_cannot_be_none, // should only appear during testing
+      script_opcode_cannot_be_none, // provided for debugging
       bad_script_opcode_argument, // can have load_failure_detail::failed_to_construct_script_opcode_arg
       early_eof,
       block_ended_early,
@@ -52,6 +52,7 @@ struct GameEngineVariantLoadError {
       too_many_forge_labels,   // extra[0] is the number the file claims to have; extra[1] is the number allowed
       too_many_script_traits,  // extra[0] is the number the file claims to have; extra[1] is the number allowed
       too_many_script_options, // extra[0] is the number the file claims to have; extra[1] is the number allowed
+      too_many_opcodes,
    };
 
    load_state          state            = load_state::incomplete;

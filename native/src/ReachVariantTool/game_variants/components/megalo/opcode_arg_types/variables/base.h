@@ -63,9 +63,9 @@ namespace Megalo {
          struct flags {
             flags() = delete;
             enum type : uint8_t {
-               none = 0,
-               is_readonly  = 0x01, // for the compiler; indicates that values in this scope-indicator cannot be written to at run-time
-               is_var_scope = 0x02,
+               is_readonly        = 0x01, // for the compiler; indicates that values in this scope-indicator cannot be written to at run-time
+               is_var_scope       = 0x02,
+               allowed_in_pregame = 0x04,
             };
          };
          using flags_t = std::underlying_type_t<flags::type>;
@@ -84,7 +84,7 @@ namespace Megalo {
          };
          using index_t = index_type;
          //
-         flags_t        flags          = flags::none;
+         flags_t        flags          = {};
          index_type     index_type     = index_type::none;
          uint8_t        index_bitcount = 0; // use non-zero values for index_type::indexed_data and index_type::generic
          const VariableScope* base     = nullptr; // used to deduce whether a value's (which) is from megalo_objects, megalo_players, or megalo_teams
@@ -166,9 +166,10 @@ namespace Megalo {
       //
       protected:
          static uint32_t _global_index_to_which(const OpcodeArgTypeinfo&, uint32_t index, bool is_static) noexcept;
+         static uint32_t _temporary_index_to_which(const OpcodeArgTypeinfo&, uint32_t index) noexcept;
          //
          bool _update_object_pointer_from_index(Compiler& compiler) noexcept; // used by the compile process
-         //
+         
       public:
          const VariableScopeIndicatorValueList& type;
          //
@@ -187,7 +188,11 @@ namespace Megalo {
          virtual arg_compile_result compile(Compiler&, cobb::string_scanner&, uint8_t part) noexcept override;
          virtual arg_compile_result compile(Compiler&, Script::VariableReference&, uint8_t part) noexcept override;
          virtual void copy(const OpcodeArgValue*) noexcept override;
-         //
+
+         virtual void mark_used_variables(Script::variable_usage_set&) const noexcept override;
+
+         virtual const OpcodeArgTypeinfo& get_variable_typeinfo() const noexcept = 0;
+         
          virtual variable_type get_variable_type() const noexcept {
             return this->type.var_type;
          }
@@ -219,7 +224,8 @@ namespace Megalo {
          //
          virtual Variable* create_zero_or_none() const noexcept = 0;
          virtual bool set_to_zero_or_none() noexcept = 0; // returns success
-         //
+         
          bool is_none() const noexcept;
+         bool is_transient() const noexcept;
    };
 }

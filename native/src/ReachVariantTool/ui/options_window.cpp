@@ -1,11 +1,15 @@
 #include "options_window.h"
 #include "../helpers/ini.h"
+#include "../helpers/qt/color.h"
 #include "../services/ini.h"
+#include "../services/syntax_highlight_option.h"
+#include <QFileDialog>
 
 ProgramOptionsDialog::ProgramOptionsDialog(QWidget* parent) : QDialog(parent) {
    ui.setupUi(this);
    //
    this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint); // no need for What's This yet
+   this->ui.tabWidget->setCurrentIndex(0);
    //
    QObject::connect(this->ui.buttonCancel, &QPushButton::clicked, this, &ProgramOptionsDialog::close);
    QObject::connect(this->ui.buttonSave,   &QPushButton::clicked, this, &ProgramOptionsDialog::saveAndClose);
@@ -29,7 +33,7 @@ ProgramOptionsDialog::ProgramOptionsDialog(QWidget* parent) : QDialog(parent) {
       QObject::connect(this->ui.defaultOpenPathCWD, &QRadioButton::toggled, this, &ProgramOptionsDialog::defaultLoadTypeChanged);
       QObject::connect(this->ui.defaultOpenPathUseCustom,       &QRadioButton::toggled, this, &ProgramOptionsDialog::defaultLoadTypeChanged);
       QObject::connect(this->ui.defaultOpenPathCustom, &QLineEdit::textEdited, this, [](const QString& text) {
-         ReachINI::DefaultLoadPath::sCustomPath.pendingStr = text.toUtf8();
+         ReachINI::DefaultLoadPath::sCustomPath.pendingStr = (const char*)text.toUtf8();
       });
    }
    {  // Default save directory
@@ -42,7 +46,7 @@ ProgramOptionsDialog::ProgramOptionsDialog(QWidget* parent) : QDialog(parent) {
       QObject::connect(this->ui.defaultSavePathCWD, &QRadioButton::toggled, this, &ProgramOptionsDialog::defaultSaveTypeChanged);
       QObject::connect(this->ui.defaultSavePathUseCustom,       &QRadioButton::toggled, this, &ProgramOptionsDialog::defaultSaveTypeChanged);
       QObject::connect(this->ui.defaultSavePathCustom, &QLineEdit::textEdited, this, [](const QString& text) {
-         ReachINI::DefaultSavePath::sCustomPath.pendingStr = text.toUtf8();
+         ReachINI::DefaultSavePath::sCustomPath.pendingStr = (const char*)text.toUtf8();
       });
       QObject::connect(this->ui.defaultSavePathExcludeMCCNative, &QCheckBox::stateChanged, [](int state) {
          ReachINI::DefaultSavePath::bExcludeMCCBuiltInFolders.pending.b = state == Qt::CheckState::Checked;
@@ -54,7 +58,181 @@ ProgramOptionsDialog::ProgramOptionsDialog(QWidget* parent) : QDialog(parent) {
    QObject::connect(this->ui.optionVariantNameInWindowTitle, &QCheckBox::stateChanged, [](int state) {
       ReachINI::UIWindowTitle::bShowVariantTitle.pending.b = state == Qt::CheckState::Checked;
    });
+   QObject::connect(this->ui.optionTheme, &QLineEdit::textEdited, this, [](const QString& text) {
+       ReachINI::UIWindowTitle::sTheme.pendingStr = (const char*)text.toUtf8();
+    });
+   QObject::connect(this->ui.themeFileDialog, &QPushButton::pressed, this, &ProgramOptionsDialog::openFile);
+   //
+   #pragma region Script code editor
+      #pragma region General
+      {
+         auto* fontpicker = this->ui.codeEditFont;
+         {
+            auto& setting = ReachINI::CodeEditor::sFontFamily;
+            auto  family  = QString::fromUtf8(setting.currentStr.c_str());
+            QFont font    = QFont(family);
+            if (!font.exactMatch()) {
+               // This typeface isn't available
+               family = QString::fromUtf8(setting.initialStr.c_str());
+               font   = QFont(family);
+            }
+            fontpicker->setCurrentFont(font);
+         }
+         QObject::connect(fontpicker, &QFontComboBox::currentFontChanged, this, [](const QFont& font) {
+            ReachINI::CodeEditor::sFontFamily.pendingStr = (const char*)font.family().toUtf8();
+         });
+      }
+      {
+         auto& enable = ReachINI::CodeEditor::bOverrideBackColor;
+         auto& color  = ReachINI::CodeEditor::sBackColor;
+         //
+         auto* e_widget = this->ui.codeEditEnableBackColor;
+         auto* c_widget = this->ui.codeEditBackColor;
+         e_widget->setChecked(enable.current.b);
+         {
+            cobb::qt::css_color_parse_error error;
+            QColor c = cobb::qt::parse_css_color(QString::fromUtf8(color.currentStr.c_str()), error);
+            if (error != cobb::qt::css_color_parse_error::none) {
+               c = cobb::qt::parse_css_color(QString::fromUtf8(color.initialStr.c_str()), error);
+            }
+            c_widget->setColor(c);
+         }
+         QObject::connect(e_widget, &QCheckBox::toggled, this, [&enable, &color](bool checked) {
+            enable.pending.b = checked;
+         });
+         QObject::connect(c_widget, &ColorPickerButton::colorChanged, this, [&enable, &color](const QColor& c) {
+            color.pendingStr = (const char*)cobb::qt::stringify_css_color(c, cobb::qt::css_color_format::rgb).toUtf8();
+         });
+      }
+      {
+         auto& enable = ReachINI::CodeEditor::bOverrideTextColor;
+         auto& color  = ReachINI::CodeEditor::sTextColor;
+         //
+         auto* e_widget = this->ui.codeEditEnableTextColor;
+         auto* c_widget = this->ui.codeEditTextColor;
+         e_widget->setChecked(enable.current.b);
+         {
+            cobb::qt::css_color_parse_error error;
+            QColor c = cobb::qt::parse_css_color(QString::fromUtf8(color.currentStr.c_str()), error);
+            if (error != cobb::qt::css_color_parse_error::none) {
+               c = cobb::qt::parse_css_color(QString::fromUtf8(color.initialStr.c_str()), error);
+            }
+            c_widget->setColor(c);
+         }
+         QObject::connect(e_widget, &QCheckBox::toggled, this, [&enable, &color](bool checked) {
+            enable.pending.b = checked;
+         });
+         QObject::connect(c_widget, &ColorPickerButton::colorChanged, this, [&enable, &color](const QColor& c) {
+            color.pendingStr = (const char*)cobb::qt::stringify_css_color(c, cobb::qt::css_color_format::rgb).toUtf8();
+         });
+      }
+      #pragma endregion
+      #pragma region Syntax highlighting
+      {  // syn
+         QComboBox* widget = this->ui.synHighType;
+         widget->clear();
+         QObject::connect(widget, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this]() {
+            const auto blocker0 = QSignalBlocker(this->ui.synHighBold);
+            const auto blocker1 = QSignalBlocker(this->ui.synHighItalic);
+            const auto blocker2 = QSignalBlocker(this->ui.synHighUnderline);
+            const auto blocker3 = QSignalBlocker(this->ui.synHighColor);
+            //
+            cobb::ini::setting* setting = nullptr;
+            {
+               auto list = this->currentSyntaxHighlightOptions();
+               if (!list.isEmpty())
+                  setting = list[0];
+            }
+            if (!setting) { // shouldn't happen
+               this->ui.synHighBold->setChecked(false);
+               this->ui.synHighBold->setEnabled(false);
+               this->ui.synHighItalic->setChecked(false);
+               this->ui.synHighItalic->setEnabled(false);
+               this->ui.synHighUnderline->setChecked(false);
+               this->ui.synHighUnderline->setEnabled(false);
+               this->ui.synHighColor->setEnabled(false);
+            } else {
+               auto value = QString::fromUtf8(setting->pendingStr.c_str());
+               if (value.isEmpty())
+                  value = QString::fromUtf8(setting->currentStr.c_str());
+               auto option = ReachINI::syntax_highlight_option::fromString(value);
+               //
+               this->ui.synHighBold->setChecked(option.bold);
+               this->ui.synHighBold->setEnabled(true);
+               this->ui.synHighItalic->setChecked(option.italic);
+               this->ui.synHighItalic->setEnabled(true);
+               this->ui.synHighUnderline->setChecked(option.underline);
+               this->ui.synHighUnderline->setEnabled(true);
+               this->ui.synHighColor->setEnabled(true);
+               this->ui.synHighColor->setColor(option.colors.text);
+            }
+         });
+         widget->addItem("Comment",    QStringList({"sFormatCommentBlock", "sFormatCommentLine"}));
+         widget->addItem("Keyword",    "sFormatKeyword");
+         widget->addItem("Subkeyword", "sFormatSubkeyword");
+         widget->addItem("Number",     "sFormatNumber");
+         widget->addItem("Operator",   "sFormatOperator");
+         widget->addItem("String",     "sFormatStringSimple");
+         //
+         QObject::connect(this->ui.synHighBold, &QAbstractButton::toggled, this, [this](bool checked) {
+            auto c = this->syntaxHighlightOptionFromUI();
+            c.bold = checked;
+            this->setCurrentSyntaxHighlightOptions(c);
+         });
+         QObject::connect(this->ui.synHighItalic, &QAbstractButton::toggled, this, [this](bool checked) {
+            auto c = this->syntaxHighlightOptionFromUI();
+            c.italic = checked;
+            this->setCurrentSyntaxHighlightOptions(c);
+         });
+         QObject::connect(this->ui.synHighUnderline, &QAbstractButton::toggled, this, [this](bool checked) {
+            auto c = this->syntaxHighlightOptionFromUI();
+            c.underline = checked;
+            this->setCurrentSyntaxHighlightOptions(c);
+         });
+         QObject::connect(this->ui.synHighColor, &ColorPickerButton::colorChanged, this, [this](QColor color) {
+            auto c = this->syntaxHighlightOptionFromUI();
+            c.colors.text = color;
+            this->setCurrentSyntaxHighlightOptions(c);
+         });
+      }
+      #pragma endregion
+   #pragma endregion
 }
+
+QVector<cobb::ini::setting*> ProgramOptionsDialog::currentSyntaxHighlightOptions() const {
+   QVector<cobb::ini::setting*> out;
+   //
+   auto& ini  = ReachINI::get();
+   auto  data = this->ui.synHighType->currentData();
+   if (data.type() == QMetaType::QStringList) {
+      auto list = data.value<QStringList>();
+      for (auto& name : list) {
+         auto* s = ini.get_setting("CodeEditor", name.toStdString().c_str());
+         if (s)
+            out.push_back(s);
+      }
+   } else if (data.type() == QMetaType::QString) {
+      auto* s = ini.get_setting("CodeEditor", data.value<QString>().toStdString().c_str());
+      if (s)
+         out.push_back(s);
+   }
+   return out;
+}
+ReachINI::syntax_highlight_option ProgramOptionsDialog::syntaxHighlightOptionFromUI() const {
+   ReachINI::syntax_highlight_option out;
+   out.bold        = this->ui.synHighBold->isChecked();
+   out.italic      = this->ui.synHighItalic->isChecked();
+   out.underline   = this->ui.synHighUnderline->isChecked();
+   out.colors.text = this->ui.synHighColor->color();
+   return out;
+}
+void ProgramOptionsDialog::setCurrentSyntaxHighlightOptions(const ReachINI::syntax_highlight_option& c) const {
+   auto data     = ReachINI::stringify_syntax_highlight_option(c);
+   auto settings = this->currentSyntaxHighlightOptions();
+   for (auto* s : settings)
+      s->pendingStr = data.toStdString();
+}
+
 void ProgramOptionsDialog::close() {
    ReachINI::get().abandon_pending_changes();
    this->done(0);
@@ -74,7 +252,7 @@ void ProgramOptionsDialog::refreshWidgetsFromINI() {
          this->ui.defaultOpenPathUseCustom,
       };
       QRadioButton* defaultWidget = nullptr;
-      uint32_t      defaultEnum   = ReachINI::DefaultLoadPath::uPathType.default.u;
+      uint32_t      defaultEnum   = ReachINI::DefaultLoadPath::uPathType.initial.u;
       bool found = false;
       auto type  = ReachINI::DefaultLoadPath::uPathType.current.u;
       for (auto widget : buttons) {
@@ -103,7 +281,7 @@ void ProgramOptionsDialog::refreshWidgetsFromINI() {
          this->ui.defaultSavePathUseCustom,
       };
       QRadioButton* defaultWidget = nullptr;
-      uint32_t      defaultEnum   = ReachINI::DefaultSavePath::uPathType.default.u;
+      uint32_t      defaultEnum   = ReachINI::DefaultSavePath::uPathType.initial.u;
       bool found = false; // if the setting's current value doesn't match any widget, use the default
       auto type  = ReachINI::DefaultSavePath::uPathType.current.u;
       for (auto widget : buttons) {
@@ -130,6 +308,7 @@ void ProgramOptionsDialog::refreshWidgetsFromINI() {
       const QSignalBlocker blocker1(this->ui.optionVariantNameInWindowTitle);
       this->ui.optionFullFilePathsInWindowTitle->setChecked(ReachINI::UIWindowTitle::bShowFullPath.current.b);
       this->ui.optionVariantNameInWindowTitle->setChecked(ReachINI::UIWindowTitle::bShowVariantTitle.current.b);
+      this->ui.optionTheme->setText(ReachINI::UIWindowTitle::sTheme.currentStr.c_str());
    }
 }
 void ProgramOptionsDialog::saveAndClose() {
@@ -163,4 +342,12 @@ void ProgramOptionsDialog::defaultSaveTypeChanged() {
    else if (this->ui.defaultSavePathUseCustom->isChecked())
       which = type::custom;
    ReachINI::DefaultSavePath::uPathType.pending.u = (uint32_t)which;
+}
+
+void ProgramOptionsDialog::openFile() {
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Select theme"), "~/", tr("QT Stylesheets (*.qss)"));
+    if (!fileName.isNull()) {
+        this->ui.optionTheme->setText(fileName.toUtf8());
+        ReachINI::UIWindowTitle::sTheme.pendingStr = (const char*)fileName.toUtf8();
+    }
 }

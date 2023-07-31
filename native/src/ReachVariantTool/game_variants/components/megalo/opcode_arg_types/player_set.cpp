@@ -58,7 +58,7 @@ namespace Megalo {
          case PlayerSetType::enemies:
             out = "enemies";
             return;
-         case PlayerSetType::default:
+         case PlayerSetType::normal:
             out = "default";
             return;
       }
@@ -78,7 +78,7 @@ namespace Megalo {
          case PlayerSetType::enemies:
             out.write("enemies");
             return;
-         case PlayerSetType::default:
+         case PlayerSetType::normal:
             out.write("default");
             return;
          case PlayerSetType::specific_player:
@@ -124,5 +124,13 @@ namespace Megalo {
       this->set_type = cast->set_type;
       this->player.copy(&cast->player);
       this->addOrRemove.copy(&cast->addOrRemove);
+   }
+   void OpcodeArgValuePlayerSet::mark_used_variables(Script::variable_usage_set& usage) const noexcept {
+      switch (this->set_type) {
+         case PlayerSetType::specific_player:
+            this->player.mark_used_variables(usage);
+            this->addOrRemove.mark_used_variables(usage);
+            break;
+      }
    }
 }

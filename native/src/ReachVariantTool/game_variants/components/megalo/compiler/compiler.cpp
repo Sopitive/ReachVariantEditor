@@ -1,11 +1,18 @@
 #include "compiler.h"
+#include <array>
+#include <cassert>
 #include "enums.h"
 #include "namespaces.h"
 #include "../../../helpers/qt/string.h"
 #include "../opcode_arg_types/all_indices.h" // OpcodeArgValueTrigger
+#include "../opcode_arg_types/forge_label.h"
+#include "../opcode_arg_types/megalo_scope.h"
 #include "../opcode_arg_types/variables/all_core.h"
 #include "../opcode_arg_types/variables/any_variable.h"
 #include "../opcode_arg_types/variables/base.h"
+#include "../opcode_arg_types/variables/player_or_group.h"
+#include "../helpers/format_strings.h"
+#include "../../../../editor_state.h"
 
 //
 // Attempt to emulate quirks in Bungie's compiler:
@@ -20,9 +27,9 @@
 #define MEGALO_COMPILE_MIMIC_BUNGIE_ARTIFACTS 1
 
 namespace {
-   constexpr char* ce_assignment_operator = "=";
+   constexpr const char* ce_assignment_operator = "=";
    bool _is_assignment_operator(QString s) {
-      constexpr char* operators[] = {
+      constexpr std::array operators = {
          "=",
          "+=",
          "-=",
@@ -35,15 +42,20 @@ namespace {
          "~=",
          "^=",
          "&=",
-         "|="
+         "|=",
+         //
+         // MCC extensions:
+         //
+         "<<=",
+         ">>=",
       };
-      for (size_t i = 0; i < std::extent<decltype(operators)>::value; i++)
+      for (size_t i = 0; i < operators.size(); i++)
          if (s == operators[i])
             return true;
       return false;
    }
    bool _is_comparison_operator(QString s) {
-      constexpr char* operators[] = {
+      constexpr std::array operators = {
          "==",
          "!=",
          ">=",
@@ -51,7 +63,7 @@ namespace {
          ">",
          "<"
       };
-      for (size_t i = 0; i < std::extent<decltype(operators)>::value; i++)
+      for (size_t i = 0; i < operators.size(); i++)
          if (s == operators[i])
             return true;
       return false;
@@ -136,6 +148,33 @@ namespace {
       }
       return entry_type::normal;
    }
+
+   constexpr const auto _block_independent_start_keywords = std::array{
+      "if",
+      "do",
+      "for",
+      "function",
+   };
+
+   bool _block_type_can_be_inline(Megalo::Script::Block::Type type) {
+      switch (type) {
+         using enum Megalo::Script::Block::Type;
+         case basic:
+         case if_block:
+         case alt_block:
+         case altif_block:
+            return true;
+         case function:
+            // NOTE: We may one day want to make it possible to define functions with 
+            // an inline specifier, so the function always gets inlined at every call 
+            // site. it'd mainly be useful if one's goal is to avoid burning trigger 
+            // indices -- especially if we implement them as `begin` opcodes and just 
+            // reuse the conditions and actions across all of them, though that's far 
+            // future ideas.
+            return false;
+      }
+      return false;
+   }
 }
 namespace Megalo {
    namespace Script {
@@ -178,7 +217,7 @@ namespace Megalo {
                return i;
          return -1;
       }
-      void Block::get_ifs_for_alt(std::vector<Block*>& out) {
+      void Block::get_ifs_for_alt(std::vector<Block*>& out) const {
          out.clear();
          auto parent = dynamic_cast<Block*>(this->parent);
          if (!parent)
@@ -318,8 +357,7 @@ namespace Megalo {
                }
             }
             if (index == -1) {
-               QString lit = cobb::string_scanner::escape(this->label_name, '"');
-               compiler.raise_error(QString("The specified string literal (\"%1\") does not match any defined Forge label.").arg(lit));
+               compiler._trigger_needs_forge_label(*t, this->label_name);
             } else
                t->forgeLabel = &list[index];
          }
@@ -355,6 +393,9 @@ namespace Megalo {
                   // bail out of this branch without making the nested block share a trigger with the 
                   // containing function block, IF both blocks have an event type and these types differ 
                   // from each other.
+                  // 
+                  // TODO: If we allow event handlers within nested blocks, we need to ensure that a for-loop 
+                  // can't be an event handler. The game considers that an invalid file.
                   //
                   item->trigger = this->trigger; // get the inner Block to write into the function's trigger
                   this->trigger->blockType = _block_type_to_trigger_type(item->type);
@@ -427,6 +468,61 @@ namespace Megalo {
                t->blockType = block_type::for_each_team;
                break;
          }
+         if (this->event != Event::none) {
+            //
+            // "on:for workaround:"
+            //
+            // The game engine considers files invalid if they contain constructions like:
+            // 
+            //    on event name: for anything do
+            //    end
+            // 
+            // The solution is to create a wrapper trigger:
+            // 
+            //    on event name: do
+            //       for anything do
+            //       end
+            //    end
+            // 
+            // The code to compile blocks will need to check for a wrapper trigger for 
+            // inner blocks when compiling their containing outer blocks.
+            //
+            switch (this->type) {
+               case Type::for_each_object:
+               case Type::for_each_object_with_label:
+               case Type::for_each_player:
+               case Type::for_each_player_randomly:
+               case Type::for_each_team:
+                  this->tr_wrap = new Trigger;
+                  {
+                     size_t wi = compiler.results.triggers.size(); // index of this trigger in the full trigger list
+                     compiler.results.triggers.push_back(this->tr_wrap);
+                     //
+                     auto et = t->entryType;
+                     this->tr_wrap->entryType = et;
+                     t->entryType = entry_type::subroutine;
+                     if (this->event == Event::double_host_migration) // double host migration uses the same entry_type as host migration, so we need to special-case it
+                        compiler.results.events.indices.doubleHostMigrate = wi;
+                     else
+                        compiler.results.events.set_index_of_event(et, wi);
+                     //
+                     // Have the wrapper call the inner trigger:
+                     //
+                     auto call = new Action;
+                     this->tr_wrap->opcodes.push_back(call);
+                     call->function = &actionFunction_runNestedTrigger;
+                     auto arg = (call->function->arguments[0].typeinfo.factory)();
+                     call->arguments.push_back(arg);
+                     auto arg_c = dynamic_cast<OpcodeArgValueTrigger*>(arg);
+                     assert(arg_c && "The argument to the ''run nested trigger'' opcode isn't OpcodeArgValueTrigger anymore? Did someone change the opcode-base?");
+                     arg_c->value = ti;
+                  }
+                  break;
+            }
+
+
+            // tr_wrap
+         }
       }
       void Block::compile(Compiler& compiler) {
          std::vector<ParsedItem*> items;
@@ -441,13 +537,22 @@ namespace Megalo {
             return;
          }
          //
-         this->_make_trigger(compiler);
-         {
-            auto& count = this->trigger->raw.conditionCount; // multiple Blocks can share one Trigger, so let's co-opt this field to keep track of the or-group. it'll be reset when we save the variant anyway
+         CodeBlock* body      = nullptr;
+         bool       is_inline = this->is_inline_trigger();
+         if (!is_inline) {
+            this->_make_trigger(compiler);
+            assert(this->trigger != nullptr);
+            body = this->trigger;
+         } else {
+            this->inlined_trigger = new OpcodeArgValueMegaloScope;
+            body = &this->inlined_trigger->data;
+         }
+         {  // Conditions on "if" blocks
+            auto& count = body->raw.conditionCount; // multiple Blocks can share one Trigger, so let's co-opt this field to keep track of the or-group. it'll be reset when we save the variant anyway
             for (auto item : this->conditions_alt) {
                auto cnd = dynamic_cast<Condition*>(item->opcode);
                if (cnd) {
-                  this->trigger->opcodes.push_back(cnd);
+                  body->opcodes.push_back(cnd);
                   cnd->or_group = count;
                   item->opcode = nullptr;
                }
@@ -457,7 +562,7 @@ namespace Megalo {
             for (auto item : this->conditions) {
                auto cnd = dynamic_cast<Condition*>(item->opcode);
                if (cnd) {
-                  this->trigger->opcodes.push_back(cnd);
+                  body->opcodes.push_back(cnd);
                   cnd->or_group = count;
                   item->opcode = nullptr;
                }
@@ -470,25 +575,70 @@ namespace Megalo {
             auto item    = items[i];
             auto block   = dynamic_cast<Block*>(item);
             if (block) {
-               if (is_last && !block->is_event_trigger() && block->_is_if_block())
-                  block->trigger = this->trigger;
+               auto child_is_inline = block->is_inline_trigger();
+               if (!child_is_inline) {
+                  if (is_last && !block->is_event_trigger() && block->_is_if_block())
+                     block->trigger = this->trigger;
+               }
+
                block->compile(compiler);
-               if (!block->trigger) // empty blocks get skipped
+
+               if (child_is_inline) {
+                  auto* call = new Action;
+                  body->opcodes.push_back(call);
+                  call->function = &actionFunction_runInlineTrigger;
+                  call->arguments.push_back(block->inlined_trigger);
                   continue;
-               if (block->type == Block::Type::function) // don't mis-compile function definitions as function calls
+               }
+               assert(!block->inlined_trigger);
+
+               if (!block->trigger)  // empty blocks get skipped
                   continue;
-               if (block->trigger != this->trigger) {
+
+               if (block->type == Block::Type::function) {
+                  //
+                  // We don't want to mis-compile function definitions as function calls. Additionally, we should 
+                  // emit compile-time warnings or notices based on function usage.
+                  //
+                  if (block->caller_count < 2) {
+                     Compiler::pos start;
+                     start.line   = block->line;
+                     start.offset = block->range.start;
+                     start.last_newline = block->range.start - block->col;
+                     if (block->caller_count == 0) {
+                        compiler.raise_notice(
+                           start,
+                           QString("User-defined function \"%1\" isn't called from anywhere. Is this intentional?")
+                              .arg(block->name)
+                        );
+                     } else if (block->caller_count == 1) {
+                        compiler.raise_notice(
+                           start,
+                           QString("User-defined function \"%1\" is only called from one place. When decompiling this gametype, it will not appear as a function; a function that is called from only one place is indistinguishable from a nested block.")
+                              .arg(block->name)
+                        );
+
+                     }
+                  }
+                  //
+                  // Don't compile a call:
+                  //
+                  continue;
+               }
+
+               auto* block_trigger = block->tr_wrap ? block->tr_wrap : block->trigger; // needed for the on:for workaround
+               if (block_trigger != this->trigger) {
                   //
                   // Create a "call nested trigger" opcode.
                   //
                   auto call = new Action;
-                  this->trigger->opcodes.push_back(call);
+                  body->opcodes.push_back(call);
                   call->function = &actionFunction_runNestedTrigger;
                   auto arg = (call->function->arguments[0].typeinfo.factory)();
                   call->arguments.push_back(arg);
                   auto arg_c = dynamic_cast<OpcodeArgValueTrigger*>(arg);
                   assert(arg_c && "The argument to the ''run nested trigger'' opcode isn't OpcodeArgValueTrigger anymore? Did someone change the opcode-base?");
-                  arg_c->value = compiler._index_of_trigger(block->trigger);
+                  arg_c->value = compiler._index_of_trigger(*block_trigger);
                   assert(arg_c->value >= 0 && "Nested block trigger isn't in the Compiler's trigger list?!");
                }
                continue;
@@ -496,12 +646,20 @@ namespace Megalo {
             auto statement = dynamic_cast<Statement*>(item);
             if (statement) {
                if (auto opcode = statement->opcode) {
-                  this->trigger->opcodes.push_back(opcode);
+                  body->opcodes.push_back(opcode);
                   statement->opcode = nullptr;
                }
                continue;
             }
          }
+      }
+
+      void Block::for_each_function(std::function<void(Block*)> functor) {
+         if (this->type == Type::function)
+            (functor)(this);
+         for (auto* child : this->items)
+            if (auto* nested = dynamic_cast<Block*>(child))
+               nested->for_each_function(functor);
       }
       #pragma endregion
       //
@@ -577,7 +735,7 @@ namespace Megalo {
          return *this;
       }
    }
-   //
+   
    Compiler::~Compiler() {
       for (auto trigger : this->results.triggers)
          delete trigger;
@@ -594,8 +752,46 @@ namespace Megalo {
       }
       this->aliases_in_scope.clear(); // don't free contents; every Alias should have been inside of a Block and freed by that Block
       this->functions_in_scope.clear();
+
+      for (auto* item : this->already_compiled_blocks)
+         delete item;
+      this->already_compiled_blocks.clear();
    }
-   //
+
+   size_t Compiler::get_new_forge_label_count() const {
+      size_t count = 0;
+      //
+      QVector<QString> seen;
+      for (auto& item : this->triggers_pending_forge_labels) {
+         if (!seen.contains(item.label_name)) {
+            ++count;
+            seen.push_back(item.label_name);
+         }
+      }
+      for (auto& item : this->opcodes_pending_forge_labels) {
+         for (auto& entry : item.labels) {
+            if (!seen.contains(entry.label_name)) {
+               ++count;
+               seen.push_back(entry.label_name);
+            }
+         }
+      }
+      //
+      return count;
+   }
+   bool Compiler::new_forge_label_not_yet_tracked(const QString& name) const {
+      for (auto& item : this->triggers_pending_forge_labels)
+         if (item.label_name == name)
+            return false;
+      for (auto& item : this->opcodes_pending_forge_labels) {
+         for (auto& entry : item.labels) {
+            if (entry.label_name == name)
+               return false;
+         }
+      }
+      return true;
+   }
+   
    bool Compiler::try_decode_enum_reference(QString word, int32_t& out) const {
       auto i = word.indexOf('.');
       if (i <= 0)
@@ -779,6 +975,8 @@ namespace Megalo {
       if (s == "function") // open a function block
          return true;
       if (s == "if") // open a new block with conditions
+         return true;
+      if (s == "inline") // inline specifier for blocks
          return true;
       if (s == "not") // indicate that the next condition should be negated
          return true;
@@ -964,19 +1162,19 @@ namespace Megalo {
    //
    Compiler::log_checkpoint Compiler::create_log_checkpoint() {
       log_checkpoint point;
+      point.notices  = this->notices.size();
       point.warnings = this->warnings.size();
-      point.errors = this->errors.size();
+      point.errors  = this->errors.size();
       point.fatal_errors = this->fatal_errors.size();
       return point;
    }
    void Compiler::revert_to_log_checkpoint(Compiler::log_checkpoint point) {
+      this->notices.resize(point.notices);
       this->warnings.resize(point.warnings);
       this->errors.resize(point.errors);
       this->fatal_errors.resize(point.fatal_errors);
    }
    bool Compiler::checkpoint_has_errors(Compiler::log_checkpoint point) const noexcept {
-      if (this->warnings.size() > point.warnings)
-         return true;
       if (this->errors.size() > point.errors)
          return true;
       if (this->fatal_errors.size() > point.fatal_errors)
@@ -1013,6 +1211,87 @@ namespace Megalo {
    void Compiler::raise_warning(const QString& text) {
       this->warnings.emplace_back(text, this->state);
    }
+   void Compiler::raise_warning(const Compiler::pos& pos, const QString& text) {
+      this->warnings.emplace_back(text, pos);
+   }
+   void Compiler::raise_notice(const QString& text) {
+      this->notices.emplace_back(text, this->state);
+   }
+   void Compiler::raise_notice(const Compiler::pos& pos, const QString& text) {
+      this->notices.emplace_back(text, pos);
+   }
+   void Compiler::validate_format_string_tokens(const QString& text) {
+      auto issues = check_format_string(text);
+      if (issues.empty())
+         return;
+      for (const auto& issue : issues) {
+         if (issue.code.size() < 2) {
+            if (issue.index > 0) {
+               QChar c = text[(uint)issue.index - 1];
+               switch (c.unicode()) {
+                  case 'n':
+                  case 'o':
+                  case 'p':
+                  case 's':
+                  case 't':
+                     this->raise_warning(
+                        QString("The percentage symbol at position %1 in the string will be interpreted by the game as an incorrect format string placeholder. The game will refuse to display this string. (Did you mean \"%2\" instead of \"%3\"?)")
+                           .arg(QString("%1").arg(issue.index), QString("%") + c, QString(c) + '%')
+                     );
+                     continue;
+               }
+            }
+            this->raise_warning(
+               QString("The percentage symbol at position %1 in the string will be interpreted by the game as an incorrect format string placeholder. The game will refuse to display this string. If you wish to write an actual percentage sign, write \"%%\" instead.")
+                  .arg(issue.index)
+            );
+            continue;
+         }
+         QChar code = issue.code.back();
+         if (issue.crash) {
+            this->raise_error(
+               QString("Bad format string code \"%1\" at position %2 in the string: codes of the form \"%%3\" will crash the game when displayed.")
+                  .arg(issue.code, QString("%1").arg(issue.index), code)
+            );
+            continue;
+         }
+         if (issue.no_params_allowed) {
+            this->raise_warning(
+               QString("Bad format string code \"%1\" at position %2 in the string: codes of the form \"%%3\" are not allowed to have extra parameters between the \"%\" symbol and \"%3\". The game will refuse to display this string.")
+                  .arg(issue.code, QString("%1").arg(issue.index), code)
+            );
+            continue;
+         }
+         if (code == 'c') {
+            this->raise_warning(
+               QString("Bad format string code \"%1\" at position %2 in the string: codes of the form \"%%3\" are broken and cannot be used to display variables. The game may refuse to display this string.")
+                  .arg(issue.code, QString("%1").arg(issue.index), code)
+            );
+            continue;
+         }
+         if (issue.always_one) {
+            this->raise_warning(
+               QString("Bad format string code \"%1\" at position %2 in the string: codes of the form \"%%3\" are broken and always act as if you've asked them to display the number 1.")
+                  .arg(issue.code, QString("%1").arg(issue.index), code)
+            );
+            continue;
+         }
+         if (issue.is_floating_point) {
+            this->raise_warning(
+               QString("Bad format string code \"%1\" at position %2 in the string: codes of the form \"%%3\" are only usable for decimal numbers, but decimal numbers can't be used in Megalo. These codes always act as if you've asked them to display the smallest possible positive decimal number (basically zero).")
+                  .arg(issue.code, QString("%1").arg(issue.index), code)
+            );
+            continue;
+         }
+         if (issue.error) {
+            this->raise_warning(
+               QString("Bad format string code \"%1\" at position %2 in the string: codes of the form \"%%3\" are not recognized by the game. The game will refuse to display the string.")
+                  .arg(issue.code, QString("%1").arg(issue.index), code)
+            );
+            continue;
+         }
+      }
+   }
    //
    void Compiler::parse(QString text) {
       this->text = text;
@@ -1048,37 +1327,50 @@ namespace Megalo {
          if (this->next_event != Script::Block::Event::none)
             this->raise_fatal("The file ended with an \"on\" keyword but no following block.");
          this->root->set_end(this->state);
-         //
+
+         {  // Ensure that we're under the limits for new Forge labels.
+            auto& mp     = this->variant;
+            auto& labels = mp.scriptContent.forgeLabels;
+            if (labels.size() + this->get_new_forge_label_count() > Megalo::Limits::max_script_labels) {
+               this->raise_error(
+                  QString("The existing game variant contains %1 Forge labels, and the compiled script contains %2 unrecognized Forge labels. We cannot create these labels, as only a total of %3 are allowed.")
+                     .arg(labels.size())
+                     .arg(this->get_new_forge_label_count())
+                     .arg(Limits::max_script_labels)
+               );
+            }
+         }
          {  // Ensure that we're under the count limits for triggers, conditions, and actions.
-            size_t tc = this->results.triggers.size();
-            size_t cc = 0;
-            size_t ac = 0;
+            size_t  tc = this->results.triggers.size();
+            size_t  cc = 0;
+            size_t  ac = 0;
             Opcode* incomplete    = nullptr;
             size_t  incomplete_ai = 0;
             bool    for_missing_label = false;
             for (auto trigger : this->results.triggers) {
                trigger->count_contents(cc, ac);
-               if (!for_missing_label) {
-                  if (trigger->blockType == block_type::for_each_object_with_label && !trigger->forgeLabel)
-                     for_missing_label = true;
-               }
                if (!incomplete) {
                   for (auto opcode : trigger->opcodes) {
                      if (!opcode->function) {
                         incomplete = opcode;
-                        break;
-                     }
-                     auto&  list = opcode->arguments;
-                     size_t size = list.size();
-                     for (size_t i = 0; i < size; ++i) {
-                        if (!list[i]) {
-                           incomplete    = opcode;
-                           incomplete_ai = i;
-                           break;
+                     } else if (opcode->function == &actionFunction_runInlineTrigger) {
+                        if (opcode->arguments.size() > 0) {
+                           const auto* scope = dynamic_cast<const OpcodeArgValueMegaloScope*>(opcode->arguments[0]);
+                           if (scope)
+                              scope->data.count_contents(cc, ac);
                         }
                      }
-                     if (incomplete)
-                        break;
+                     if (!incomplete) {
+                        auto&  list = opcode->arguments;
+                        size_t size = list.size();
+                        for (size_t i = 0; i < size; ++i) {
+                           if (!list[i]) {
+                              incomplete    = opcode;
+                              incomplete_ai = i;
+                              break;
+                           }
+                        }
+                     }
                   }
                }
             }
@@ -1094,8 +1386,6 @@ namespace Megalo {
                }
                this->raise_error(error);
             }
-            if (for_missing_label)
-               this->raise_error("At least one for-each-object-with-label loop failed to compile because its Forge label was unspecified. If no other errors relating to Forge labels were logged, then this may be the result of a bug in the compiler itself; consider reporting this issue and sending your script to this program's developer to test with.");
             if (tc > Limits::max_triggers)
                this->raise_error(QString("The compiled script contains %1 triggers, but only a maximum of %2 are allowed.").arg(tc).arg(Limits::max_triggers));
             if (cc > Limits::max_conditions)
@@ -1115,12 +1405,84 @@ namespace Megalo {
       assert(!this->has_errors() && !this->has_fatal() && "Do not attempt to apply compiled content when there were compiler errors. Do something with the logged errors!");
       assert(!this->get_unresolved_string_references().size() && "Do not attempt to apply compiled content when unresolved string references exist.");
       //
-      auto& mp       = this->variant;
+      auto& mp = this->variant;
       //
       auto& triggers = mp.scriptContent.triggers;
       triggers.clear(); // this isn't a vector; the list type owns its contents
       for (auto* trigger : this->results.triggers)
          triggers.push_back(trigger);
+      {  // Create Forge labels as appropriate. We should have already validated that there's room, in Compiler::parse.
+         //
+         // Missing Forge labels are identified as triggers are compiled, but can only be properly handled after 
+         // all other compilation tasks are complete and it's time to commit the new script. We verify that there 
+         // is enough room for the labels when parsing is complete (the end of Compiler::parse), and string table 
+         // limits are enforced during the "unreferenced string handling" stuff, so all we need to do here is 
+         // just create the missing strings and labels.
+         //
+         auto& labels = mp.scriptContent.forgeLabels;
+         auto& string_table = mp.scriptData.strings;
+         
+         struct _HandledLabel {
+            QString name;
+            size_t  index;
+         };
+         std::vector<_HandledLabel> handled;
+
+         auto _get_or_create_label = [&handled, &labels, &string_table](QString name) -> ReachForgeLabel* {
+            //
+            // If multiple triggers referred to the same not-yet-created label, then after we 
+            // create it for the first trigger, we should reuse it for subsequent triggers.
+            //
+            size_t existing = std::string::npos;
+            for (auto& prior : handled) {
+               if (prior.name == name) {
+                  existing = prior.index;
+                  break;
+               }
+            }
+            if (existing != std::string::npos) {
+               return &labels[existing];
+            }
+            //
+            // Create the string, if no existing string is there:
+            //
+            ReachString* str = nullptr;
+            {
+               bool multiple;
+               str = string_table.lookup(name, multiple);
+               if (!str || multiple) {
+                  str = string_table.add_new();
+                  for (int i = 0; i < reach::language_count; ++i)
+                     str->get_write_access((reach::language)i) = name.toStdString();
+               }
+            }
+            //
+            // Create the label:
+            //
+            auto& label = *labels.emplace_back();
+            label.is_defined = true;
+            label.name = str;
+            handled.push_back({ name, labels.size() - 1 });
+
+            return &label;
+         };
+         
+         for (auto& item : this->opcodes_pending_forge_labels) {
+            auto* opcode = item.opcode;
+            for (auto& pending_label : item.labels) {
+               assert(&(opcode->function->arguments[pending_label.argument_index].typeinfo) == &OpcodeArgValueForgeLabel::typeinfo);
+               OpcodeArgValueForgeLabel* argument = (OpcodeArgValueForgeLabel*)opcode->arguments[pending_label.argument_index];
+               if (!argument)
+                  argument = new OpcodeArgValueForgeLabel;
+               argument->value = _get_or_create_label(pending_label.label_name);
+            }
+         }
+         for (auto& item : this->triggers_pending_forge_labels) {
+            item.trigger->forgeLabel = _get_or_create_label(item.label_name);
+         }
+      }
+      this->triggers_pending_forge_labels.clear();
+      this->opcodes_pending_forge_labels.clear();
       this->results.triggers.clear();
       //
       mp.scriptContent.entryPoints = this->results.events;
@@ -1201,108 +1563,285 @@ namespace Megalo {
          return &Compiler::_handleKeyword_Function;
       else if (word == "if")
          return &Compiler::_handleKeyword_If;
+      else if (word == "inline")
+         return &Compiler::_handleKeyword_Inline;
       else if (word == "on")
          return &Compiler::_handleKeyword_On;
       return nullptr;
    }
+
+   Action* Compiler::__compile_assignment_intrinsic(Script::VariableReference& lhs, Script::VariableReference& rhs, const QString& op, bool checked) {
+      assert(!lhs.get_accessor_definition());
+      assert(!rhs.get_accessor_definition());
+
+      auto opcode = std::make_unique<Action>();
+
+      {
+         const auto& base = _get_assignment_opcode();
+         opcode->function = &base;
+         opcode->arguments.resize(3);
+         opcode->arguments[0] = (base.arguments[0].typeinfo.factory)();
+         opcode->arguments[1] = (base.arguments[1].typeinfo.factory)();
+         opcode->arguments[2] = (base.arguments[2].typeinfo.factory)();
+      }
+
+      if (checked) {
+         auto try_compile_operand = [this, &opcode](size_t index, Script::VariableReference& value, const char* on_failure) {
+            if (value.is_invalid)
+               return;
+            auto result = opcode->arguments[index]->compile(*this, value, 0);
+            assert(!result.is_unresolved_string() && "One of the sides of assignment statement thinks it's an unresolved string reference.");
+            if (!result.is_success()) {
+               QString error = on_failure;
+               if (!result.error.isEmpty())
+                  error += ' ' + result.error;
+               this->raise_error(error);
+            }
+         };
+
+         try_compile_operand(0, lhs, "The lefthand side of this assignment failed to compile.");
+         try_compile_operand(1, rhs, "The righthand side of this assignment failed to compile.");
+            
+         auto op_string = string_scanner(op);
+         auto result = opcode->arguments[2]->compile(*this, op_string, 0);
+         assert(!result.is_unresolved_string() && "The operator in an assignment statement thinks it's an unresolved string reference.");
+         if (!result.is_success()) {
+            QString error = "The operator in this assignment failed to compile.";
+            if (!result.error.isEmpty())
+               error += ' ' + result.error;
+            this->raise_error(error);
+         }
+
+         //
+         // Type checks
+         //
+
+         bool operator_match = true;
+         bool type_match = true;
+
+         auto l_vt = getVariableTypeForTypeinfo(lhs.get_type());
+         auto r_vt = getVariableTypeForTypeinfo(rhs.get_type());
+         if (l_vt != variable_type::not_a_variable && r_vt != variable_type::not_a_variable) {
+            // Operator checks
+            switch (l_vt) {
+               case variable_type::object:
+               case variable_type::player:
+               case variable_type::team:
+                  if (op != "=") {
+                     operator_match = false;
+                  }
+                  break;
+            }
+            switch (l_vt) {
+               case variable_type::scalar:
+               case variable_type::timer:
+                  switch (r_vt) {
+                     case variable_type::scalar:
+                     case variable_type::timer:
+                        break;
+                     default:
+                        type_match = false;
+                        break;
+                  }
+                  break;
+               case variable_type::object:
+               case variable_type::player:
+               case variable_type::team:
+                  if (l_vt != r_vt)
+                     type_match = false;
+                  break;
+            }
+
+            if (!type_match) {
+               QString format = "Type mismatch (assigning %2 to %1).";
+               this->raise_error(
+                  QString(format)
+                     .arg(lhs.get_type()->internal_name.c_str())
+                     .arg(rhs.get_type()->internal_name.c_str())
+               );
+            }
+            if (!operator_match) {
+               QString format = "Cannot perform numeric assignment operations on non-numeric values (destination type was %1; operator was %3).";
+               this->raise_error(
+                  QString(format)
+                     .arg(lhs.get_type()->internal_name.c_str())
+                     .arg(rhs.get_type()->internal_name.c_str())
+                     .arg(op)
+               );
+            }
+         }
+
+      } else {
+         //
+         // You should only disable error-checking for VariableReferences generated by the compiler 
+         // itself that we *know* are valid.
+         //
+         assert(!lhs.is_invalid);
+         assert(!rhs.is_invalid);
+         bool success;
+
+         success = (opcode->arguments[0]->compile(*this, lhs, 0)).is_success();
+         assert(success);
+         success = (opcode->arguments[1]->compile(*this, rhs, 0)).is_success();
+         assert(success);
+         //
+         auto op_scanner = string_scanner(op);
+         success = (opcode->arguments[2]->compile(*this, op_scanner, 0)).is_success();
+         assert(success);
+      }
+
+      return opcode.release();
+   }
+
+   Script::VariableReference* Compiler::__parseActionRHS(QString& op, const pos& prior, Script::VariableReference* lhs, bool allow_abs_hack) {
+      QString word;
+      int32_t integer;
+
+      statement_side_t rhs_type = this->_extract_statement_side(word, integer);
+      if (rhs_type == statement_side::string) {
+         this->raise_error("You cannot assign a string literal to a variable.");
+         return nullptr;
+      }
+      if (rhs_type == statement_side::integer) {
+         return new Script::VariableReference(integer);
+      }
+      if (rhs_type == statement_side::word) {
+         if (Compiler::is_keyword(word)) {
+            this->raise_fatal(QString("Keyword \"%1\" cannot appear here.").arg(word));
+            return nullptr;
+         }
+         if (this->extract_specific_char('(')) {
+            if (op != ce_assignment_operator) {
+               this->raise_error(QString("Operator %1 cannot be used to assign the result of a function call to a variable. Use operator %2.").arg(op).arg(ce_assignment_operator));
+            }
+
+            if (allow_abs_hack) {
+               //
+               // HACK HACK HACK DISGUSTING HACK
+               // MCC added an "absolute value" operator for all assignment-related opcodes
+               //
+               if (word.compare("abs", Qt::CaseInsensitive) == 0) {
+                  op = "__abs_assign";
+                  auto* rhs = this->__parseActionRHS(op, prior, lhs, false);
+                  if (rhs == nullptr) {
+                     //
+                     // Can happen if the "true" RHS is an invalid RHS (e.g. a string), or if it's a function call, etc..
+                     //
+                     this->raise_fatal(QString("Malformed `lhs = abs(rhs)` statement: contents of the abs call do not make sense for an absolute-value operation."));
+                     return nullptr;
+                  }
+                  if (!this->extract_specific_char(')')) {
+                     if (rhs)
+                        delete rhs;
+                     this->raise_fatal(QString("Malformed `lhs = abs(rhs)` statement: expected closing parenthesis."));
+                     return nullptr;
+                  }
+                  return rhs;
+               }
+            }
+
+            this->_parseFunctionCall(prior, word, false, lhs);
+            return nullptr;
+         }
+         return this->__parseVariable(word);
+      }
+
+      this->raise_fatal("Expected the righthand side of an assignment statement.");
+      return nullptr;
+   }
    void Compiler::_parseAction() {
-      Script::VariableReference* lhs = nullptr;
-      Script::VariableReference* rhs = nullptr;
-      //
-      auto prior = this->backup_stream_state();
-      //
-      #pragma region Parsing
-         QString word;
-         int32_t integer;
-         #pragma region Lefthand side
-            statement_side_t lhs_type = this->_extract_statement_side(word, integer);
-            if (lhs_type == statement_side::string) {
-               this->raise_error("You cannot assign to a string literal.");
-            } else if (lhs_type == statement_side::integer) {
-               lhs = new Script::VariableReference(integer);
-            } else if (lhs_type == statement_side::word) {
-               if (auto handler = Compiler::__get_handler_for_keyword(word)) {
-                  ((*this).*(handler))();
-                  return;
-               }
-               if (word == "and" || word == "or" || word == "not" || word == "then") {
-                  this->raise_fatal(QString("The \"%1\" keyword cannot appear here.").arg(word));
-                  return;
-               }
-               if (word == "else" || word == "elseif") {
-                  this->raise_fatal(QString("Word \"%1\" is reserved for potential future use as a keyword. It cannot appear here.").arg(word));
-                  return;
-               }
-               if (this->extract_specific_char('(')) {
-                  this->_parseFunctionCall(prior, word, false);
-                  //
-                  // Assigning something to the result of a function call is an error. Let's check for that 
-                  // so we can give an intuitive error message.
-                  //
-                  auto    prior = this->backup_stream_state();
-                  QString op    = this->extract_operator();
-                  if (!op.isEmpty()) {
-                     this->restore_stream_state(prior);
-                     this->raise_fatal(QString("An operator such as %1 cannot appear after a function call; you cannot assign to or compare the return value of a function.").arg(op));
+      Script::Statement* statement;
+      QString op;
+      {
+         std::unique_ptr<Script::VariableReference> lhs;
+         std::unique_ptr<Script::VariableReference> rhs;
+         bool force_absolute_value_operator = false;
+         //
+         this->skip_whitespace();
+         auto prior = this->backup_stream_state();
+         //
+         #pragma region Parsing
+            QString word;
+            int32_t integer;
+            #pragma region Lefthand side
+               statement_side_t lhs_type = this->_extract_statement_side(word, integer);
+               if (lhs_type == statement_side::string) {
+                  this->raise_error("You cannot assign to a string literal.");
+               } else if (lhs_type == statement_side::integer) {
+                  lhs = std::make_unique<Script::VariableReference>(integer);
+               } else if (lhs_type == statement_side::word) {
+                  if (auto handler = Compiler::__get_handler_for_keyword(word)) {
+                     ((*this).*(handler))(prior);
+                     return;
                   }
+                  if (word == "and" || word == "or" || word == "not" || word == "then") {
+                     this->raise_fatal(QString("The \"%1\" keyword cannot appear here.").arg(word));
+                     return;
+                  }
+                  if (word == "else" || word == "elseif") {
+                     this->raise_fatal(QString("Word \"%1\" is reserved for potential future use as a keyword. It cannot appear here.").arg(word));
+                     return;
+                  }
+                  if (this->extract_specific_char('(')) {
+                     this->_parseFunctionCall(prior, word, false);
+                     //
+                     // Assigning something to the result of a function call is an error. Let's check for that 
+                     // so we can give an intuitive error message.
+                     //
+                     auto    prior = this->backup_stream_state();
+                     QString op    = this->extract_operator();
+                     if (!op.isEmpty()) {
+                        this->restore_stream_state(prior);
+                        this->raise_fatal(QString("An operator such as %1 cannot appear after a function call; you cannot assign to or compare the return value of a function.").arg(op));
+                     }
+                     return;
+                  }
+                  //
+                  // If we got here, then the parsed word must be the lefthand side of an assignment statement.
+                  //
+                  lhs.reset(this->__parseVariable(word, false, true));
+               } else {
+                  auto op = this->extract_operator();
+                  if (!op.isEmpty())
+                     this->raise_fatal(QString("Statements cannot begin with an operator such as %1.").arg(op));
+                  else
+                     this->raise_fatal("Expected the start of a new statement.");
                   return;
                }
+            #pragma endregion
+            #pragma region Operator
+               op = this->extract_operator();
+               if (op.isEmpty()) {
+                  this->raise_fatal("Expected an operator.");
+                  return;
+               }
+               if (!::_is_assignment_operator(op))
+                  this->raise_error(QString("Operator %1 is not an assignment operator.").arg(op));
                //
-               // If we got here, then the parsed word must be the lefthand side of an assignment statement.
-               //
-               lhs = this->__parseVariable(word, false, true);
-            } else {
-               auto op = this->extract_operator();
-               if (!op.isEmpty())
-                  this->raise_fatal(QString("Statements cannot begin with an operator such as %1.").arg(op));
-               else
-                  this->raise_fatal("Expected the start of a new statement.");
-               return;
-            }
+            #pragma endregion
+            #pragma region Righthand side
+               rhs.reset(this->__parseActionRHS(op, prior, lhs.get(), true));
+               if (!rhs)
+                  return;
+            #pragma endregion
          #pragma endregion
-         #pragma region Operator
-            auto op = this->extract_operator();
-            if (op.isEmpty()) {
-               this->raise_fatal("Expected an operator.");
-               return;
-            }
-            if (!::_is_assignment_operator(op))
-               this->raise_error(QString("Operator %1 is not an assignment operator.").arg(op));
+         if (!rhs || !lhs) {
             //
-         #pragma endregion
-         #pragma region Righthand side
-            statement_side_t rhs_type = this->_extract_statement_side(word, integer);
-            if (rhs_type == statement_side::string) {
-               this->raise_error("You cannot assign a string literal to a variable.");
-            } else if (rhs_type == statement_side::integer) {
-               rhs = new Script::VariableReference(integer);
-            } else if (rhs_type == statement_side::word) {
-               if (Compiler::is_keyword(word)) {
-                  this->raise_fatal(QString("Keyword \"%1\" cannot appear here.").arg(word));
-                  return;
-               }
-               if (this->extract_specific_char('(')) {
-                  if (op != ce_assignment_operator) {
-                     this->raise_error(QString("Operator %1 cannot be used to assign the result of a function call to a variable. Use operator %2.").arg(op).arg(ce_assignment_operator));
-                  }
-                  this->_parseFunctionCall(prior, word, false, lhs);
-                  return;
-               }
-               rhs = this->__parseVariable(word);
-            } else {
-               this->raise_fatal("Expected the righthand side of an assignment statement.");
-               return;
-            }
-         #pragma endregion
-      #pragma endregion
-      //
-      auto statement = new Script::Statement;
-      statement->set_start(prior);
-      statement->set_end(this->state);
-      this->block->insert_item(statement);
-      //
-      statement->lhs = lhs;
-      statement->rhs = rhs;
+            // Statement was invalid but parseable.
+            //
+            return;
+         }
+         //
+         statement = new Script::Statement;
+         statement->set_start(prior);
+         statement->set_end(this->state);
+         this->block->insert_item(statement);
+         //
+         statement->lhs = lhs.release();
+         statement->rhs = rhs.release();
+      }
+      auto* lhs = statement->lhs;
+      auto* rhs = statement->rhs;
       lhs->owner = statement;
       rhs->owner = statement;
       //
@@ -1470,43 +2009,7 @@ namespace Megalo {
                   assert(!result.is_unresolved_string() && "The operator in an assignment statement thinks it's an unresolved string reference.");
             }
          } else {
-            auto base = &_get_assignment_opcode();
-            opcode->function = base;
-            opcode->arguments.resize(3);
-            opcode->arguments[0] = (base->arguments[0].typeinfo.factory)();
-            opcode->arguments[1] = (base->arguments[1].typeinfo.factory)();
-            opcode->arguments[2] = (base->arguments[2].typeinfo.factory)();
-            //
-            if (!lhs->is_invalid) {
-               auto result = opcode->arguments[0]->compile(*this, *lhs, 0);
-               if (!result.is_success()) {
-                  QString error = "The lefthand side of this assignment failed to compile. ";
-                  if (!result.error.isEmpty())
-                     error += result.error;
-                  this->raise_error(error);
-               } else
-                  assert(!result.is_unresolved_string() && "The lefthand side of an assignment statement thinks it's an unresolved string reference.");
-            }
-            if (!rhs->is_invalid) {
-               auto result = opcode->arguments[1]->compile(*this, *rhs, 0);
-               if (!result.is_success()) {
-                  QString error = "The righthand side of this assignment failed to compile. ";
-                  if (!result.error.isEmpty())
-                     error += result.error;
-                  this->raise_error(error);
-               } else
-                  assert(!result.is_unresolved_string() && "The righthand side of an assignment statement thinks it's an unresolved string reference.");
-            }
-            //
-            auto op_string = string_scanner(op);
-            auto result = opcode->arguments[2]->compile(*this, op_string, 0);
-            if (!result.is_success()) {
-               QString error = "The operator in this assignment failed to compile. ";
-               if (!result.error.isEmpty())
-                  error += result.error;
-               this->raise_error(error);
-            } else
-               assert(!result.is_unresolved_string() && "The operator in an assignment statement thinks it's an unresolved string reference.");
+            opcode.reset(this->__compile_assignment_intrinsic(*lhs, *rhs, op));
          }
       }
       statement->opcode = opcode.release();
@@ -1587,7 +2090,7 @@ namespace Megalo {
          #pragma region Righthand side
             statement_side_t rhs_type = this->_extract_statement_side(word, integer);
             if (rhs_type == statement_side::string) {
-               this->raise_error("You cannot assign a string literal to a variable.");
+               this->raise_error("You cannot compare a string literal.");
             } else if (rhs_type == statement_side::integer) {
                rhs = new Script::VariableReference(integer);
             } else if (rhs_type == statement_side::word) {
@@ -1606,6 +2109,14 @@ namespace Megalo {
             }
          #pragma endregion
       #pragma endregion
+      if (!lhs || !rhs) {
+         //
+         // The statement was invalid, and we've now fully parsed it. Move on.
+         //
+         auto result = this->__parseConditionEnding();
+         this->_applyConditionModifiers(nullptr);
+         return result;
+      }
       //
       auto statement = new Script::Comparison;
       statement->set_start(prior);
@@ -1654,8 +2165,90 @@ namespace Megalo {
                   if (!result.error.isEmpty())
                      error += result.error;
                   this->raise_error(error);
-               } else
+               } else {
                   assert(!result.is_unresolved_string() && "The righthand side of a comparison statement thinks it's an unresolved string reference.");
+
+                  if (!lhs->is_invalid) {
+                     auto l_vt = getVariableTypeForTypeinfo(lhs->get_type());
+                     auto r_vt = getVariableTypeForTypeinfo(rhs->get_type());
+
+                     // Validity check reverse-engineered from MegaloEdit.
+                     bool type_match = false;
+                     if (r_vt == l_vt) {
+                        type_match = true;
+                     } else {
+                        switch (l_vt) {
+                           case variable_type::timer:
+                              if (r_vt == variable_type::scalar)
+                                 type_match = true;
+                              break;
+                           case variable_type::scalar:
+                              if (r_vt == variable_type::timer)
+                                 //
+                                 // NOTE: The game engine itself can always compare numbers and timers, with 
+                                 // any operator; the code for number/number and timer/timer is essentially 
+                                 // the same once the comparands are extracted.
+                                 // 
+                                 // MegaloEdit, however, only compiles number/timer if the operator is ==. 
+                                 // It doesn't allow timer/number at all, and only allows the greater-than 
+                                 // and less-than operators for timer/timer. Is this because timers are 
+                                 // considered too variable/precise to do exact equality comparisons on? 
+                                 // Is a similar rationale why timer/number comparisons are barred?
+                                 // 
+                                 // For now, we follow the game engine.
+                                 //
+                                 type_match = true;
+                              break;
+                        }
+                     }
+
+                     bool operator_match = true;
+                     if (op != "==" && op != "!=") {
+                        //
+                        // If it's a numeric comparison, disallow it on handles:
+                        //
+                        switch (l_vt) {
+                           case variable_type::object:
+                           case variable_type::player:
+                           case variable_type::team:
+                              operator_match = false;
+                              break;
+                        }
+                        switch (r_vt) {
+                           case variable_type::object:
+                           case variable_type::player:
+                           case variable_type::team:
+                              operator_match = false;
+                              break;
+                        }
+                        //
+                        // MegaloEdit only appears to allow < and > for timers, but disassembly of Halo: Reach 
+                        // suggests that all operators are supported. I feel like I must be misunderstanding the 
+                        // MegaloEdit decomp...
+                        //
+                     }
+
+                     if (!type_match) {
+                        QString format = "Type mismatch (comparing %1 to %2).";
+                        if (l_vt == variable_type::scalar && r_vt == variable_type::timer)
+                           format = "Type mismatch (comparing %1 to %2; only equality comparisons are allowed here).";
+                        this->raise_error(
+                           QString(format)
+                              .arg(lhs->get_type()->internal_name.c_str())
+                              .arg(rhs->get_type()->internal_name.c_str())
+                        );
+                     }
+                     if (!operator_match) {
+                        QString format = "Cannot perform numeric comparisons on non-numeric values (comparing %1 to %2 with operator %3).";
+                        this->raise_error(
+                           QString(format)
+                              .arg(lhs->get_type()->internal_name.c_str())
+                              .arg(rhs->get_type()->internal_name.c_str())
+                              .arg(op)
+                        );
+                     }
+                  }
+               }
             }
             auto op_string = string_scanner(op);
             auto result    = opcode->arguments[2]->compile(*this, op_string, 0);
@@ -1677,9 +2270,9 @@ namespace Megalo {
    bool Compiler::__parseConditionEnding() {
       auto word = this->extract_word();
       if (word.compare("and", Qt::CaseInsensitive) == 0) {
-         this->next_condition_joiner = c_joiner::and;
+         this->next_condition_joiner = c_joiner::c_and;
       } else if (word.compare("or", Qt::CaseInsensitive) == 0) {
-         this->next_condition_joiner = c_joiner::or;
+         this->next_condition_joiner = c_joiner::c_or;
       } else if (word.compare("then", Qt::CaseInsensitive) == 0) {
          return true;
       } else {
@@ -1693,12 +2286,15 @@ namespace Megalo {
    }
 
    void Compiler::_applyConditionModifiers(Script::Comparison* condition) {
-      if (!condition)
+      if (!condition) {
+         this->next_condition_joiner = c_joiner::none;
+         this->negate_next_condition = false;
          return;
+      }
       auto opcode = dynamic_cast<Condition*>(condition->opcode);
       if (opcode) // it could have failed to compile
          opcode->inverted = this->negate_next_condition;
-      if (this->next_condition_joiner == c_joiner::or)
+      if (this->next_condition_joiner == c_joiner::c_or)
          condition->next_is_or = true;
       this->next_condition_joiner = c_joiner::none;
       this->negate_next_condition = false;
@@ -1715,32 +2311,65 @@ namespace Megalo {
       if (this->has_fatal()) // fatal error occurred while parsing the text
          return var;
       var->resolve(*this, is_alias_definition, is_write_access);
-      if (!var->is_invalid) {
-         //
-         // Implicitly declare the variable:
-         //
-         auto type  = var->get_type();
-         auto basis = var->get_alias_basis_type();
-         //
-         if (type->is_variable()) { // VariableReference can also refer to things like script widgets
-            if (!basis && var->resolved.nested.type)
-               basis = var->resolved.top_level.type;
+
+      bool may_need_variable_declaration = false;
+      if (!var->is_invalid && !var->is_none()) {
+         may_need_variable_declaration = true;
+
+         // SPECIAL-CASE: player-or-group values
+         if (!var->resolved.nested.type && !var->resolved.property.definition && !var->resolved.accessor) {
+            auto* type = var->resolved.top_level.type;
+            if (type == &OpcodeArgValuePlayerOrGroup::typeinfo) {
+               may_need_variable_declaration = false;
+            }
+         }
+      }
+
+      if (may_need_variable_declaration) {
+         const auto* type  = var->get_type();
+         const auto* basis = var->get_alias_basis_type();
+
+         if (!var->get_alias_basis_type()) {
+            auto& top_level = var->resolved.top_level;
+            if (
+               !top_level.is_constant &&
+               !top_level.is_temporary &&
+               !top_level.is_static &&
+               !top_level.namespace_member.scope && !top_level.namespace_member.which
+            ) {
+               //
+               // Implicitly declare the top-level variable.
+               //
+               variable_type type_v = getVariableTypeForTypeinfo(top_level.type);
+               if (type_v == variable_type::not_a_variable) {
+                  this->raise_error(QString("Unable to generate an implicit top-level variable declaration for \"%1\".").arg(var->to_string()));
+               } else {
+                  variable_scope scope_v = variable_scope::global;
+                  if (top_level.is_temporary)
+                     scope_v = variable_scope::temporary;
+
+                  auto* set = this->_get_variable_declaration_set(scope_v);
+                  set->get_or_create_declaration(type_v, top_level.index);
+               }
+            }
+         }
+
+         if (var->resolved.nested.type) {
             //
+            // Implicitly declare the nested variable.
+            //
+            if (!basis)
+               basis = var->resolved.top_level.type;
+
             variable_scope scope_v = getVariableScopeForTypeinfo(basis);
-            variable_type  type_v  = getVariableTypeForTypeinfo(type);
+            variable_type  type_v = getVariableTypeForTypeinfo(type);
             if (scope_v == variable_scope::not_a_scope || type_v == variable_type::not_a_variable) {
                this->raise_error(QString("Unable to generate an implicit variable declaration for \"%1\".").arg(var->to_string()));
                return var;
             }
-            //
-            int32_t index = 0;
-            if (scope_v == variable_scope::global) {
-               index = var->resolved.top_level.index;
-            } else {
-               index = var->resolved.nested.index;
-            }
-            auto set  = this->_get_variable_declaration_set(scope_v);
-            auto decl = set->get_or_create_declaration(type_v, index);
+            
+            auto set = this->_get_variable_declaration_set(scope_v);
+            auto decl = set->get_or_create_declaration(type_v, var->resolved.nested.index);
          }
       }
       return var;
@@ -1760,7 +2389,7 @@ namespace Megalo {
    }
    //
    #pragma region function call handling
-   void Compiler::__parseFunctionArgs(const OpcodeBase& function, Opcode& opcode, Compiler::unresolved_str_list& unresolved_strings) {
+   void Compiler::__parseFunctionArgs(const OpcodeBase& function, Opcode& opcode, unresolved_str_list& unresolved_strings, UnresolvedOpcodeForgeLabel& unresolved_labels) {
       auto& mapping = function.mapping;
       opcode.function = &function;
       opcode.arguments.resize(function.arguments.size());
@@ -1823,7 +2452,7 @@ namespace Megalo {
          bool success = result.is_success();
          if (failure) {
             bool irresolvable = result.is_irresolvable_failure();
-            //
+            
             QString error = QString("Failed to parse script argument %1 (type %2).").arg(script_arg_index + 1).arg(function.arguments[mapped_index].typeinfo.friendly_name);
             if (!result.error.isEmpty()) {
                error.reserve(error.size() + 1 + result.error.size());
@@ -1849,11 +2478,27 @@ namespace Megalo {
             if (!argument.is_at_effective_end()) {
                this->raise_error(QString("Failed to parse script argument %1 (type %2). There was unexpected content at the end of the argument.").arg(script_arg_index + 1).arg(function.arguments[mapped_index].typeinfo.friendly_name));
             } else {
-               if (result.is_unresolved_string())
+               if (result.is_unresolved_string()) {
+                  auto s = result.get_unresolved_string();
                   unresolved_strings.insert(
-                     result.get_unresolved_string(), // key
+                     s, // key
                      unresolved_str(*current_argument, opcode_arg_part) // value
                   );
+                  this->validate_format_string_tokens(s);
+               }
+               if (result.is_unresolved_label()) {
+                  auto s = result.get_unresolved_label();
+                  if (this->new_forge_label_not_yet_tracked(s)) {
+                     this->raise_notice(
+                        QString("The specified Forge label (\"%1\") isn't defined in the game variant data. If compilation succeeds, a label with this name will be created for you.")
+                           .arg(s)
+                     );
+                  }
+                  unresolved_labels.labels.push_back(UnresolvedOpcodeForgeLabel::argument{
+                     .argument_index = (size_t)mapped_index,
+                     .label_name     = result.get_unresolved_label()
+                  });
+               }
             }
          }
          if (another && has_more) {
@@ -1890,8 +2535,6 @@ namespace Megalo {
             auto& mapping = action.mapping;
             if (mapping.arg_context != OpcodeFuncToScriptMapping::game_namespace)
                continue;
-            if (cobb::qt::stricmp(function_name, mapping.primary_name) == 0 || cobb::qt::stricmp(function_name, mapping.secondary_name) == 0)
-               results.push_back(&action);
             if (cobb::qt::stricmp(function_name, mapping.primary_name) == 0 || cobb::qt::stricmp(function_name, mapping.secondary_name) == 0)
                results.push_back(&action);
          }
@@ -2018,6 +2661,11 @@ namespace Megalo {
             statement->set_start(call_start);
             statement->set_end(this->state);
             this->block->insert_item(statement);
+            //
+            if (func->content) {
+               ++func->content->caller_count;
+            }
+            //
             return nullptr;
          }
          //
@@ -2090,6 +2738,8 @@ namespace Megalo {
       auto start = this->backup_stream_state();
       auto check = this->create_log_checkpoint();
       unresolved_str_list unresolved_strings;
+      UnresolvedOpcodeForgeLabel unresolved_labels;
+      unresolved_labels.opcode = opcode.get();
       for (auto* function : opcode_bases) {
          //
          // If two opcodes have the same name and context (or lack thereof), then they are overloads of 
@@ -2098,10 +2748,11 @@ namespace Megalo {
          //
          opcode->reset();
          unresolved_strings.clear();
+         unresolved_labels.labels.clear();
          this->revert_to_log_checkpoint(check);
          this->restore_stream_state(start);
          //
-         this->__parseFunctionArgs(*function, *opcode.get(), unresolved_strings); // advances us past the closing ")" EVEN IF IT FAILS FOR ANY REASON
+         this->__parseFunctionArgs(*function, *opcode.get(), unresolved_strings, unresolved_labels); // advances us past the closing ")" EVEN IF IT FAILS FOR ANY REASON
          if (!this->checkpoint_has_errors(check)) {
             match = function;
             break;
@@ -2126,7 +2777,17 @@ namespace Megalo {
       if (context) {
          auto index = match->mapping.arg_context;
          const OpcodeArgBase& base = match->arguments[index];
-         opcode->arguments[index] = (base.typeinfo.factory)();
+         //
+         // "Doubly-contextual calls" are those where a single OpcodeArgValue represents both the call context and one of the 
+         // arguments in parentheses.
+         //
+         bool is_doubly_contextual = match->mapping.is_doubly_contextual();
+         if (is_doubly_contextual) {
+            assert(opcode->arguments[index]);
+         } else {
+            opcode->arguments[index] = (base.typeinfo.factory)();
+         }
+         //
          auto result = opcode->arguments[index]->compile(*this, *context, 0);
          if (result.is_failure()) {
             QString error = "Failed to compile the context for this function call. ";
@@ -2161,86 +2822,88 @@ namespace Megalo {
             fail = true;
          }
          //
-         const OpcodeArgBase& base = match->arguments[index];
-         //
-         // Verify that the variable we're assigning our return value to is of the right type:
-         //
-         auto target_type = assign_to->get_type();
-         if (&base.typeinfo != target_type) {
-            QString context_name = "";
-            if (context)
-               context_name = QString("%1.").arg(context->get_type()->internal_name.c_str());
-            //
-            if (target_type) {
-               this->raise_error(call_start, QString("Function %1%2 returns a %3, not a %4.")
-                  .arg(context_name)
-                  .arg(function_name)
-                  .arg(base.typeinfo.internal_name.c_str())
-                  .arg(target_type->internal_name.c_str())
-               );
-            } else {
-               this->raise_error(call_start, QString("Function %1%2 returns a %3. Could not verify whether you are assigning it to a variable of the correct type.")
-                  .arg(context_name)
-                  .arg(function_name)
-                  .arg(base.typeinfo.internal_name.c_str())
-               );
-            }
-            fail = true;
-         }
-         //
          if (!fail) {
+            const OpcodeArgBase& base = match->arguments[index];
             //
-            // The type is correct, so set the out-argument.
+            // Verify that the variable we're assigning our return value to is of the right type:
             //
-            opcode->arguments[index] = (base.typeinfo.factory)();
-            opcode->arguments[index]->compile(*this, *assign_to, 0);
+            auto target_type = assign_to->get_type();
+            if (&base.typeinfo != target_type) {
+               QString context_name = "";
+               if (context)
+                  context_name = QString("%1.").arg(context->get_type()->internal_name.c_str());
+               //
+               if (target_type) {
+                  this->raise_error(call_start, QString("Function %1%2 returns a %3, not a %4.")
+                     .arg(context_name)
+                     .arg(function_name)
+                     .arg(base.typeinfo.internal_name.c_str())
+                     .arg(target_type->internal_name.c_str())
+                  );
+               } else {
+                  this->raise_error(call_start, QString("Function %1%2 returns a %3. Could not verify whether you are assigning it to a variable of the correct type.")
+                     .arg(context_name)
+                     .arg(function_name)
+                     .arg(base.typeinfo.internal_name.c_str())
+                  );
+               }
+               fail = true;
+            }
             //
-            if (match->mapping.flags & OpcodeFuncToScriptMapping::flags::secondary_property_zeroes_result) {
+            if (!fail) {
                //
-               // There are several opcodes that will return a result only if there is a result 
-               // to return. The function to get a player's Armor Ability, for example, will only 
-               // write to the specified object variable if the player has an Armor Ability; if 
-               // the player does not, then the variable is not modified (as opposed to clearing 
-               // it). The OpcodeFuncToScriptMapping class allows opcodes to have two names, and 
-               // offers a flag which indicates alternate behavior for the second name. This 
-               // allows us to do this:
+               // The type is correct, so set the out-argument.
                //
-               //    some_object = current_player.get_armor_ability()
+               opcode->arguments[index] = (base.typeinfo.factory)();
+               opcode->arguments[index]->compile(*this, *assign_to, 0);
                //
-               // as a shorthand for this:
-               //
-               //    some_object = no_object
-               //    some_object = current_player.try_get_armor_ability()
-               //
-               // We just compile an assignment to none/zero.
-               //
-               if (cobb::qt::stricmp(function_name, match->mapping.secondary_name) == 0) {
-                  auto base  = &_get_assignment_opcode();
-                  auto blank = new Action;
-                  blank->function = base;
-                  blank->arguments.resize(3);
-                  blank->arguments[0] = (base->arguments[0].typeinfo.factory)(); // lhs
-                  auto result = blank->arguments[0]->compile(*this, *assign_to, 0);
-                  if (result.is_failure())
-                     this->raise_error("Failed to compile the lefthand side of an implicit assignment (before a function call).");
+               if (match->mapping.flags & OpcodeFuncToScriptMapping::flags::secondary_property_zeroes_result) {
                   //
-                  auto lhs = dynamic_cast<OpcodeArgValueAnyVariable*>(blank->arguments[0]);
-                  assert(lhs && "Each side of the assignment opcode should be an OpcodeArgValueAnyVariable. If for any reason this has changed, update the compiler code.");
-                  auto rhs = blank->arguments[1] = lhs->create_zero_or_none(); // rhs
-                  if (!rhs)
-                     this->raise_error("Failed to compile the righthand side of an implicit assignment (before a function call).");
+                  // There are several opcodes that will return a result only if there is a result 
+                  // to return. The function to get a player's Armor Ability, for example, will only 
+                  // write to the specified object variable if the player has an Armor Ability; if 
+                  // the player does not, then the variable is not modified (as opposed to clearing 
+                  // it). The OpcodeFuncToScriptMapping class allows opcodes to have two names, and 
+                  // offers a flag which indicates alternate behavior for the second name. This 
+                  // allows us to do this:
                   //
-                  auto op_string = string_scanner("=");
-                  blank->arguments[2] = (base->arguments[2].typeinfo.factory)(); // operator
-                  result = blank->arguments[2]->compile(*this, op_string, 0);
-                  if (result.is_failure())
-                     this->raise_error("Failed to compile the operator in an implicit assignment (before a function call).");
+                  //    some_object = current_player.get_armor_ability()
                   //
-                  auto statement = new Script::Statement;
-                  statement->set_start(this->state);
-                  statement->set_end(this->state);
-                  statement->opcode = blank;
-                  this->block->insert_item(statement);
+                  // as a shorthand for this:
+                  //
+                  //    some_object = no_object
+                  //    some_object = current_player.try_get_armor_ability()
+                  //
+                  // We just compile an assignment to none/zero.
+                  //
+                  if (cobb::qt::stricmp(function_name, match->mapping.secondary_name) == 0) {
+                     auto base  = &_get_assignment_opcode();
+                     auto blank = new Action;
+                     blank->function = base;
+                     blank->arguments.resize(3);
+                     blank->arguments[0] = (base->arguments[0].typeinfo.factory)(); // lhs
+                     auto result = blank->arguments[0]->compile(*this, *assign_to, 0);
+                     if (result.is_failure())
+                        this->raise_error("Failed to compile the lefthand side of an implicit assignment (before a function call).");
+                     //
+                     auto lhs = dynamic_cast<OpcodeArgValueAnyVariable*>(blank->arguments[0]);
+                     assert(lhs && "Each side of the assignment opcode should be an OpcodeArgValueAnyVariable. If for any reason this has changed, update the compiler code.");
+                     auto rhs = blank->arguments[1] = lhs->create_zero_or_none(); // rhs
+                     if (!rhs)
+                        this->raise_error("Failed to compile the righthand side of an implicit assignment (before a function call).");
+                     //
+                     auto op_string = string_scanner("=");
+                     blank->arguments[2] = (base->arguments[2].typeinfo.factory)(); // operator
+                     result = blank->arguments[2]->compile(*this, op_string, 0);
+                     if (result.is_failure())
+                        this->raise_error("Failed to compile the operator in an implicit assignment (before a function call).");
+                     //
+                     auto statement = new Script::Statement;
+                     statement->set_start(this->state);
+                     statement->set_end(this->state);
+                     statement->opcode = blank;
+                     this->block->insert_item(statement);
+                  }
                }
             }
          }
@@ -2291,17 +2954,30 @@ namespace Megalo {
          this->block->insert_item(statement);
       }
       this->_commit_unresolved_strings(unresolved_strings);
+      if (!unresolved_labels.labels.empty()) {
+         assert(unresolved_labels.opcode != nullptr);
+         this->opcodes_pending_forge_labels.push_back(unresolved_labels);
+      }
       return statement;
    }
    #pragma endregion
-   //
-   int32_t Compiler::_index_of_trigger(Trigger* t) const noexcept {
+   
+   int32_t Compiler::_index_of_trigger(const Trigger& t) const noexcept {
       auto&  list = this->results.triggers;
       size_t size = list.size();
       for (size_t i = 0; i < size; ++i)
-         if (list[i] == t)
+         if (list[i] == &t)
             return i;
       return -1;
+   }
+   void Compiler::_trigger_needs_forge_label(Trigger& t, QString name) {
+      if (this->new_forge_label_not_yet_tracked(name)) {
+         this->raise_notice(
+            QString("The specified Forge label (\"%1\") isn't defined in the game variant data. If compilation succeeds, a label with this name will be created for you.")
+               .arg(name)
+         );
+      }
+      this->triggers_pending_forge_labels.push_back({ &t, name });
    }
    VariableDeclarationSet* Compiler::_get_variable_declaration_set(variable_scope vs) noexcept {
       auto& sets = this->results.variables;
@@ -2323,9 +2999,25 @@ namespace Megalo {
          return;
       set->imply(vt, index);
    }
-   //
+   
    void Compiler::_openBlock(Script::Block* block) { // (block) should already have been appended to its parent
       this->block = block;
+      if (this->inline_next_block) {
+         this->inline_next_block = false;
+         block->has_inline_specifier = true;
+         
+         if (!_block_type_can_be_inline(block->type)) {
+            this->raise_error("Blocks of this type cannot be inlined.");
+         }
+         if (block->event != Script::Block::Event::none) {
+            this->raise_error("Event handlers cannot be inlined.");
+         }
+         /*// error is already reported by the keyword
+         if (!block->parent) {
+            this->raise_error("Top-level (non-nested) blocks cannot be inlined. (Where would they be inlined into?)");
+         }
+         //*/
+      }
       auto root = this->root;
       if (block->parent == root) {
          //
@@ -2359,8 +3051,27 @@ namespace Megalo {
                   break;
             }
             ++i; // convert from "index of last alias to keep" to "number of aliases to keep"
-            if (i < size)
+            if (i < size) {
                this->aliases_in_scope.resize(i);
+
+               // keep track of what temporaries are allocated to aliases
+               this->temporary_allocated_state.is_allocated = {};
+               for (const auto* alias : this->aliases_in_scope) {
+                  if (!alias->via_allocate)
+                     continue;
+                  if (!alias->target)
+                     continue;
+                  if (alias->target->resolved.top_level.is_temporary) {
+                     this->temporary_allocated_state.is_allocated.mark_variable(
+                        variable_scope::temporary,
+                        getVariableTypeForTypeinfo(alias->target->resolved.top_level.type),
+                        alias->target->resolved.top_level.index
+                     );
+                  }
+               }
+               this->temporary_allocated_state.is_initialized &= this->temporary_allocated_state.is_allocated;
+
+            }
          }
       }
       {  // The block's contained enums are going out of scope.
@@ -2403,18 +3114,363 @@ namespace Megalo {
          this->block->compile(*this);
          //
          // And now that the block is compiled, discard it.
+         // 
+         // EDIT: Deleting blocks here makes it impossible to track their aliases for the "remember 
+         // aliases allocated by in-scope user-defined functions so we can make allocation-to-alias 
+         // not clobber when done from inside of a function" feature, so instead we're just going 
+         // to chuck them into a list for safekeeping and delete them all later.
          //
+         this->already_compiled_blocks.push_back(this->block);
          parent->remove_item(this->block);
-         delete this->block;
+         // delete this->block;
       }
       this->block = parent;
+
       return true;
    }
-   //
+   
    #pragma region keyword handlers
-   void Compiler::_handleKeyword_Alias() {
-      auto start = this->backup_stream_state();
+      #pragma region Compiler::_allocation_request_type
+      bool Compiler::_allocation_request_type::parse_or_fail(Compiler& compiler, const QString& member_type) {
+         int i = member_type.indexOf('.');
+         {
+            int j = -1;
+            if (i >= 0) {
+               j = member_type.indexOf('.', i + 1); // check for multiple dots
+            }
+            if (i < 0 || j >= 0) {
+               compiler.raise_fatal(QString("Expected a kind of variable, e.g. `global.number` or `player.player`; got `%1`.").arg(member_type));
+               return false;
+            }
+         }
+         QString base_name = member_type.left(i);
+         QString type_name = member_type.right(member_type.size() - i - 1);
+         if (base_name.isEmpty() || type_name.isEmpty()) {
+            compiler.raise_fatal(QString("Expected a kind of variable, e.g. `global.number` or `player.player`; got `%1`.").arg(member_type));
+            return false;
+         }
+
+         const auto& type_registry = OpcodeArgTypeRegistry::get();
+         this->context_namespace = Script::namespaces::get_by_name(base_name);
+         this->context_type_info = context_namespace ? nullptr : type_registry.get_variable_type(base_name);
+         this->member_type_info  = type_registry.get_variable_type(type_name);
+
+         if (!context_namespace && !context_type_info) {
+            compiler.raise_error(QString("Expected a type of variable following the format `base_name.type_name`, where `base_name` is the name of something that can contain variables (e.g. `global`, `player`, etc.). The base name seen was `%1`.").arg(base_name));
+            return false;
+         }
+         if (context_namespace && !context_namespace->can_have_variables) {
+            compiler.raise_error(QString("The specified namespace (%1) cannot contain variables.").arg(context_namespace->name.c_str()));
+            return false;
+         }
+         if (context_type_info && !context_type_info->can_have_variables()) {
+            compiler.raise_error(QString("The specified base type (%1) cannot contain variables.").arg(context_type_info->internal_name.c_str()));
+            return false;
+         }
+         if (!member_type_info) {
+            compiler.raise_error(QString("Expected a type of variable following the format `base_name.type_name`, where `type_name` is a variable type. The type name seen was `%1`.").arg(type_name));
+            return false;
+         }
+
+         return true;
+      }
+
+      size_t Compiler::_allocation_request_type::max_slots_available() const {
+         auto vt = getVariableTypeForTypeinfo(this->member_type_info);
+         if (this->context_type_info) {
+            const auto* scope = getScopeObjectForTypeinfo(this->context_type_info);
+            assert(scope != nullptr);
+            return scope->max_variables_of_type(vt);
+         }
+         if (this->context_namespace) {
+            if (this->context_namespace == &Script::namespaces::global) {
+               return Megalo::MegaloVariableScopeGlobal.max_variables_of_type(vt);
+            } else if (this->context_namespace == &Script::namespaces::temporaries) {
+               return Megalo::MegaloVariableScopeTemporary.max_variables_of_type(vt);
+            } else {
+               assert(false && "unhandled namespace!");
+            }
+         }
+         return 0;
+      }
+
+      bool Compiler::_allocation_request_type::existing_alias_matches(const Script::Alias& existing) const {
+         if (existing.invalid || !existing.target || !existing.target->is_resolved)
+            return false;
+         const auto& existing_info = existing.target->resolved;
+
+         if (existing_info.top_level.is_constant)
+            return false;
+         if (existing_info.top_level.is_static)
+            return false;
+         if (existing_info.top_level.namespace_member.scope || existing_info.top_level.namespace_member.which)
+            return false;
+
+         if (this->context_namespace) {
+            auto* existing_basis_type = existing.target->get_alias_basis_type();
+            if (existing_basis_type) // ignore relative aliases
+               return false;
+            if (existing_info.nested.type) // ignore aliases of member-variables
+               return false;
+            if (existing_info.top_level.type != this->member_type_info) // ignore aliases of a different type
+               return false;
+
+            if (existing_info.top_level.is_temporary) {
+               if (this->context_namespace == &Script::namespaces::temporaries) {
+                  return true;
+               }
+            } else {
+               if (this->context_namespace == &Script::namespaces::global) {
+                  return true;
+               }
+            }
+            return false;
+         }
+
+         auto* existing_basis_type = existing.target->get_alias_basis_type();
+         if (!existing_basis_type) // ignore absolute aliases
+            return false;
+         if (existing_basis_type != this->context_type_info) // ignore aliases relative to a different type
+            return false;
+         if (existing_info.nested.type != this->member_type_info) // ignore aliases of a different type
+            return false;
+         return true;
+      }
+
+      QString Compiler::_allocation_request_type::to_alias_target(size_t index) const {
+         assert(this->member_type_info != nullptr);
+         assert(this->context_namespace || this->context_type_info);
+         //
+         auto target = QString("%3.%2[%1]")
+            .arg(index)
+            .arg(this->member_type_info->internal_name.c_str());
+         if (this->context_namespace)
+            target = target.arg(this->context_namespace->name.c_str());
+         else
+            target = target.arg(this->context_type_info->internal_name.c_str());
+         return target;
+      }
+      #pragma endregion
+
+   Script::Alias* Compiler::_allocate_alias(QString name, const _allocation_request_type& request_type) {
+      uint32_t seen_indices_mask  = 0;
+      size_t   context_slot_count = request_type.max_slots_available();
+
+      for (const auto* existing : this->aliases_in_scope) {
+         assert(existing != nullptr);
+         if (!existing->target)
+            continue;
+
+         uint32_t index;
+         if (request_type.context_type_info)
+            index = existing->target->resolved.nested.index;
+         else
+            index = existing->target->resolved.top_level.index;
+
+         uint32_t mask = 1 << index;
+         if (seen_indices_mask & mask) // fast early-out
+            continue;
+
+         if (request_type.existing_alias_matches(*existing)) {
+            seen_indices_mask |= mask;
+         }
+      }
+
       //
+      // User-defined functions cannot allocate-to-alias safely unless we track a UDF's aliases, 
+      // and prevent the target variables from being reallocated while the UDF is in scope. Our 
+      // goal is to ensure that the following doesn't break:
+      // 
+      //    function test()
+      //       alias local_variable = allocate temporary number
+      //       local_variable = 0
+      //    end
+      // 
+      //    alias local_of_caller = allocate temporary number
+      //    local_of_caller = 1
+      //    test()
+      // 
+      //    if local_of_caller != 1 then
+      //       game.show_message_to(all_players, none, "Broken!")
+      //    end
+      //
+      for (const auto& udf : this->functions_in_scope) {
+         for (const auto* existing : udf.descendant_aliases) {
+            assert(existing != nullptr);
+            if (!existing->target)
+               continue;
+
+            uint32_t index;
+            if (request_type.context_type_info)
+               index = existing->target->resolved.nested.index;
+            else
+               index = existing->target->resolved.top_level.index;
+
+            uint32_t mask = 1 << index;
+            if (seen_indices_mask & mask) // fast early-out
+               continue;
+
+            if (request_type.existing_alias_matches(*existing)) {
+               seen_indices_mask |= mask;
+            }
+         }
+      }
+
+      for (size_t i = 0; i < context_slot_count; ++i) {
+         uint32_t bit = 1 << i;
+         if ((seen_indices_mask & bit) == 0) {
+            //
+            // Found an available index!
+            //
+            return new Script::Alias(*this, name, request_type.to_alias_target(i));
+         }
+      }
+
+      if (request_type.context_namespace) {
+         QString format;
+         if (request_type.context_namespace == &Script::namespaces::temporaries) {
+            format = "All available temporary %1 variables are already in use by other in-scope aliases.";
+         } else {
+            format = "All available %2.%1 variables are already in use by other in-scope aliases.";
+         }
+         this->raise_error(
+            format
+               .arg(request_type.member_type_info->internal_name.c_str())
+               .arg(request_type.context_namespace->name.c_str())
+         );
+      } else {
+         this->raise_error(
+            QString("All available %1.%2 variables are already in use by other in-scope aliases.")
+               .arg(request_type.context_type_info->internal_name.c_str())
+               .arg(request_type.member_type_info->internal_name.c_str())
+         );
+      }
+      return nullptr;
+   }
+   const Script::Alias* Compiler::_alias_is_explicit_reference_to_allocated(const Script::Alias& new_alias) {
+      if (!new_alias.target)
+         return nullptr;
+      if (new_alias.via_allocate)
+         //
+         // You should never pass `allocate` aliases to this, but I've added this as a precaution 
+         // against maintenance mistakes (see below comment).
+         //
+         return nullptr;
+      auto& nt = *new_alias.target;
+      if (nt.is_invalid)
+         return nullptr;
+      if (nt.resolved.top_level.is_constant)
+         return nullptr;
+      if (nt.resolved.top_level.is_static)
+         return nullptr;
+      if (nt.resolved.top_level.enumeration)
+         return nullptr;
+      if (nt.resolved.top_level.namespace_member.scope || nt.resolved.top_level.namespace_member.which)
+         return nullptr;
+      if (nt.resolution_involved_aliases.top_level)
+         return nullptr;
+
+      for (const auto* existing : this->aliases_in_scope) {
+         if (existing == &new_alias)
+            //
+            // You *should* call this function *before* adding `new_alias` to the in-scope list, 
+            // but this compiler's code is... messy... compared to my newer work. Feels safer to 
+            // just add this check rather than rely on this program, in its current incarnation, 
+            // being easy to maintain. :(
+            //
+            continue;
+
+         if (!existing->via_allocate)
+            continue;
+
+         auto* et = existing->target;
+         if (!et)
+            continue;
+         if (et->is_invalid)
+            continue;
+
+         if (nt.resolved.top_level.is_temporary != et->resolved.top_level.is_temporary)
+            continue;
+         if (nt.resolved.alias_basis != et->resolved.alias_basis)
+            continue;
+         if (nt.resolved.top_level.type != et->resolved.top_level.type)
+            continue;
+         if (nt.resolved.top_level.index != et->resolved.top_level.index)
+            continue;
+         if (et->resolved.nested.type) {
+            if (nt.resolved.nested.type != et->resolved.nested.type)
+               continue;
+            if (nt.resolved.nested.index != et->resolved.nested.index)
+               continue;
+         }
+         if (nt.resolved.nested.type == et->resolved.nested.type && nt.resolved.nested.index == et->resolved.nested.index) {
+            if (nt.resolution_involved_aliases.nested) {
+               continue;
+            }
+         }
+         return existing;
+      }
+      return nullptr;
+   }
+   void Compiler::_store_new_alias(Script::Alias& new_alias) {
+      this->block->insert_item(&new_alias);
+
+      if (new_alias.invalid)
+         //
+         // TODO: Should we add invalid aliases to `aliases_in_scope` so that references to them don't throw 
+         // spurious errors? (Be sure to update the non-`allocate` code, too.) (See notes there, too.)
+         //
+         return;
+
+      this->aliases_in_scope.push_back(&new_alias);
+
+      bool  warned_on_top_level_function = false;
+      bool  is_allocated_temporary       = new_alias.via_allocate && new_alias.target->resolved.top_level.is_temporary;
+
+      if (is_allocated_temporary) {
+         auto vt = getVariableTypeForTypeinfo(new_alias.target->resolved.top_level.type);
+         if (vt != variable_type::not_a_variable) {
+            this->temporary_allocated_state.is_allocated.mark_variable(
+               variable_scope::temporary,
+               vt,
+               new_alias.target->resolved.top_level.index
+            );
+         }
+      }
+
+      auto* udf_block = this->block->get_nearest_function();
+      while (udf_block != nullptr) {
+         for (auto& in_scope : this->functions_in_scope) {
+            if (in_scope.content == udf_block) {
+               in_scope.descendant_aliases.push_back(&new_alias);
+
+               if (is_allocated_temporary && !warned_on_top_level_function) {
+                  if (in_scope.parent == this->root) {
+                     warned_on_top_level_function = true;
+                     this->raise_warning(
+                        QString(
+                           "Alias %1 is a temporary variable, allocated inside of user-defined function %2(). Variables that "
+                           "are aliased from inside of a user-defined function cannot be allocated to new aliases until that "
+                           "function goes out of scope; this is a safety measure to prevent variable conflicts. However, %2() "
+                           "is outside of all code blocks, so it will never go out of scope; this temporary variable will remain "
+                           "reserved for the rest of the script and can't be repurposed by code further down. Is this "
+                           "intentional? A global variable may work better here."
+                        )
+                           .arg(new_alias.pretty_printable_name())
+                           .arg(in_scope.name)
+                     );
+                  }
+               }
+
+            }
+         }
+
+         udf_block = dynamic_cast<Script::Block*>(udf_block->parent);
+         if (udf_block)
+            udf_block = udf_block->get_nearest_function();
+      }
+   }
+   void Compiler::_handleKeyword_Alias(const pos start) {
       auto name = this->extract_word();
       if (name.isEmpty()) {
          this->raise_fatal("An alias declaration must supply a name.");
@@ -2424,11 +3480,89 @@ namespace Megalo {
          this->raise_fatal("Expected \"=\".");
          return;
       }
+      if (this->extract_word("allocate")) {
+         Script::Alias* item = nullptr;
+
+         _allocation_request_type request_type;
+
+         if (this->extract_word("temporary")) {
+            auto& type_registry = OpcodeArgTypeRegistry::get();
+            auto  prior         = this->backup_stream_state();
+            
+            auto  type_name = this->extract_word();
+            auto* type_info = type_registry.get_variable_type(type_name);
+            if (!type_info) {
+               this->raise_fatal(prior, QString("Expected the name of a variable type; saw `%1`.").arg(type_name));
+               return;
+            }
+            if (type_info == &OpcodeArgValueTimer::typeinfo) {
+               this->raise_error(prior, "Timers cannot be temporary variables.");
+               //
+               // TODO: Should we add invalid aliases to `aliases_in_scope` so that references to them don't throw 
+               // spurious errors? If so, we should create a dummy alias here with the correct type, and then fall 
+               // through to the branches below that'd add it. For now, we early-return. (Would require an alternate 
+               // handling for variables that allows us to ID the type even if the reference is invalid.)
+               //
+               return;
+            }
+
+            request_type = {
+               .context_namespace = &Script::namespaces::temporaries,
+               .member_type_info  = type_info,
+            };
+         } else {
+            auto member_name = this->extract_word();
+            if (!request_type.parse_or_fail(*this, member_name)) {
+               return;
+            }
+         }
+
+         item = this->_allocate_alias(name, request_type);
+         if (!item)
+            return;
+
+         if (request_type.context_namespace == &Script::namespaces::temporaries) {
+            if (this->block == this->root) {
+               this->raise_warning(
+                  start,
+                  QString(
+                     "Alias %1 is a temporary variable, allocated outside of any block; this variable will remain "
+                     "reserved for the rest of the script and can't be repurposed by code further down. Is this "
+                     "intentional? A global variable may work better here."
+                  )
+                     .arg(item->pretty_printable_name())
+               );
+            }
+         }
+         item->via_allocate = true;
+         if (this->has_fatal()) { // the alias name had a fatal error e.g. using a keyword as a name
+            delete item;
+            return;
+         }
+         item->set_start(start);
+         item->set_end(this->state);
+         this->_store_new_alias(*item);
+         return;
+      }
       Script::Alias* item = nullptr;
       //
+      auto    prior = this->backup_stream_state();
       int32_t value;
       if (this->extract_integer_literal(value)) { // need to handle this separately from word parsing so that negative numbers are interpreted properly
-         item = new Script::Alias(*this, name, value);
+         //
+         // Need to do some mildly cursed stuff to handle built-in names that 
+         // start with numbers e.g. 35_spire_fp.
+         //
+         auto after = this->backup_stream_state();
+         this->restore_stream_state(prior);
+         auto word  = this->extract_word();
+         auto alter = this->backup_stream_state();
+         if (after.offset < alter.offset) {
+            item = new Script::Alias(*this, name, word);
+         } else {
+            item = new Script::Alias(*this, name, value);
+            this->restore_stream_state(after);
+         }
       } else {
          auto target = this->extract_word();
          if (target.isEmpty()) {
@@ -2443,11 +3577,27 @@ namespace Megalo {
       }
       item->set_start(start);
       item->set_end(this->state);
-      this->block->insert_item(item);
-      if (!item->invalid) // aliases can also run into non-fatal errors
-         this->aliases_in_scope.push_back(item);
+      this->_store_new_alias(*item);
+      if (!item->invalid) {
+         if (auto* colliding_with = this->_alias_is_explicit_reference_to_allocated(*item)) {
+            this->raise_warning(
+               start,
+               QString(
+                  "You've pointed this alias, %1, at a specific variable, but that variable was "
+                  "automatically allocated to another alias, %2, which is still in-scope. If you "
+                  "intended for these aliases to refer to the same variable, then it's recommended "
+                  "that you write this as `alias %1 = %2` or something similar. If these aliases "
+                  "should not refer to the same variable, then either move the definition for %1 "
+                  "before the definition for %2, or have %1 also use allocation."
+               )
+                  .arg(item->pretty_printable_name())
+                  .arg(colliding_with->pretty_printable_name())
+            );
+         }
+      }
    }
-   void Compiler::_handleKeyword_Alt() {
+
+   void Compiler::_handleKeyword_Alt(const pos start) {
       if (this->block->type != Script::Block::Type::if_block && this->block->type != Script::Block::Type::altif_block) {
          auto prev = this->block->item(-1);
          auto p_bl = dynamic_cast<Script::Block*>(prev);
@@ -2464,7 +3614,7 @@ namespace Megalo {
       }
       auto item = new Script::Block;
       item->type = Script::Block::Type::alt_block;
-      item->set_start(this->state);
+      item->set_start(start);
       this->block->insert_item(item);
       this->_openBlock(item);
       {
@@ -2474,7 +3624,7 @@ namespace Megalo {
             item->make_alt_of(*block);
       }
    }
-   void Compiler::_handleKeyword_AltIf() {
+   void Compiler::_handleKeyword_AltIf(const pos start) {
       if (this->block->type != Script::Block::Type::if_block && this->block->type != Script::Block::Type::altif_block) {
          auto prev = this->block->item(-1);
          auto p_bl = dynamic_cast<Script::Block*>(prev);
@@ -2491,7 +3641,7 @@ namespace Megalo {
       }
       auto item = new Script::Block;
       item->type = Script::Block::Type::altif_block;
-      item->set_start(this->state);
+      item->set_start(start);
       this->block->insert_item(item);
       this->_openBlock(item);
       {
@@ -2502,7 +3652,7 @@ namespace Megalo {
       }
       this->_parseBlockConditions();
    }
-   //
+   
    void Compiler::_declare_variable(Script::VariableReference& variable, Script::VariableReference* initial, VariableDeclaration::network_enum networking, bool network_specified) {
       auto type  = variable.get_type();
       auto basis = variable.get_alias_basis_type();
@@ -2515,6 +3665,15 @@ namespace Megalo {
       }
       if (type_v == variable_type::not_a_variable) {
          this->raise_error("Encountered a problem when trying to interpret this variable declaration: bad variable type.");
+         return;
+      }
+      //
+      if (scope_v == variable_scope::temporary) {
+         if (initial || network_specified) {
+            this->raise_error("Variables that use temporary storage do not need to be declared, and cannot have an initial value or a network priority set set.");
+            return;
+         }
+         this->raise_notice("Variables that use temporary storage do not need to be declared.");
          return;
       }
       //
@@ -2585,8 +3744,7 @@ namespace Megalo {
          }
       }
    }
-   void Compiler::_handleKeyword_Declare() {
-      auto  start = this->backup_stream_state();
+   void Compiler::_handleKeyword_Declare(const pos start) {
       using net_t = Megalo::variable_network_priority;
       //
       // declare [word]
@@ -2606,7 +3764,7 @@ namespace Megalo {
       }
       //
       bool  has_network = false;
-      net_t network     = net_t::default;
+      net_t network     = net_t::low;
       #pragma region Parsing and extracting all relevant tokens
          auto  after_name = this->backup_stream_state();
          auto  word       = this->extract_word();
@@ -2636,7 +3794,7 @@ namespace Megalo {
                   return;
                }
                if (!this->extract_word("priority")) {
-                  this->raise_fatal("Expected the word \"network\".");
+                  this->raise_fatal("Expected the word \"priority\".");
                   return;
                }
                //
@@ -2648,7 +3806,8 @@ namespace Megalo {
                   return;
                }
                if (word.compare("default", Qt::CaseInsensitive) == 0) {
-                  network = net_t::default;
+                  this->raise_error("Value \"default\" is not a valid network priority. Older versions of ReachVariantTool (2.1.10 and older) incorrectly treated it as one. You should probably use \"low\" instead.");
+                  network = net_t::low;
                } else if (word.compare("low", Qt::CaseInsensitive) == 0) {
                   network = net_t::low;
                } else if (word.compare("high", Qt::CaseInsensitive) == 0) {
@@ -2740,7 +3899,7 @@ namespace Megalo {
             auto& res = initial->resolved;
             auto& top = res.top_level;
             if (top.type && top.type->is_variable() && !top.is_static && !top.is_constant) {
-               auto scope = top.scope;
+               auto scope = top.namespace_member.scope;
                if (!scope || scope->is_variable_scope()) {
                   this->raise_error("When declaring one variable, you cannot use another variable as the initial value.");
                   return;
@@ -2759,20 +3918,20 @@ namespace Megalo {
          delete initial;
    }
 
-   void Compiler::_handleKeyword_Do() {
+   void Compiler::_handleKeyword_Do(const pos start) {
       auto item = new Script::Block;
       item->type = Script::Block::Type::basic;
-      item->set_start(this->state);
+      item->set_start(start);
       item->event = this->next_event;
       this->next_event = Script::Block::Event::none;
       this->block->insert_item(item);
       this->_openBlock(item);
    }
-   void Compiler::_handleKeyword_End() {
+   void Compiler::_handleKeyword_End(const pos start) {
       if (!this->_closeCurrentBlock())
          this->raise_fatal("Unexpected \"end\".");
    }
-   void Compiler::_handleKeyword_Enum() {
+   void Compiler::_handleKeyword_Enum(const pos start) {
       auto name = this->extract_word();
       {  // Validate the name.
          if (name.isEmpty()) {
@@ -2908,19 +4067,17 @@ namespace Megalo {
       //
       this->enums_in_scope.emplace_back(def.release(), this->block);
    }
-   void Compiler::_handleKeyword_If() {
+   void Compiler::_handleKeyword_If(const pos start) {
       auto item = new Script::Block;
       item->type = Script::Block::Type::if_block;
-      item->set_start(this->state);
+      item->set_start(start);
       item->event = this->next_event;
       this->next_event = Script::Block::Event::none;
       this->block->insert_item(item);
       this->_openBlock(item);
       this->_parseBlockConditions();
    }
-   void Compiler::_handleKeyword_For() {
-      auto start = this->backup_stream_state();
-      //
+   void Compiler::_handleKeyword_For(const pos start) {
       if (!this->extract_word("each")) {
          this->raise_fatal("The \"for\" keyword must be followed by \"each\".");
          return;
@@ -2993,9 +4150,7 @@ namespace Megalo {
       this->block->insert_item(item);
       this->_openBlock(item);
    }
-   void Compiler::_handleKeyword_Function() {
-      auto start = this->backup_stream_state();
-      //
+   void Compiler::_handleKeyword_Function(const pos start) {
       auto name = this->extract_word();
       if (name.isEmpty()) {
          this->raise_fatal("A function must have a name.");
@@ -3086,10 +4241,14 @@ namespace Megalo {
       // trigger. So, we'll create it early.
       //
       item->trigger = new Trigger;
-      this->functions_in_scope.push_back(Script::UserDefinedFunction(name, this->results.triggers.size(), item)); // remember this function and its index
+      this->functions_in_scope.push_back(Script::UserDefinedFunction( // remember this function and its index
+         name,
+         this->results.triggers.size(),
+         *item
+      ));
       this->results.triggers.push_back(item->trigger);
    }
-   void Compiler::_handleKeyword_On() {
+   void Compiler::_handleKeyword_On(const pos start) {
       if (this->block != this->root) {
          this->raise_error("Only top-level (non-nested) blocks can be event handlers.");
          if (!this->skip_to(':'))
@@ -3156,6 +4315,128 @@ namespace Megalo {
          }
       } else {
          this->raise_error(prior, QString("Invalid event name: \"%s\".").arg(words));
+      }
+
+      //
+      // Lookahead: Ensure that what comes next is a block.
+      //
+      auto after_on = this->backup_stream_state();
+      {
+         QString word;
+         int32_t integer;
+         auto type = this->_extract_statement_side(word, integer);
+         switch (type) {
+            case statement_side_t::integer:
+               this->raise_fatal(
+                  after_on,
+                  QString("'On' specifiers are only allowed before blocks. Expected to find the start of a new block; found an integer (%1) instead.")
+                     .arg(integer)
+               );
+               return;
+            case statement_side_t::string:
+               this->raise_fatal(
+                  after_on,
+                  QString("'On' specifiers are only allowed before blocks. Expected to find the start of a new block; found a string literal instead.")
+               );
+               return;
+         }
+
+         for (const char* block_keyword : _block_independent_start_keywords) {
+            if (word == block_keyword) {
+               this->restore_stream_state(after_on);
+               return;
+            }
+         }
+         //
+         // Invalid word.
+         //
+         if (word == "else" || word == "elseif") {
+            this->raise_fatal(QString("Word \"%1\" is reserved for potential future use as a keyword. It cannot appear here.").arg(word));
+            return;
+         }
+         if (word == "inline") {
+            this->raise_error(QString("Event triggers cannot be inlined."));
+            this->restore_stream_state(after_on);
+            return;
+         }
+         if (word == "and" || word == "or" || word == "not" || word == "then" || __get_handler_for_keyword(word)) {
+            this->raise_fatal(QString("The \"%1\" keyword cannot appear here.").arg(word));
+            return;
+         }
+         this->raise_fatal(
+            after_on,
+            QString("'On' specifiers are only allowed before blocks. Expected to find the start of a new block; found `%1` instead.")
+               .arg(word)
+         );
+      }
+   }
+   void Compiler::_handleKeyword_Inline(const pos start) {
+      if (this->block == this->root) {
+         this->raise_error("Top-level (non-nested) blocks cannot be inlined. (Where would they be inlined into?)");
+      }
+      if (!this->skip_to(':'))
+         this->raise_fatal("Unable to locate the nearest ':' glyph. Parsing cannot continue.");
+
+      if (this->inline_next_block) {
+         this->raise_warning("A block appears to have been marked as 'inline' multiple times.");
+      }
+      this->inline_next_block = true;
+
+      //
+      // Lookahead: Ensure that what comes next is a block.
+      //
+      auto after_inline = this->backup_stream_state();
+      {
+         QString word;
+         int32_t integer;
+         auto type = this->_extract_statement_side(word, integer);
+         switch (type) {
+            case statement_side_t::integer:
+               this->raise_fatal(
+                  after_inline,
+                  QString("'Inline' specifiers are only allowed before blocks. Expected to find the start of a new block; found an integer (%1) instead.")
+                     .arg(integer)
+               );
+               return;
+            case statement_side_t::string:
+               this->raise_fatal(
+                  after_inline,
+                  QString("'Inline' specifiers are only allowed before blocks. Expected to find the start of a new block; found a string literal instead.")
+               );
+               return;
+         }
+
+         for (const char* block_keyword : _block_independent_start_keywords) {
+            if (word == block_keyword) {
+               this->restore_stream_state(after_inline);
+               return;
+            }
+         }
+         if (word == "alt" || word == "altif") {
+            this->restore_stream_state(after_inline);
+            return;
+         }
+         //
+         // Invalid word.
+         //
+         if (word == "else" || word == "elseif") {
+            this->raise_fatal(QString("Word \"%1\" is reserved for potential future use as a keyword. It cannot appear here.").arg(word));
+            return;
+         }
+         if (word == "on") {
+            this->raise_error(QString("Event triggers cannot be inlined."));
+            this->restore_stream_state(after_inline);
+            return;
+         }
+         if (word == "and" || word == "or" || word == "not" || word == "then" || __get_handler_for_keyword(word)) {
+            this->raise_fatal(QString("The \"%1\" keyword cannot appear here.").arg(word));
+            return;
+         }
+         this->raise_fatal(
+            after_inline,
+            QString("'Inline' specifiers are only allowed before blocks. Expected to find the start of a new block; found `%1` instead.")
+               .arg(word)
+         );
       }
    }
    #pragma endregion

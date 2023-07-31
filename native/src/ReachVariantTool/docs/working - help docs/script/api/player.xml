@@ -73,15 +73,18 @@
                   end
                end
             </example>
+            <category id="player-cause-of-death" />
          </method>
          <method name="is_fireteam_leader" id="9">
             <blurb>This function always returns false.</blurb>
             <description>
                <p>
                   According to kornman00's findings, this function was meant to check if a player 
-                  is the "leader" of their fireteam. However, it apparently always returns false.
+                  is the "leader" of their fireteam. However, reverse-engineering confirms that 
+                  it always returns false.
                </p>
             </description>
+            <category id="fireteams" />
          </method>
          <method name="assisted_kill_of" id="10">
             <args>
@@ -115,9 +118,17 @@
                   end
                end
             </example>
+            <category id="player-cause-of-death" />
          </method>
          <method name="is_not_respawning" id="12">
             <blurb>Checks whether a player <em>is not</em> respawning.</blurb>
+            <note>
+               If a match has just started, and a player is waiting to spawn for the first time, 
+               then they are not respawning. If you need to know whether the player is or isn't 
+               alive, testing whether they have a <a href="script/api/player/properties/biped">biped</a> 
+               may be more reliable.
+            </note>
+            <category id="spawning" />
          </method>
          <method name="is_spartan" id="13">
             <blurb>Checks whether a player's current species is Spartan.</blurb>
@@ -137,8 +148,7 @@
                   end
                end
             </example>
-            <related type="condition" name="is_elite" />
-            <related type="condition" name="is_monitor" />
+            <category id="player-species" />
          </method>
          <method name="is_elite" id="14">
             <blurb>Checks whether a player's current species is Elite.</blurb>
@@ -158,6 +168,7 @@
                   end
                end
             </example>
+            <category id="player-species" />
          </method>
          <method name="is_monitor" id="15">
             <blurb>Checks whether a player's current species is Monitor.</blurb>
@@ -169,10 +180,14 @@
                   to the <code>game.is_in_forge()</code> condition.
                </p>
             </description>
+            <category id="player-species" />
          </method>
       </conditions>
       <actions>
          <method name="apply_traits" id="11">
+            <verification>
+               <call-on-none safe="true" />
+            </verification>
             <args>
                <arg name="traits" type="traits">The player traits to apply.</arg>
             </args>
@@ -196,22 +211,42 @@
                   end
                end
             </example>
+            <category id="traits" />
          </method>
          <method name="try_get_killer" name2="get_killer" id="29" returns="player">
             <blurb>Identify the player who killed this player.</blurb>
             <description>
                <p>
-                  When called on a player who is dead, this function returns the player 
-                  that killed them, if any.
+                  When called on a player on the exact frame that that player died, this 
+                  function returns the identity of their killer, if any. If the player 
+                  died by their own hand, then they themselves are the return value.
                </p>
                <p>
-                  When Bungie and 343i use this function, they often manually clear 
-                  the player variable they are assigning to before calling the function. 
-                  That functionality is automated in this Megalo dialect: calling the 
-                  function with the name <code>get_killer</code> will compile in an 
-                  assignment to <var>no_player</var> before the call, while calling 
-                  the function with the name <code>try_get_killer</code> will not.
+                  When called on any other frame, <em>even while the player is dead</em>, 
+                  this function does not return a value:
                </p>
+               <ul>
+                  <li>
+                     If you call <code>get_killer</code>, ReachVariantTool will silently 
+                     compile in an assignment to <var>no_player</var> before the call. 
+                     (Bungie and 343i do the same thing by hand.) This ensures that if you 
+                     call the function at the wrong time, the variable you assign its return 
+                     value to will be set to <var>no_player</var>.
+                  </li>
+                  <li>
+                     If you call <code>try_get_killer</code>, then ReachVariantTool does not 
+                     compile in this failsafe. If you call <code>try_get_killer</code> at the 
+                     wrong time, then the function will not return a value: the variable that 
+                     you attempt to assign it to will remain unchanged.
+                     <!--
+                        This appeared to be the case when reverse-engineering Halo: Reach, 
+                        but I wasn't 100% sure; the outcome would've depended on data that 
+                        I didn't and don't understand. However, I've confirmed this through 
+                        testing, including by setting breakpoints on the relevant code and 
+                        stepping through it.
+                     -->
+                  </li>
+               </ul>
             </description>
             <example>
                for each player do
@@ -224,29 +259,43 @@
                   end
                end
             </example>
-            <related context="player" type="condition" name="killer_type_is" />
-            <related context="player" type="action" name="try_get_death_damage_type" />
-            <related context="player" type="action" name="try_get_death_damage_mod" />
+            <category id="player-cause-of-death" />
          </method>
          <method name="try_get_death_damage_type" name2="get_death_damage_type" id="30" returns="number">
-            <blurb>Identify the player who killed this player.</blurb>
+            <blurb>Identify the type of damage that killed this player.</blurb>
             <description>
                <p>
-                  When called on a player who is dead, this function returns a number 
-                  representing their cause of death. This number can represent any 
-                  cause of death that can be listed in a Post-Game Carnage Report,
-                  including weapons and vehicles. The potential values are listed and 
+                  When called on a player on the exact frame that that player died, this 
+                  function returns a number representing their cause of death. This number 
+                  can represent any cause of death that can be listed in a Post-Game Carnage 
+                  Report, including weapons and vehicles. The potential values are listed and 
                   named in the <a href="script/api/ns_enums/damage_reporting_type">damage 
                   reporting type enum</a>.
                </p>
                <p>
-                  When Bungie and 343i use this function, they often manually clear 
-                  the number variable they are assigning to before calling the function. 
-                  That functionality is automated in this Megalo dialect: calling the 
-                  function with the name <code>get_death_damage_type</code> will compile in an 
-                  assignment to <var>0</var> before the call, while calling 
-                  the function with the name <code>try_get_death_damage_type</code> will not.
+                  When called on any other frame, <em>even while the player is dead</em>, 
+                  this function does not return a value:
                </p>
+               <ul>
+                  <li>
+                     If you call <code>get_death_damage_type</code>, ReachVariantTool will 
+                     silently compile in an assignment to <var>0</var> before the call. 
+                     (Bungie and 343i do the same thing by hand.) This ensures that if you 
+                     call the function at the wrong time, the variable you assign its return 
+                     value to will be set to <var>0</var>.
+                  </li>
+                  <li>
+                     If you call <code>try_get_death_damage_type</code>, then ReachVariantTool 
+                     does not compile in this failsafe. If you call <code>try_get_death_damage_type</code> 
+                     at the wrong time, then the function will not return a value: the variable 
+                     that you attempt to assign it to will remain unchanged.
+                     <!--
+                        This works the same way as player.get_killer. The code is essentially 
+                        identical, looking up the same data structures in the same way and 
+                        just accessing different fields.
+                     -->
+                  </li>
+               </ul>
             </description>
             <example>
                --
@@ -265,27 +314,44 @@
                   end
                end
             </example>
-            <!-- relationships only need to be specified on one end -->
+            <category id="player-cause-of-death" />
          </method>
          <method name="try_get_death_damage_mod" name2="get_death_damage_mod" id="31" returns="number">
-            <blurb>Identify the player who killed this player.</blurb>
+            <blurb>Identify the modifier for the damage that killed this player.</blurb>
             <description>
                <p>
-                  When called on a player who is dead, this function returns a number 
-                  representing a modifier for their cause of death. This number 
-                  complements the "damage reporting types" that can be listed in a 
-                  Post-Game Carnage Report. The potential values are listed and 
-                  named in the <a href="script/api/ns_enums/damage_reporting_mod">damage 
-                  reporting modifier enum</a>.
+                  When called on a player on the exact frame that that player died, this 
+                  function returns a number representing a modifier for their cause of 
+                  death. This number complements the 
+                  "<a href="script/api/ns_enums/damage_reporting_type">damage reporting types</a>"
+                  that can be listed in a Post-Game Carnage Report. The potential values 
+                  are listed and named in the 
+                  <a href="script/api/ns_enums/damage_reporting_mod">damage reporting modifier enum</a>.
                </p>
                <p>
-                  When Bungie and 343i use this function, they often manually clear 
-                  the number variable they are assigning to before calling the function. 
-                  That functionality is automated in this Megalo dialect: calling the 
-                  function with the name <code>get_death_damage_mod</code> will compile in an 
-                  assignment to <var>0</var> before the call, while calling 
-                  the function with the name <code>try_get_death_damage_mod</code> will not.
+                  When called on any other frame, <em>even while the player is dead</em>, 
+                  this function does not return a value:
                </p>
+               <ul>
+                  <li>
+                     If you call <code>get_death_damage_mod</code>, ReachVariantTool will 
+                     silently compile in an assignment to <var>0</var> before the call. 
+                     (Bungie and 343i do the same thing by hand.) This ensures that if you 
+                     call the function at the wrong time, the variable you assign its return 
+                     value to will be set to <var>0</var>.
+                  </li>
+                  <li>
+                     If you call <code>try_get_death_damage_mod</code>, then ReachVariantTool 
+                     does not compile in this failsafe. If you call <code>try_get_death_damage_mod</code> 
+                     at the wrong time, then the function will not return a value: the variable 
+                     that you attempt to assign it to will remain unchanged.
+                     <!--
+                        This works the same way as player.get_killer. The code is essentially 
+                        identical, looking up the same data structures in the same way and 
+                        just accessing different fields.
+                     -->
+                  </li>
+               </ul>
             </description>
             <example>
                --
@@ -304,7 +370,7 @@
                   end
                end
             </example>
-            <!-- relationships only need to be specified on one end -->
+            <category id="player-cause-of-death" />
          </method>
          <method name="get_scoreboard_pos" id="32" returns="number">
             <blurb>Get a player's position on the scoreboard.</blurb>
@@ -325,6 +391,7 @@
                   end
                end
             </example>
+            <category id="scoring" />
             <related context="team" type="action" name="get_scoreboard_pos" />
          </method>
          <method name="get_spree_count" id="37" returns="number">
@@ -356,6 +423,7 @@
                   end
                end
             </example>
+            <category id="scoring" />
          </method>
          <method name="increment_req_money_by" id="38">
             <args>
@@ -373,8 +441,7 @@
                   current_player.increment_req_money_by(9001)
                end
             </example>
-            <related context="player" type="action" name="set_req_purchase_modes" />
-            <related context="player" type="action" name="set_requisition_palette" />
+            <category id="player-money" />
          </method>
          <method name="set_req_purchase_modes" id="39">
             <args>
@@ -394,6 +461,8 @@
                         <dd>Unknown.</dd>
                   </dl>
                </arg>
+               <arg name="enable" type="number">A value controlling whether to enable or disable 
+                these purchases.</arg>
             </args>
             <blurb>A development leftover related to a scrapped Requisition system.</blurb>
             <description>
@@ -405,12 +474,18 @@
             </description>
             <example>
                for each player do
-                  current_player.set_req_purchase_modes(alive_weapons | alive_equipment | alive_vehicles | dead_weapons | dead_equipment)
+                  current_player.set_req_purchase_modes(alive_weapons | alive_equipment | alive_vehicles | dead_weapons | dead_equipment, 1)
                end
             </example>
-            <!-- relationships only need to be specified on one end -->
+            <category id="player-money" />
          </method>
-         <method name="try_get_vehicle" name2="get_vehicle" id="40" returns="object">
+         <method name="get_vehicle" name2="try_get_vehicle" id="40" returns="object">
+            <verification>
+               <call-on-none
+                  safe="true"
+                  returns-none="true"
+               />
+            </verification>
             <blurb>Identify the vehicle that a player is in.</blurb>
             <description>
                <p>
@@ -420,10 +495,9 @@
                <p>
                   When Bungie and 343i use this function, they often manually clear 
                   the object variable they are assigning to before calling the function. 
-                  That functionality is automated in this Megalo dialect: calling the 
-                  function with the name <code>get_vehicle</code> will compile in an 
-                  assignment to <var>no_object</var> before the call, while calling 
-                  the function with the name <code>try_get_vehicle</code> will not.
+                  However, reverse-engineering of the game engine suggests that this is 
+                  not actually necessary; the game will always properly return a value 
+                  when this function is called.
                </p>
             </description>
             <example>
@@ -454,7 +528,13 @@
                them in the game data, and boarding relies on special "seats" that are flagged as 
                being exclusively for boarding.
             </note>
-            <related context="player" type="action" name="force_into_vehicle" />
+            <note>
+               The alternate name for this function, <code>try_get_vehicle</code>, is deprecated 
+               and originates from the oldest versions of ReachVariantTool. In older versions, 
+               the two names existed as part of a precaution that reverse-engineering has established 
+               was not actually necessary.
+            </note>
+            <category id="vehicles" />
          </method>
          <method name="force_into_vehicle" id="41">
             <args>
@@ -482,6 +562,7 @@
                If the vehicle is flipped, then the player will be moved to it, but will not 
                be forced into it. <!-- TODO: RECHECK THIS -->
             </note>
+            <category id="vehicles" />
          </method>
          <method name="set_biped" id="42">
             <args>
@@ -511,10 +592,30 @@
                end
             </example>
             <note>
-               Holograms do not <a href="script/api/object/conditions/is_of_type">test</a> 
-               as being Spartans, Elites, or Monitors. However, they are still valid bipeds; 
-               passing a Hologram to <code>set_biped</code> will place the player in control 
-               of the biped.
+               <p>
+                  Holograms do not <a href="script/api/object/conditions/is_of_type">test</a> 
+                  as being Spartans, Elites, or Monitors. However, they are still valid bipeds; 
+                  passing a Hologram to <code>set_biped</code> will place the player in control
+                  of the biped.
+               </p>
+               <p>
+                  Holograms spawn with a primary weapon only, with a full magazine regardless
+                  of how much ammo the caster had left. If a Hologram's player traits don't
+                  prevent it from taking damage, then it will be killed when it expires. Any
+                  weapons dropped by a Hologram will be deleted instantly; this includes any
+                  cases of a Hologram swapping a held weapon for one on the ground. Any items 
+                  that a Hologram is carrying at the time it dies or expires will be deleted. 
+                  Holograms can use Armor Abilities, but the Hologram ability has no effect 
+                  for them because the "hologram" bipeds don't have a "Hologram Unit" set.
+               </p>
+               <p>
+                  If a player is forced to control their own Hologram, this will affect their
+                  respawns. If the Hologram dies while under control, they will not be placed
+                  back into their original body; instead, they will respawn normally (if the
+                  Hologram was killed), or they will instantly appear in a new body such that
+                  there is never any frame on which the player has no biped (if the Hologram
+                  expires due to its natural timer).
+               </p>
             </note>
             <note>
                <p>
@@ -590,17 +691,24 @@
                the player will not respawn; if the biped was set by scripts to never be garbage-collected, 
                then the player is effectively trapped.
             </note>
+            <category id="bipeds" />
          </method>
-         <method name="set_round_card_title" id="56">
+         <method name="set_objective_text" name2="set_round_card_title" id="56">
             <args>
-               <arg name="text" type="format-string" />
+               <arg name="text" type="format-string">
+                  The description text to display. This is a <a href="script/api/format-string.html#persistent">persistent</a> format string.
+               </arg>
             </args>
             <blurb>Change the round card's description text.</blurb>
             <description>
                <p>
-                  This function sets the text of the round card. If the text passed in differs from 
-                  that used in the previous frame, then this function will also trigger display of the 
-                  round card.
+                  Typically, at the start of a round in most game modes, the player sees a small informational 
+                  popup with a brief blurb describing their objective; this is unofficially called the "round 
+                  card." This function sets the body text for the round card.
+               </p>
+               <p>
+                  If the text passed in differs from that used in the previous frame, then this function will 
+                  also trigger display of the round card.
                </p>
             </description>
             <example>
@@ -622,18 +730,40 @@
                   end
                end
             </example>
-            <related context="player" type="action" name="set_round_card_text" />
+            <note>
+               The alternate name for this function, <code>set_round_card_title</code>, originates 
+               from the oldest versions of ReachVariantTool. It is unintuitive and considered 
+               deprecated.
+            </note>
+            <note>
+               Only the first 116 characters of the specified string will be displayed; this limitation 
+               applies after all format string parameters are substituted in. It seems that the UI 
+               reserves room for 117 characters, including an invisible "end of text" marker.
+            </note>
+            <note>
+               Text does not word wrap automatically; you must insert line breaks manually. The font 
+               used to display the text is "TV Nord;" there are font preview websites that you can use 
+               to compare line lengths and save yourself a bit of trial and error.
+            </note>
+            <category id="round-card" />
          </method>
-         <method name="set_round_card_text" id="57">
+         <method name="set_objective_allegiance_name" name2="set_round_card_text" id="57">
             <args>
-               <arg name="text" type="format-string" />
+               <arg name="text" type="format-string">
+                  The icon caption text to display. This is a <a href="script/api/format-string.html#persistent">persistent</a> format string.
+               </arg>
             </args>
             <blurb>Change the round card's icon caption.</blurb>
             <description>
                <p>
-                  This function sets the text of the caption below the round card's icon. If the 
-                  text passed in differs from that used in the previous frame, then this function 
-                  will also trigger display of the round card.
+                  Typically, at the start of a round in most game modes, the player sees a small informational 
+                  popup with a brief blurb describing their objective; this is unofficially called the "round 
+                  card." The round card can also display an icon and name, usually used if the player is 
+                  allied with some in-game faction; this function changes that name.
+               </p>
+               <p>
+                  If the text passed in differs from that used in the previous frame, then this function will 
+                  also trigger display of the round card.
                </p>
             </description>
             <example>
@@ -653,18 +783,24 @@
                   end
                end
             </example>
-            <!-- relationships only need to be specified on one end -->
+            <note>
+               The alternate name for this function, <code>set_round_card_text</code>, originates 
+               from the oldest versions of ReachVariantTool. It is unintuitive and considered 
+               deprecated.
+            </note>
+            <category id="round-card" />
          </method>
-         <method name="set_round_card_icon" id="58">
+         <method name="set_objective_allegiance_icon" name2="set_round_card_icon" id="58">
             <args>
                <arg name="icon" type="engine-icon" />
             </args>
             <blurb>Change the round card's icon.</blurb>
             <description>
                <p>
-                  This function sets the round card's icon. If the text passed in differs from 
-                  that used in the previous frame, then this function will also trigger display 
-                  of the round card.
+                  Typically, at the start of a round in most game modes, the player sees a small informational 
+                  popup with a brief blurb describing their objective; this is unofficially called the "round 
+                  card." The round card can also display an icon and name, usually used if the player is 
+                  allied with some in-game faction; this function changes that icon.
                </p>
                <p>
                   The default icon is the game variant file's icon.
@@ -687,7 +823,7 @@
                   end
                end
             </example>
-            <!-- relationships only need to be specified on one end -->
+            <category id="round-card" />
          </method>
          <method name="set_primary_respawn_object" id="61">
             <args>
@@ -748,7 +884,7 @@
                   end
                end
             </example>
-            <!-- relationships only need to be specified on one end -->
+            <category id="spawning" />
          </method>
          <method name="get_fireteam" id="62" returns="number">
             <blurb>Returns the index of the fireteam that a player is on.</blurb>
@@ -805,12 +941,14 @@
                   end
                end
             </example>
+            <category id="fireteams" />
          </method>
          <method name="set_fireteam" id="63">
             <args>
                <arg name="index" type="number" />
             </args>
             <blurb>Sets a player's current fireteam index.</blurb>
+            <category id="fireteams" />
          </method>
          <method name="set_requisition_palette" id="69">
             <args>
@@ -824,7 +962,7 @@
                   appears to be a development leftover for a scrapped design idea.
                </p>
             </description>
-            <!-- relationships only need to be specified on one end -->
+            <category id="player-money" />
          </method>
          <method name="set_loadout_palette" id="77">
             <args>
@@ -852,7 +990,7 @@
                end
             </example>
          </method>
-         <method name="try_get_weapon" name2="get_weapon" id="83" returns="object">
+         <method name="get_weapon" name2="try_get_weapon" id="83" returns="object">
             <args>
                <arg name="which">
                   <p>Any one of the following values</p>
@@ -873,10 +1011,9 @@
                <p>
                   When Bungie and 343i use this function, they often manually clear 
                   the object variable they are assigning to before calling the function. 
-                  That functionality is automated in this Megalo dialect: calling the 
-                  function with the name <code>get_weapon</code> will compile in an 
-                  assignment to <var>no_object</var> before the call, while calling 
-                  the function with the name <code>try_get_weapon</code> will not.
+                  However, reverse-engineering of the game engine suggests that this is 
+                  not actually necessary; the game will always properly return a value 
+                  when this function is called.
                </p>
             </description>
             <example>
@@ -894,9 +1031,16 @@
                   end
                end
             </example>
-            <!-- relationships only need to be specified on one end -->
+            <note>
+               The alternate name for this function, <code>try_get_weapon</code>, is deprecated 
+               and originates from the oldest versions of ReachVariantTool. In older versions, 
+               the two names existed as part of a precaution that reverse-engineering has established 
+               was not actually necessary.
+            </note>
+            <category id="biped-equipment" />
+            <category id="weapons" />
          </method>
-         <method name="try_get_armor_ability" name2="get_armor_ability" id="84" returns="object">
+         <method name="get_armor_ability" name2="try_get_armor_ability" id="84" returns="object">
             <blurb>Identify the player's current Armor Ability.</blurb>
             <description>
                <p>
@@ -906,10 +1050,9 @@
                <p>
                   When Bungie and 343i use this function, they often manually clear 
                   the object variable they are assigning to before calling the function. 
-                  That functionality is automated in this Megalo dialect: calling the 
-                  function with the name <code>get_armor_ability</code> will compile in an 
-                  assignment to <var>no_object</var> before the call, while calling 
-                  the function with the name <code>try_get_armor_ability</code> will not.
+                  However, reverse-engineering of the game engine suggests that this is 
+                  not actually necessary; the game will always properly return a value 
+                  when this function is called.
                </p>
             </description>
             <example>
@@ -924,10 +1067,18 @@
                   end
                end
             </example>
-            <!-- relationships only need to be specified on one end -->
+            <note>
+               The alternate name for this function, <code>try_get_armor_ability</code>, is deprecated 
+               and originates from the oldest versions of ReachVariantTool. In older versions, 
+               the two names existed as part of a precaution that reverse-engineering has established 
+               was not actually necessary.
+            </note>
+            <category id="armor-abilities" />
+            <category id="biped-equipment" />
          </method>
          <method name="get_crosshair_target" id="86" returns="object">
-            <blurb>Identify the player's current Armor Ability.</blurb>
+            <blurb>Identify the object that the player is aiming at, if that object 
+            is changing the player's reticle color.</blurb>
             <description>
                <p>
                   This function returns the object that the current player is aiming at, if 
@@ -949,7 +1100,7 @@
                the object function takes an object type and spawns a new weapon; while the player 
                function takes an existing weapon object.
             </note>
-            <!-- relationships only need to be specified on one end -->
+            <category id="biped-equipment" />
          </method>
          <method name="set_co_op_spawning" id="90">
             <args>
@@ -970,18 +1121,180 @@
                   current_player.set_co_op_spawning(true) -- enable it
                end
             </example>
-            <related context="team" type="action" name="set_co_op_spawning" />
-            <related context="object" type="action" name="set_spawn_location_fireteams" />
-            <related context="object" type="action" name="set_spawn_location_permissions" />
-            <related context="player" type="action" name="set_primary_respawn_object" />
-            <related context="team" type="action" name="set_primary_respawn_object" />
+            <category id="spawning" />
          </method>
          <method name="record_griefer_penalty" id="97">
             <args>
-               <arg name="unknown"  type="number" />
+               <arg name="penalty amount" type="number">
+                  The penalty amount to add to the player. The precise scale is not known, but 
+                  the values that you specify are divided by 100 when the game engine runs this 
+                  function.
+               </arg>
             </args>
             <blurb>The specific function of this action is not known. Presumably it has something 
             to do with keeping track of bad behavior in-game.</blurb>
+         </method>
+         <method name="get_button_press_duration" name2="get_button_time" id="101" returns="number">
+            <args>
+               <arg name="button">
+                  <p>
+                     The name of a gameplay function to which a button can be mapped. In the following 
+                     list, title-cased names (e.g. "Gameplay Function Name") refer to options in the 
+                     MCC's gamepad control scheme editor.
+                  </p>
+                  <dl>
+                     <dt>jump</dt>
+                        <dd>The button that's currently mapped to Jump.</dd>
+                     <dt>switch_grenade</dt>
+                        <dd>The button that's mapped to cycling through your grenades. This matches MCC's 
+                        "Switch Grenades" function, but <em>not</em> "Select Next Grenade" or "Select 
+                        Previous Grenade."</dd>
+                     <dt>context_primary</dt>
+                        <dd>The button that's currently mapped to Action.</dd>
+                     <dt>melee_attack</dt>
+                        <dd>The button that's currently mapped to meleeing.</dd>
+                     <dt>equipment</dt>
+                        <dd>The button that's currently mapped to Use Armor Ability.</dd>
+                     <dt>throw_grenade</dt>
+                        <dd>The button that's currently mapped to throwing a grenade.</dd>
+                     <dt>fire_primary</dt>
+                        <dd>The button that's currently mapped to Fire.</dd>
+                     <dt>crouch</dt>
+                        <dd>The button that's currently mapped to crouching.</dd>
+                     <dt>scope_zoom</dt>
+                        <dd>The button that's currently mapped to toggling your scope/zoom.</dd>
+                     <dt>night_vision</dt>
+                        <dd>The button that's currently mapped to Toggle Night Vision.</dd>
+                     <dt>fire_secondary</dt>
+                        <dd>The button that's currently mapped to Vehicle Function 1.</dd>
+                     <dt>fire_tertiary</dt>
+                        <dd>Unknown. This appears to always react to the B button; it doesn't correspond 
+                        to any of the controls that MCC allows players to rebind in custom control schemes, 
+                        and it doesn't differ between any of the built-in control schemes.</dd>
+                     <dt>vehicle_trick</dt>
+                        <dd>Either of the buttons mapped to Vehicle Function 2 and Vehicle Function 3.</dd>
+                  </dl>
+               </arg>
+            </args>
+            <blurb>MCC-exclusive: Detect whether a player is holding a given button down. Intended for 
+            debugging purposes only.</blurb>
+            <description>
+               <p>
+                  This function was added to the <i>Halo: The Master Chief Collection</i> build of <i>Halo: Reach</i> 
+                  in mid-July 2023, being backported from <i>Halo 4</i>'s Megalo engine. Gametypes that 
+                  use this function will likely fail to load on Xbox 360 builds of <i>Halo: Reach</i> 
+                  (even when played via Xbox One backward compatibility).
+               </p>
+               <p>
+                  This function checks whether a specified gameplay-related button is being held down on 
+                  the gamepad; if so, it returns the number of script ticks for which the button has been 
+                  held down. This function does not react to the keyboard, only works on host, and per 
+                  statements by 343i developers is intended for debugging purposes only.
+               </p>
+               <p>
+                  When multiple functions are mapped to the same button, they do not block each other; 
+                  this function will return the same time in script ticks for both of them. Although 
+                  buttons are identified by their mapped function (i.e. "the Jump button" instead of "A"), 
+                  this function will return the correct duration even if the player is unable to trigger 
+                  the mapped function. Players that are on the respawn screen, or out of grenades, for 
+                  example, can still be detected as pressing the "throw grenades" button.
+               </p>
+               <p>
+                  Per a 343i employee, this function is not "deterministic." It doesn't synch across the 
+                  network or in Theater. If a gametype ever actually reacts to this function in any way 
+                  that affects game or map state, then a Theater film of that play session will immediately 
+                  desynch at that point in the match, rendering playback past that point impossible (Theater 
+                  will show an error message and then forcibly return you to the lobby). To paraphrase the 
+                  employee: "You should only use it for debugging, as a last resort."
+               </p>
+            </description>
+            <example>
+               for each player do
+                  global.number[0] = current_player.get_button_press_duration(jump)
+               end
+            </example>
+            <note>
+               This function will never return a value higher than 255 (equivalent to 4.25 seconds).
+            </note>
+         </method>
+         <method name="set_vehicle_spawning_enabled" id="103">
+            <args>
+               <arg name="enable" type="bool">
+                  <p>
+                     Control whether this player spawns in a vehicle (true) or not (false).
+                  </p>
+               </arg>
+            </args>
+            <blurb>MCC-exclusive: Although intended to let you control whether players spawn in vehicles 
+            or not, this function doesn't appear to actually do anything.</blurb>
+            <description>
+               <p>
+                  This function was added to the <i>Halo: The Master Chief Collection</i> build of <i>Halo: Reach</i> 
+                  in mid-July 2023, being backported from <i>Halo 4</i>'s Megalo engine. Gametypes that 
+                  use this function will likely fail to load on Xbox 360 builds of <i>Halo: Reach</i> 
+                  (even when played via Xbox One backward compatibility).
+               </p>
+               <p>
+                  This function was intended to let you control whether players spawn in a vehicle or not; 
+                  it would allow you to set a spawn vehicle via <a href="script/api/player/actions/set_respawn_vehicle">set_respawn_vehicle</a>, 
+                  without having to set the spawn vehicle type to none in order to disable vehicle spawning.
+               </p>
+               <p>
+                  In tests, this function doesn't actually do anything. Disassembly of haloreach.dll 
+                  shows that it is, as of this writing, a no-op: it contains no code and has no effect.
+               </p>
+            </description>
+            <example>
+               for each player do
+                  current_player.set_respawn_vehicle(warthog)
+                  current_player.set_vehicle_spawning_enabled(false)
+               end
+            </example>
+            <related context="team" type="method" name="set_vehicle_spawning_enabled" />
+            <related context="player" type="method" name="set_respawn_vehicle" />
+            <related context="team" type="method" name="set_respawn_vehicle" />
+         </method>
+         <method name="set_respawn_vehicle" id="104">
+            <args>
+               <arg name="vehicle type" type="object_type">
+                  <p>
+                     The vehicle type that this player should respawn in.
+                  </p>
+               </arg>
+            </args>
+            <blurb>MCC-exclusive: Automatically spawn players inside of vehicles, without having to manually 
+            create vehicles and force players into them.</blurb>
+            <description>
+               <p>
+                  This function was added to the <i>Halo: The Master Chief Collection</i> build of <i>Halo: Reach</i> 
+                  in mid-July 2023, being backported from <i>Halo 4</i>'s Megalo engine. Gametypes that 
+                  use this function will likely fail to load on Xbox 360 builds of <i>Halo: Reach</i> 
+                  (even when played via Xbox One backward compatibility).
+               </p>
+               <p>
+                  This function allows you to set the respawn vehicle type for a player: when the player
+                  respawns, the game engine will automatically create a vehicle of this type and then
+                  force the player into one of its seats, preferring the driver's seat if accessible
+                  (and if compatible with the player's biped). In essence, this automates the task of
+                  using <a href="script/api/object/actions/place_at_me">player.biped.place_at_me</a>
+                  and <a href="script/api/player/actions/force_into_vehicle">player.force_into_vehicle</a> 
+                  in tandem.
+               </p>
+            </description>
+            <example>
+               for each player do
+                  current_player.set_respawn_vehicle(warthog)
+               end
+            </example>
+            <note>
+               If you specify an object type that is not defined on the current map, then the game will stop 
+               spawning the target player in a vehicle. However, if you specify an object type that isn't a 
+               vehicle and is defined on the current map, then this function will have no effect, and the 
+               player's respawn vehicle will remain unchanged.
+            </note>
+            <related context="team" type="method" name="set_respawn_vehicle" />
+            <related context="player" type="method" name="set_vehicle_spawning_enabled" />
+            <related context="team" type="method" name="set_vehicle_spawning_enabled" />
          </method>
       </actions>
    </methods>
@@ -991,20 +1304,35 @@
          <description>
             <p>
                This property allows you to access the biped a player is currently 
-               in control of.
+               in control of. If the player is not in control of a biped, e.g. 
+               because they haven't spawned yet or they've been killed, then this 
+               property's value will be <code>no_object</code>.
             </p>
          </description>
          <note>
             This is the only property that can be accessed on nested variables, e.g. 
             <var>current_team.player[0].biped</var>.
          </note>
+         <category id="bipeds" />
       </property>
       <property name="rating" type="number" read-only="true">
          <blurb>The player's Arena rating.</blurb>
       </property>
       <property name="score" type="number" setter-is-accessor="true">
          <blurb>The player's current score.</blurb>
+         <description>
+            <p>
+               The player's current score. The value is capped at 30,000; attempting to 
+               increase it past 30,000 will simply set it to 30,000.
+            </p>
+            <p>
+               Player scores cannot hold values outside the range [-32,768, 32,767].
+            </p>
+         </description>
          <example>
+            --
+            -- Award a player one point for every frame they spend alive:
+            --
             for each player do
                if current_player.biped != no_object then
                   --
@@ -1014,6 +1342,7 @@
                end
             end
          </example>
+         <category id="scoring" />
          <related context="team" type="property" name="score" />
       </property>
       <property name="script_stat" type="number" indexed="true">
@@ -1024,16 +1353,32 @@
                Report stats on a per-player basis. Stats can be read or modified. Their values 
                persist between rounds, making them a useful way to persist state between rounds.
             </p>
+            <p>
+               Scripted stats cannot hold values outside the range [-32,768, 32,767].
+            </p>
          </description>
          <example>
             for each player do
                current_player.script_stat[3] += 5
             end
          </example>
+         <category id="scoring" />
          <related context="team" type="property" name="script_stat" />
       </property>
       <property name="team" type="team">
          <blurb>The player's owner team.</blurb>
+         <description>
+            <p>
+               The team that this player belongs to.
+            </p>
+            <p>
+               This property can be assigned to, but only in Free-For-All games; this is how 
+               gametypes like Infection are able to split players into separate factions. 
+               Assigning to this property during Team games has no effect; if teams are 
+               enabled within the gametype, then you cannot forcibly change a player's team 
+               using scripts.
+            </p>
+         </description>
          <example>
             for each player do
                if current_player.team == team[0] then
@@ -1045,26 +1390,47 @@
          </example>
          <related context="object" type="property" name="team" />
       </property>
-      <property name="unknown_09" type="number">
-         <blurb>Unknown. Possibly the player's requisition money.</blurb>
+      <property name="money" type="number">
+         <blurb>The player's money, to spend on requisitings as part of an unimplemented gameplay system.</blurb>
+         <description>
+            <p>
+               This value is limited to the range [-32,768, 32,767] and represents how much 
+               money the player has on hand to spend on requisitions.
+            </p>
+         </description>
+         <category id="player-money" />
       </property>
    </properties>
    <accessors>
       <accessor name="frag_grenades" type="number" setter="opcode" id="74">
          <blurb>The player's current frag grenade count.</blurb>
+         <description>
+            <p>
+               The player's current frag grenade count. The count is capped at 4; attempting 
+               to increase it past this number will simply set it to 4 instead.
+            </p>
+         </description>
          <example>
             for each player do
                current_player.frag_grenades += 1
             end
          </example>
+         <category id="biped-equipment" />
       </accessor>
       <accessor name="plasma_grenades" type="number" setter="opcode" id="74">
          <blurb>The player's current plasma grenade count.</blurb>
+         <description>
+            <p>
+               The player's current plasma grenade count. The count is capped at 4; attempting
+               to increase it past this number will simply set it to 4 instead.
+            </p>
+         </description>
          <example>
             for each player do
                current_player.plasma_grenades += 1
             end
          </example>
+         <category id="biped-equipment" />
       </accessor>
    </accessors>
 </script-type>

@@ -2,31 +2,31 @@
 #include "../../../../errors.h"
 #include "../../../../../helpers/strings.h"
 #include "../../compiler/compiler.h"
+#include "../../compiler/variable_usage_set.h"
 
 namespace {
    using namespace Megalo;
 
    const char* _which_to_string(const VariableScope* which_type, uint8_t which) {
-      if (which_type == &MegaloVariableScopeObject) {
-         auto& list = Megalo::variable_which_values::object::list;
-         if (which >= list.size())
-            return "invalid_object"; // not ideal... we should find a way to print the bad index
-         return list[which].name.c_str();
-      }
-      if (which_type == &MegaloVariableScopePlayer) {
-         auto& list = Megalo::variable_which_values::player::list;
-         if (which >= list.size())
-            return "invalid_player"; // not ideal... we should find a way to print the bad index
-         return list[which].name.c_str();
-      }
-      if (which_type == &MegaloVariableScopeTeam) {
-         auto& list = Megalo::variable_which_values::team::list;
-         if (which >= list.size())
-            return "invalid_team"; // not ideal... we should find a way to print the bad index
-         return list[which].name.c_str();
-      }
+      if (which_type == nullptr)
+         return nullptr;
       if (which_type == &MegaloVariableScopeGlobal)
          return "global";
+      if (which_type == &MegaloVariableScopeTemporary)
+         return "temporaries";
+
+      auto& list = which_type->list;
+      if (which < list.size())
+         return list[which].name.c_str();
+
+      // Else invalid.
+
+      switch (getScopeConstantForObject(*which_type)) {
+         case variable_scope::object: return "invalid_object";
+         case variable_scope::player: return "invalid_player";
+         case variable_scope::team:   return "invalid_team";
+      }
+
       return nullptr;
    }
    void _default_stringify(const char* format, const Variable& v, std::string& out) {
@@ -122,9 +122,11 @@ namespace Megalo {
    const VariableScopeIndicatorValue* VariableScopeIndicatorValueList::get_variable_scope(variable_scope vs) const noexcept {
       auto this_type_as_scope = getScopeObjectForConstant(this->var_type);
       //
-      if (vs == variable_scope::global && this_type_as_scope) {
+      if ((vs == variable_scope::global || vs == variable_scope::temporary) && this_type_as_scope) {
          for (auto entry : this->scopes) {
             if (!entry->is_variable_scope())
+               continue;
+            if (entry->index_type != VariableScopeIndicatorValue::index_type::none) // disambiguates global.player from player.player, etc.
                continue;
             if (entry->base == this_type_as_scope)
                return entry;
@@ -240,6 +242,11 @@ namespace Megalo {
       assert(base);
       return base->as_integer() + index;
    }
+   /*static*/ uint32_t Variable::_temporary_index_to_which(const OpcodeArgTypeinfo& typeinfo, uint32_t index) noexcept {
+      const VariableScopeWhichValue* base = typeinfo.first_temporary;
+      assert(base);
+      return base->as_integer() + index;
+   }
    bool Variable::_update_object_pointer_from_index(Compiler& compiler) noexcept {
       this->object = nullptr;
       auto scope = this->scope;
@@ -271,6 +278,31 @@ namespace Megalo {
       auto& res = arg.resolved;
       auto& top = res.top_level;
       bool  is_nested = res.nested.type != nullptr;
+      if (top.is_constant) {
+         //
+         // The subclass needs to handle this. (Constant integers are currently only used by the "number" 
+         // variable type, and should be handled there only.)
+         //
+         // When writing an override of this function, have your override call super and keep the result. If 
+         // the result code is (base_class_is_expecting_override_behavior), then check for a case that your 
+         // subclass needs to handle; return a success code if you handle it or a failure code if you don't. 
+         // If the result code was not (base_class_is_expecting_override_behavior), then return the result 
+         // object verbatim.
+         //
+         // If an override is not defined, then this code will test as a failure code when the compiler sees 
+         // it.
+         //
+         return arg_compile_result(arg_compile_result::code_t::base_class_is_expecting_override_behavior);
+      }
+      if (top.namespace_member.scope) { // namespace scope-member
+         this->scope = top.namespace_member.scope;
+         if (this->scope->has_index()) {
+            this->index = top.index;
+            if (!this->_update_object_pointer_from_index(compiler))
+               return arg_compile_result::failure(QString("Index %1 is out of bounds.").arg(this->index));
+         }
+         return arg_compile_result::success();
+      }
       if (arg.is_property()) {
          auto prop = arg.resolved.property.definition;
          if (is_nested || !prop->scope) {
@@ -290,38 +322,19 @@ namespace Megalo {
             return arg_compile_result(arg_compile_result::code_t::base_class_is_expecting_override_behavior);
          }
          this->scope = prop->scope;
-         if (top.which) {
-            this->which = top.which->as_integer(); // if we're accessing a property on a NamespaceMember
+         if (top.namespace_member.which) {
+            this->which = top.namespace_member.which->as_integer(); // if we're accessing a property on a NamespaceMember
          } else {
-            this->which = Variable::_global_index_to_which(*top.type, top.index, top.is_static); // if we're accessing a property on a static or global variable
+            if (top.is_temporary) {
+               auto& typeinfo = *top.type;
+               assert(typeinfo.first_temporary);
+               this->which = typeinfo.first_temporary->as_integer() + top.index;
+            } else {
+               this->which = Variable::_global_index_to_which(*top.type, top.index, top.is_static); // if we're accessing a property on a static or global variable
+            }
          }
          if (prop->has_index()) {
             this->index = arg.resolved.property.index;
-            if (!this->_update_object_pointer_from_index(compiler))
-               return arg_compile_result::failure(QString("Index %1 is out of bounds.").arg(this->index));
-         }
-         return arg_compile_result::success();
-      }
-      if (top.is_constant) {
-         //
-         // The subclass needs to handle this. (Constant integers are currently only used by the "number" 
-         // variable type, and should be handled there only.)
-         //
-         // When writing an override of this function, have your override call super and keep the result. If 
-         // the result code is (base_class_is_expecting_override_behavior), then check for a case that your 
-         // subclass needs to handle; return a success code if you handle it or a failure code if you don't. 
-         // If the result code was not (base_class_is_expecting_override_behavior), then return the result 
-         // object verbatim.
-         //
-         // If an override is not defined, then this code will test as a failure code when the compiler sees 
-         // it.
-         //
-         return arg_compile_result(arg_compile_result::code_t::base_class_is_expecting_override_behavior);
-      }
-      if (top.scope) { // namespace scope-member
-         this->scope = top.scope;
-         if (this->scope->has_index()) {
-            this->index = top.index;
             if (!this->_update_object_pointer_from_index(compiler))
                return arg_compile_result::failure(QString("Index %1 is out of bounds.").arg(this->index));
          }
@@ -336,10 +349,14 @@ namespace Megalo {
             auto vs = getVariableScopeForTypeinfo(top.type);
             this->scope = this->type.get_variable_scope(vs);
             assert(this->scope);
-            if (top.which) {
-               this->which = top.which->as_integer(); // if we're accessing a variable nested under a NamespaceMember
+            if (top.namespace_member.which) {
+               this->which = top.namespace_member.which->as_integer(); // if we're accessing a variable nested under a NamespaceMember
             } else {
-               this->which = Variable::_global_index_to_which(*top.type, top.index, top.is_static);
+               if (top.is_temporary) {
+                  this->which = Variable::_temporary_index_to_which(*top.type, top.index);
+               } else {
+                  this->which = Variable::_global_index_to_which(*top.type, top.index, top.is_static);
+               }
             }
             this->index = res.nested.index;
             if (!this->_update_object_pointer_from_index(compiler))
@@ -350,13 +367,22 @@ namespace Megalo {
          // This is a global variable, not a nested variable. If we are an object, player, or team variable, 
          // then we need to set (scope) and (which); otherwise, we need to set (scope) and (index).
          //
-         this->scope = this->type.get_variable_scope(variable_scope::global);
+         if (top.is_temporary) {
+            this->scope = this->type.get_variable_scope(variable_scope::temporary);
+         } else {
+            this->scope = this->type.get_variable_scope(variable_scope::global);
+         }
          assert(this->scope);
          if (this_type_is_a_scope) {
-            if (top.which)
-               this->which = top.which->as_integer();
-            else
-               this->which = Variable::_global_index_to_which(*top.type, top.index, top.is_static);
+            if (top.namespace_member.which)
+               this->which = top.namespace_member.which->as_integer();
+            else {
+               if (top.is_temporary) {
+                  this->which = Variable::_temporary_index_to_which(*top.type, top.index);
+               } else {
+                  this->which = Variable::_global_index_to_which(*top.type, top.index, top.is_static); // if we're accessing a property on a static or global variable
+               }
+            }
          } else {
             this->index = top.index;
             if (!this->_update_object_pointer_from_index(compiler))
@@ -375,6 +401,56 @@ namespace Megalo {
       this->index  = cast->index;
       this->object = cast->object;
    }
+   void Variable::mark_used_variables(Script::variable_usage_set& usage) const noexcept {
+      variable_scope scope;
+      size_t index;
+
+      auto* scope_v_global    = this->type.get_variable_scope(variable_scope::global);
+      auto* scope_v_temporary = this->type.get_variable_scope(variable_scope::temporary);
+      if (this->scope == scope_v_global) {
+         scope = variable_scope::global;
+      } else if (this->scope == scope_v_temporary) {
+         scope = variable_scope::temporary;
+      } else {
+         return;
+      }
+
+      if (this->scope->index_type != VariableScopeIndicatorValue::index_type::none) {
+         usage.mark_variable(scope, this->type.var_type, this->index);
+      } else {
+         //
+         // If this is a handle type, then global.<type>[n] and temporaries.<type>[n] 
+         // don't use `this->index`; the index, `n`, is identified by the "which" value.
+         //
+         const auto& typeinfo = this->get_variable_typeinfo();
+
+         size_t first;
+         size_t count;
+         switch (scope) {
+            case variable_scope::global:
+               if (!typeinfo.first_global)
+                  return;
+               first = typeinfo.first_global->as_integer();
+               count = MegaloVariableScopeGlobal.max_variables_of_type(this->type.var_type);
+               break;
+            case variable_scope::temporary:
+               if (!typeinfo.first_temporary)
+                  return;
+               first = typeinfo.first_temporary->as_integer();
+               count = MegaloVariableScopeTemporary.max_variables_of_type(this->type.var_type);
+               break;
+            default:
+               return;
+         }
+
+         size_t index = this->which - first;
+         if (index >= count)
+            return;
+
+         usage.mark_variable(scope, this->type.var_type, index);
+      }
+   }
+
    bool Variable::is_none() const noexcept {
       bool this_type_is_a_scope = getScopeObjectForConstant(this->type.var_type) != nullptr;
       if (!this_type_is_a_scope)
@@ -392,5 +468,20 @@ namespace Megalo {
       if (this->which >= which_list.size())
          return false;
       return global_scope_s->list[this->which].is_none();
+   }
+   bool Variable::is_transient() const noexcept {
+      auto global_scope_v = this->type.get_variable_scope(variable_scope::global);
+      if (!global_scope_v) // shouldn't happen
+         return false;
+      if (this->scope != global_scope_v) // "none" values are always globally-scoped
+         return false;
+      auto global_scope_s = global_scope_v->base;
+      if (!global_scope_s) // shouldn't happen
+         return false;
+      //
+      auto& which_list = global_scope_s->list;
+      if (this->which >= which_list.size())
+         return false;
+      return (global_scope_s->list[this->which].flags & VariableScopeWhichValue::flag::is_transient) != 0;
    }
 }

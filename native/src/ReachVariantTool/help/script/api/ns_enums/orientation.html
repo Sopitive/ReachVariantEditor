@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
    <head>
       <meta charset="UTF-8" />
       <title>enums.orientation | ReachVariantTool Documentation</title>
@@ -45,7 +45,7 @@
          </ul>
       </nav>
       <main>
-         <h1>enums.orientation</h1>
+         <header><h1>enums.orientation</h1></header>
 
             <p>
                This enum contains values that can be returned by the 
@@ -63,7 +63,7 @@
                by design, you can't check the object's heading; you essentially can only 
                react to pitch and roll rotations.
             </p>
-            <dl>
+            <dl class="ordered-enum">
                <dt>up_is_up</dt>
                <dt>upright</dt>
                   <dd>The object's local "up" vector most closely matches world up; the 
@@ -80,14 +80,15 @@
                   <dd>The object's local "forward" vector most closely matches world up; 
                   the object is nose-up.</dd>
                <dt>left_is_up</dt>
-                  <dd>The object's local "left" vector most closely matches world left; 
-                  the object is turned on its side.</dd>
+                  <dd>The object's local "left" vector most closely matches world up; the 
+                  object is turned on its side.</dd>
                <dt>down_is_up</dt>
                <dt>upside_down</dt>
                   <dd>The object's local "down" vector most closely matches world up; the 
                   object is upside-down.</dd>
             </dl>
          
+
       </main>
       <script src="resources/sidebar.js"></script>
       <script src="resources/header-links.js"></script>

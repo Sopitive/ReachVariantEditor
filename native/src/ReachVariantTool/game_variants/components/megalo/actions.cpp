@@ -2,14 +2,12 @@
 #include "opcode_arg_types/all.h"
 #include "../../errors.h"
 
-#define MEGALO_DISALLOW_NONE_ACTION 0
-#if _DEBUG
-   #undef  MEGALO_DISALLOW_NONE_ACTION
-   //#define MEGALO_DISALLOW_NONE_ACTION 1
-#endif
+namespace {
+   constexpr const bool fail_on_loading_none = false;
+}
 
 namespace Megalo {
-   extern std::array<ActionFunction, 99> actionFunctionList = {{
+   extern std::array<ActionFunction, 107> actionFunctionList = {{
       //
       // The double-curly-braces for this array are NOT a mistake; you should be able to 
       // use single braces but not every compiler handles that correctly.
@@ -45,7 +43,7 @@ namespace Megalo {
             OpcodeArgBase("offset", OpcodeArgValueVector3::typeinfo),
             OpcodeArgBase("name",   OpcodeArgValueVariantStringID::typeinfo),
          },
-         OpcodeFuncToScriptMapping::make_function("place_at_me", "", {0, 3, 4, 5, 6}, 2, OpcodeFuncToScriptMapping::flags::return_value_can_be_discarded)
+         OpcodeFuncToScriptMapping::make_function("place_at_me", "create_object", {0, 3, 4, 5, 6}, 2, OpcodeFuncToScriptMapping::flags::return_value_can_be_discarded)
       ),
       ActionFunction( // 3
          "Delete Object",
@@ -117,6 +115,9 @@ namespace Megalo {
             OpcodeArgBase("operator", OpcodeArgValueMathOperatorEnum::typeinfo),
          },
          OpcodeFuncToScriptMapping::make_intrinsic_assignment(2)
+         //
+         // WARNING: DOES NOT VERIFY ARGUMENTS' TYPES; TYPE MISMATCHES MAY LEAD TO DATA CORRUPTION AND CRASHES
+         //
       ),
       ActionFunction( // 10
          "Set Object Shape",
@@ -126,7 +127,7 @@ namespace Megalo {
             OpcodeArgBase("object", OpcodeArgValueObject::typeinfo),
             OpcodeArgBase("shape",  OpcodeArgValueShape::typeinfo),
          },
-         OpcodeFuncToScriptMapping::make_function("set_shape", "", {1}, 0)
+         OpcodeFuncToScriptMapping::make_function("set_shape", "set_boundary", {1}, 0)
       ),
       ActionFunction( // 11
          "Apply Player Traits",
@@ -156,7 +157,7 @@ namespace Megalo {
             OpcodeArgBase("spawn location", OpcodeArgValueObject::typeinfo),
             OpcodeArgBase("who", OpcodeArgValuePlayerSet::typeinfo),
          },
-         OpcodeFuncToScriptMapping::make_function("set_spawn_location_permissions", "", {1}, 0)
+         OpcodeFuncToScriptMapping::make_function("set_spawn_location_permissions", "set_respawn_filter", {1}, 0)
       ),
       ActionFunction( // 14
          "Set Spawn Location Fireteams",
@@ -166,7 +167,7 @@ namespace Megalo {
             OpcodeArgBase("spawn location", OpcodeArgValueObject::typeinfo),
             OpcodeArgBase("fireteams",      OpcodeArgValueFireteamList::typeinfo),
          },
-         OpcodeFuncToScriptMapping::make_function("set_spawn_location_fireteams", "", {1}, 0)
+         OpcodeFuncToScriptMapping::make_function("set_spawn_location_fireteams", "set_fireteam_respawn_filter", {1}, 0)
       ),
       ActionFunction( // 15
          "Set Object Progress Bar",
@@ -180,15 +181,15 @@ namespace Megalo {
          OpcodeFuncToScriptMapping::make_function("set_progress_bar", "", {2, 1}, 0) // TODO: should we make this an intrinsic instead? i.e. object_var.timer_var.set_progress_bar_visibility(who) ?
       ),
       ActionFunction( // 16
-         "CHUD Message",
+         "Kill Feed Message",
          "",
-         "For %1, play sound %2 and display message: %3.",
+         "For %1, play sound %2 and print a message to the kill feed: %3.",
          {
             OpcodeArgBase("who",   OpcodeArgValuePlayerOrGroup::typeinfo),
             OpcodeArgBase("sound", OpcodeArgValueSound::typeinfo),
-            OpcodeArgBase("text",  OpcodeArgValueStringTokens2::typeinfo),
+            OpcodeArgBase("text",  OpcodeArgValueFormatString::typeinfo),
          },
-         OpcodeFuncToScriptMapping::make_function("show_message_to", "", {0, 1, 2}, OpcodeFuncToScriptMapping::game_namespace)
+         OpcodeFuncToScriptMapping::make_function("show_message_to", "hud_post_message", {0, 1, 2}, OpcodeFuncToScriptMapping::game_namespace)
       ),
       ActionFunction( // 17
          "Set Timer Rate",
@@ -205,7 +206,7 @@ namespace Megalo {
          "Presumably, if this were run in a debug build of Halo: Reach, it'd write a message to some readout or log file.",
          "Log a message if run in a debug build of Halo: Reach: %1.",
          {
-            OpcodeArgBase("text", OpcodeArgValueStringTokens2::typeinfo),
+            OpcodeArgBase("text", OpcodeArgValueFormatString::typeinfo),
          },
          OpcodeFuncToScriptMapping::make_function("debug_print", "", {0})
       ),
@@ -217,7 +218,7 @@ namespace Megalo {
             OpcodeArgBase("object", OpcodeArgValueObject::typeinfo),
             OpcodeArgBase("player", OpcodeArgValuePlayer::typeinfo, true),
          },
-         OpcodeFuncToScriptMapping::make_function("try_get_carrier", "get_carrier", {}, 0, OpcodeFuncToScriptMapping::flags::secondary_property_zeroes_result)
+         OpcodeFuncToScriptMapping::make_function("get_carrier", "try_get_carrier", {}, 0, OpcodeFuncToScriptMapping::flags::secondary_name_is_deprecated)
       ),
       ActionFunction( // 20
          "Run Nested Trigger",
@@ -280,7 +281,7 @@ namespace Megalo {
          "Does nothing in Halo: Reach's release build.",
          "If the game is running in a debug build of Halo: Reach, break into the debugger.",
          {},
-         OpcodeFuncToScriptMapping::make_function("debug_break", "", {})
+         OpcodeFuncToScriptMapping::make_function("debug_break", "break_into_debugger", {})
       ),
       ActionFunction( // 27
          "Get Object Orientation",
@@ -311,6 +312,10 @@ namespace Megalo {
             OpcodeArgBase("killer", OpcodeArgValuePlayer::typeinfo, true),
          },
          OpcodeFuncToScriptMapping::make_function("try_get_killer", "get_killer", {}, 0, OpcodeFuncToScriptMapping::flags::secondary_property_zeroes_result)
+         //
+         // This function does not write to its destination operand if called on no_player or if 
+         // called at the wrong time!
+         //
       ),
       ActionFunction( // 30
          "Get Death Damage Type",
@@ -321,6 +326,10 @@ namespace Megalo {
             OpcodeArgBase("result", OpcodeArgValueScalar::typeinfo, true),
          },
          OpcodeFuncToScriptMapping::make_function("try_get_death_damage_type", "get_death_damage_type", {}, 0, OpcodeFuncToScriptMapping::flags::secondary_property_zeroes_result)
+         //
+         // This function does not write to its destination operand if called on no_player or if 
+         // called at the wrong time!
+         //
       ),
       ActionFunction( // 31
          "Get Death Damage Modifier",
@@ -331,6 +340,10 @@ namespace Megalo {
             OpcodeArgBase("result", OpcodeArgValueScalar::typeinfo, true),
          },
          OpcodeFuncToScriptMapping::make_function("try_get_death_damage_mod", "get_death_damage_mod", {}, 0, OpcodeFuncToScriptMapping::flags::secondary_property_zeroes_result)
+         //
+         // This function does not write to its destination operand if called on no_player or if 
+         // called at the wrong time!
+         //
       ),
       ActionFunction( // 32
          "Debugging: Enable Tracing",
@@ -339,7 +352,7 @@ namespace Megalo {
          {
             OpcodeArgBase("bool", OpcodeArgValueConstBool::typeinfo),
          },
-         OpcodeFuncToScriptMapping::make_function("debug_set_tracing_enabled", "", {0})
+         OpcodeFuncToScriptMapping::make_function("debug_set_tracing_enabled", "debugging_enable_tracing", {0})
       ),
       ActionFunction( // 33
          "Attach Objects",
@@ -408,9 +421,10 @@ namespace Megalo {
          "Set the requisition purchase modes for %1 to %2.",
          {
             OpcodeArgBase("player", OpcodeArgValuePlayer::typeinfo),
+            OpcodeArgBase("enable", OpcodeArgValueScalar::typeinfo),
             OpcodeArgBase("flags",  OpcodeArgValuePlayerReqPurchaseModes::typeinfo),
          },
-         OpcodeFuncToScriptMapping::make_function("set_req_purchase_modes", "", {1}, 0)
+         OpcodeFuncToScriptMapping::make_function("set_req_purchase_modes", "", {2, 1}, 0)
       ),
       ActionFunction( // 40
          "Get Player Vehicle",
@@ -420,7 +434,7 @@ namespace Megalo {
             OpcodeArgBase("player", OpcodeArgValuePlayer::typeinfo),
             OpcodeArgBase("result", OpcodeArgValueObject::typeinfo, true),
          },
-         OpcodeFuncToScriptMapping::make_function("try_get_vehicle", "get_vehicle", {}, 0, OpcodeFuncToScriptMapping::flags::secondary_property_zeroes_result)
+         OpcodeFuncToScriptMapping::make_function("get_vehicle", "try_get_vehicle", {}, 0, OpcodeFuncToScriptMapping::flags::secondary_name_is_deprecated)
       ),
       ActionFunction( // 41
          "Force Player Into Vehicle",
@@ -476,7 +490,7 @@ namespace Megalo {
          "Set text for %1 to: %2.",
          {
             OpcodeArgBase("widget", OpcodeArgValueWidget::typeinfo),
-            OpcodeArgBase("text",   OpcodeArgValueStringTokens2::typeinfo),
+            OpcodeArgBase("text",   OpcodeArgValueFormatStringPersistent::typeinfo),
          },
          OpcodeFuncToScriptMapping::make_function("set_text", "", {1}, 0)
       ),
@@ -486,7 +500,7 @@ namespace Megalo {
          "Set text for %1 to: %2.",
          {
             OpcodeArgBase("widget", OpcodeArgValueWidget::typeinfo),
-            OpcodeArgBase("text",   OpcodeArgValueStringTokens2::typeinfo),
+            OpcodeArgBase("text",   OpcodeArgValueFormatStringPersistent::typeinfo),
          },
          OpcodeFuncToScriptMapping::make_function("set_value_text", "", {1}, 0)
       ),
@@ -548,7 +562,7 @@ namespace Megalo {
          "Set %1's waypoint text to message: %2.",
          {
             OpcodeArgBase("object", OpcodeArgValueObject::typeinfo),
-            OpcodeArgBase("text",   OpcodeArgValueStringTokens2::typeinfo),
+            OpcodeArgBase("text",   OpcodeArgValueFormatStringPersistent::typeinfo),
          },
          OpcodeFuncToScriptMapping::make_function("set_waypoint_text", "", {1}, 0)
       ),
@@ -578,9 +592,9 @@ namespace Megalo {
          "Set the objective title for %1 to %2.",
          {
             OpcodeArgBase("player", OpcodeArgValuePlayer::typeinfo),
-            OpcodeArgBase("text",   OpcodeArgValueStringTokens2::typeinfo),
+            OpcodeArgBase("text",   OpcodeArgValueFormatStringPersistent::typeinfo),
          },
-         OpcodeFuncToScriptMapping::make_function("set_round_card_title", "", {1}, 0)
+         OpcodeFuncToScriptMapping::make_function("set_objective_text", "set_round_card_title", {1}, 0, OpcodeFuncToScriptMapping::flags::secondary_name_is_deprecated)
       ),
       ActionFunction( // 57
          "Set Objective Icon Caption for Player",
@@ -588,9 +602,9 @@ namespace Megalo {
          "Set the objective description for %1 to %2.",
          {
             OpcodeArgBase("player", OpcodeArgValuePlayer::typeinfo),
-            OpcodeArgBase("text",   OpcodeArgValueStringTokens2::typeinfo),
+            OpcodeArgBase("text",   OpcodeArgValueFormatStringPersistent::typeinfo),
          },
-         OpcodeFuncToScriptMapping::make_function("set_round_card_text", "", {1}, 0)
+         OpcodeFuncToScriptMapping::make_function("set_objective_allegiance_name", "set_round_card_text", {1}, 0, OpcodeFuncToScriptMapping::flags::secondary_name_is_deprecated)
       ),
       ActionFunction( // 58
          "Set Objective Icon for Player",
@@ -600,7 +614,7 @@ namespace Megalo {
             OpcodeArgBase("player", OpcodeArgValuePlayer::typeinfo),
             OpcodeArgBase("icon",   OpcodeArgValueEngineIcon::typeinfo),
          },
-         OpcodeFuncToScriptMapping::make_function("set_round_card_icon", "", {1}, 0)
+         OpcodeFuncToScriptMapping::make_function("set_objective_allegiance_icon", "set_round_card_icon", {1}, 0, OpcodeFuncToScriptMapping::flags::secondary_name_is_deprecated)
       ),
       ActionFunction( // 59
          "Enable/Disable Co-Op Spawning",
@@ -839,12 +853,12 @@ namespace Megalo {
       ActionFunction( // 81
          "Insert Theater Film Marker",
          "",
-         "Insert a marker into the saved Film of this match, with number %1 and text: %2.",
+         "Insert a marker into the saved Film of this match, with offset %1 and label: %2.",
          {
-            OpcodeArgBase("number", OpcodeArgValueScalar::typeinfo),
-            OpcodeArgBase("text",   OpcodeArgValueStringTokens2::typeinfo),
+            OpcodeArgBase("offset", OpcodeArgValueScalar::typeinfo),
+            OpcodeArgBase("label",  OpcodeArgValueFormatString::typeinfo),
          },
-         OpcodeFuncToScriptMapping::make_function("insert_theater_film_marker", "", {0, 1})
+         OpcodeFuncToScriptMapping::make_function("insert_theater_film_marker", "saved_film_insert_marker", {0, 1})
       ),
       ActionFunction( // 82
          "Enable/Disable Spawn Zone",
@@ -865,7 +879,7 @@ namespace Megalo {
             OpcodeArgBase("which",  OpcodeArgValueWeaponSlotEnum::typeinfo),
             OpcodeArgBase("result", OpcodeArgValueObject::typeinfo, true),
          },
-         OpcodeFuncToScriptMapping::make_function("try_get_weapon", "get_weapon", {1}, 0, OpcodeFuncToScriptMapping::flags::secondary_property_zeroes_result)
+         OpcodeFuncToScriptMapping::make_function("get_weapon", "try_get_weapon", {1}, 0, OpcodeFuncToScriptMapping::flags::secondary_name_is_deprecated)
       ),
       ActionFunction( // 84
          "Get Player Armor Ability",
@@ -875,7 +889,7 @@ namespace Megalo {
             OpcodeArgBase("player", OpcodeArgValuePlayer::typeinfo),
             OpcodeArgBase("result", OpcodeArgValueObject::typeinfo, true),
          },
-         OpcodeFuncToScriptMapping::make_function("try_get_armor_ability", "get_armor_ability", {}, 0, OpcodeFuncToScriptMapping::flags::secondary_property_zeroes_result)
+         OpcodeFuncToScriptMapping::make_function("get_armor_ability", "try_get_armor_ability", {}, 0, OpcodeFuncToScriptMapping::flags::secondary_name_is_deprecated)
       ),
       ActionFunction( // 85
          "Enable/Disable Object Garbage Collection",
@@ -911,8 +925,8 @@ namespace Megalo {
          OpcodeFuncToScriptMapping::make_function("place_between_me_and", "", {1, 2, 3}, 0)
       ),
       ActionFunction( // 88
-         "Deprecated-88",
-         "A debug function that does nothing in Halo: Reach's release build.",
+         "Debug: Force Splitscreen Count",
+         "A debug function that does nothing in Halo: Reach's release build. Evidence suggests that in debug builds, it might have forcibly set the number of split-screen views to display.",
          "Do nothing. (Unused argument: %1)",
          {
             OpcodeArgBase("number", OpcodeArgValueScalar::typeinfo),
@@ -1023,8 +1037,93 @@ namespace Megalo {
          },
          OpcodeFuncToScriptMapping::make_doubly_contextual_call("apply_shape_color_from_player_member", "", {0}, variable_scope::object, 0) // or perhaps "make_object_owner_property" if it lasts beyond one tick?
       ),
+
+      //
+      // MCC extensions:
+      //
+
+      ActionFunction( // 99
+         "Run Inline Nested Trigger",
+         "[MCC-only; backported from Halo 4.] Branches execution to another trigger. In this case, the trigger in question is embedded directly in this action, rather than being a \"real\" trigger.",
+         "Execute inline trigger...",
+         {
+            OpcodeArgBase("trigger", OpcodeArgValueMegaloScope::typeinfo),
+         },
+         OpcodeFuncToScriptMapping()
+      ),
+      ActionFunction( // 100
+         "Call HaloScript Function",
+         "[MCC-only; backported from Halo 4.] Calls a HaloScript function that the map has made available for use by Megalo. This appears to be intended mainly for *.MAP mod authors who are creating map-and-Megalo combo mods.",
+         "Invoke a HaloScript function: %1.",
+         {
+            OpcodeArgBase("function_id", OpcodeArgValueVariantStringID::typeinfo),
+         },
+         OpcodeFuncToScriptMapping::make_function("hs_function_call", "", {0}, OpcodeFuncToScriptMapping::game_namespace)
+      ),
+      ActionFunction( // 101
+         "Get Button Press Duration",
+         "[MCC-only; backported from Halo 4.] A host-only action to retrieve how long (in milliseconds) a player has held a given button down. Intended for debugging purposes only; future MCC updates may change how this functions.",
+         "Set %3 to the number of milliseconds for which %1 has held the %2 button.",
+         {
+            OpcodeArgBase("player",  OpcodeArgValuePlayer::typeinfo),
+            OpcodeArgBase("button", OpcodeArgValueMappedControl::typeinfo),
+            OpcodeArgBase("milliseconds",  OpcodeArgValueScalar::typeinfo, true),
+         },
+         OpcodeFuncToScriptMapping::make_function("get_button_press_duration", "get_button_time", {1}, 0)
+      ),
+      ActionFunction( // 102
+         "Toggle Vehicle Spawning for Team",
+         "[MCC-only; backported from Halo 4.] Enable or disable vehicle spawning for a team. When enabled, the team will spawn in whatever vehicle you've set.",
+         "Set whether vehicle spawning is enabled for %1: %2.",
+         {
+            OpcodeArgBase("team", OpcodeArgValueTeam::typeinfo),
+            OpcodeArgBase("enable", OpcodeArgValueConstBool::typeinfo),
+         },
+         OpcodeFuncToScriptMapping::make_function("set_vehicle_spawning_enabled", "", {1}, 0)
+      ),
+      ActionFunction( // 103
+         "Toggle Vehicle Spawning for Player",
+         "[MCC-only; backported from Halo 4.] Enable or disable vehicle spawning for a player. When enabled, the player will spawn in whatever vehicle you've set.",
+         "Set whether vehicle spawning is enabled for %1: %2.",
+         {
+            OpcodeArgBase("player", OpcodeArgValuePlayer::typeinfo),
+            OpcodeArgBase("enable", OpcodeArgValueConstBool::typeinfo),
+         },
+         OpcodeFuncToScriptMapping::make_function("set_vehicle_spawning_enabled", "", {1}, 0)
+      ),
+      ActionFunction( // 104
+         "Set Respawn Vehicle for Player",
+         "[MCC-only; backported from Halo 4.] Set which vehicle, if any, a player will respawn in.",
+         "Set the respawn vehicle for %2 to %1.",
+         {
+            OpcodeArgBase("vehicle", OpcodeArgValueObjectType::typeinfo),
+            OpcodeArgBase("player", OpcodeArgValuePlayer::typeinfo),
+         },
+         OpcodeFuncToScriptMapping::make_function("set_respawn_vehicle", "", {0}, 1)
+      ),
+      ActionFunction( // 105
+         "Set Respawn Vehicle for Team",
+         "[MCC-only; backported from Halo 4.] Set which vehicle, if any, a team's players will respawn in.",
+         "Set the respawn vehicle for %2 to %1.",
+         {
+            OpcodeArgBase("vehicle", OpcodeArgValueObjectType::typeinfo),
+            OpcodeArgBase("team", OpcodeArgValueTeam::typeinfo),
+         },
+         OpcodeFuncToScriptMapping::make_function("set_respawn_vehicle", "", {0}, 1)
+      ),
+      ActionFunction( // 106
+         "Hide Object",
+         "[MCC-only; backported from Halo 4.] Set whether an object is made invisible.",
+         "Set whether %1 is hidden: %2.",
+         {
+            OpcodeArgBase("object", OpcodeArgValueObject::typeinfo),
+            OpcodeArgBase("should_hide", OpcodeArgValueConstBool::typeinfo),
+         },
+         OpcodeFuncToScriptMapping::make_function("set_hidden", "", {1}, 0)
+      ),
    }};
    extern const ActionFunction& actionFunction_runNestedTrigger = actionFunctionList[20];
+   extern const ActionFunction& actionFunction_runInlineTrigger = actionFunctionList[99];
 
    bool Action::read(cobb::ibitreader& stream, GameVariantDataMultiplayer& mp) noexcept {
       #ifdef _DEBUG
@@ -1043,13 +1142,13 @@ namespace Megalo {
          }
          this->function = &list[index];
          if (index == 0) { // The "None" condition loads no further data.
-            #if MEGALO_DISALLOW_NONE_ACTION == 1
+            if constexpr (fail_on_loading_none) {
                auto& error = GameEngineVariantLoadError::get();
                error.state         = GameEngineVariantLoadError::load_state::failure;
                error.failure_point = GameEngineVariantLoadError::load_failure_point::megalo_actions;
                error.reason        = GameEngineVariantLoadError::load_failure_reason::script_opcode_cannot_be_none;
                return false;
-            #endif
+            }
             return true;
          }
       }

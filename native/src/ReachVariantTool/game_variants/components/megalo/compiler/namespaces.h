@@ -59,17 +59,17 @@ namespace Megalo {
             static NamespaceMember make_enum_member(Namespace&, Enum& e); // passing the containing namespace is an unfortunate necessity here
             //
             bool has_index() const noexcept;
-            inline bool is_which_member() const noexcept { return this->which != no_which; }
-            inline bool is_scope_member() const noexcept { return this->scope != no_scope; }
-            inline bool is_bare_member() const noexcept { return !this->is_which_member() && !this->is_scope_member(); }
-            inline bool is_enum_member() const noexcept { return this->enumeration != nullptr; }
+            constexpr bool is_which_member() const noexcept { return this->which != no_which; }
+            constexpr bool is_scope_member() const noexcept { return this->scope != no_scope; }
+            constexpr bool is_bare_member() const noexcept { return !this->is_which_member() && !this->is_scope_member(); }
+            constexpr bool is_enum_member() const noexcept { return this->enumeration != nullptr; }
             bool is_read_only() const noexcept;
       };
       class Namespace {
          public:
             std::string name;
             bool can_have_statics   = false; // only true for unnamed namespace; determines whether you can refer to absolute players/teams e.g. player[2]
-            bool can_have_variables = false; // only true for global namespace
+            bool can_have_variables = false; // only true for global and temporaries namespaces
             std::vector<NamespaceMember> members;
             //
             Namespace() {}
@@ -86,8 +86,9 @@ namespace Megalo {
          extern Namespace global;
          extern Namespace game;
          extern Namespace enums;
+         extern Namespace temporaries; // added in MCC (backported from H4)
          //
-         extern std::array<Namespace*, 4> list;
+         extern std::array<Namespace*, 5> list;
          extern Namespace* get_by_name(const QString&);
       }
    }

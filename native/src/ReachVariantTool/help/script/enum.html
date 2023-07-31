@@ -1,7 +1,8 @@
 <!doctype html>
-<html>
+<html lang="en">
    <head>
       <meta charset="UTF-8" />
+      
       <title>User-defined enums | ReachVariantTool Documentation</title>
       <base href="../" />
       <link rel="stylesheet" href="resources/main.css" />
@@ -87,7 +88,12 @@
                <a href="editor/script_window/index.html">Script Window</a>
                <ul>
                   <li><a href="editor/script_window/meta-strings.html">Metadata Strings</a></li>
-                  <li><a href="editor/script_window/string-table.html">All Other Strings</a></li>
+                  <li>
+                     <a href="editor/script_window/string-table.html">All Other Strings</a>
+                     <ul>
+                        <li><a href="editor/script_window/string-localization.html">Editing and Localization</a></li>
+                     </ul>
+                  </li>
                   <li><a href="editor/script_window/forge-labels.html">Forge Labels</a></li>
                   <li><a href="editor/script_window/map-permissions.html">Map Permissions</a></li>
                   <li><a href="editor/script_window/player-rating-parameters.html">Player Rating Parameters</a></li>
@@ -107,10 +113,19 @@
                   <li><a href="script/for.html">For-each-loops</a></li>
                   <li><a href="script/if.html">If-/alt-statements</a></li>
                   <li><a href="script/operators.html">Operators</a></li>
+                  <li><a href="script/string-special-chars.html">Special string characters</a></li>
                   <li><a href="script/enum.html">User-defined enums</a></li>
                   <li><a href="script/function.html">User-defined functions</a></li>
                   <li><a href="script/snippets.html">Useful code snippets</a></li>
                   <li><a href="script/declare.html">Variable declarations</a></li>
+                  <li><a href="script/best-practices.html">Best practices</a></li>
+                  <li data-dont-default-collapse>
+                     <a>Advanced</a>
+                     <ul>
+                        <li><a href="script/inline.html">Inlined triggers</a></li>
+                        <li><a href="script/under-the-hood.html">Under the hood</a></li>
+                     </ul>
+                  </li>
                </ul>
             </li>
             <li>
@@ -123,6 +138,7 @@
                         <li><a href="script/api/ns_enums.html">enums</a></li>
                         <li><a href="script/api/ns_game.html">game</a></li>
                         <li><a href="script/api/ns_global.html">global</a></li>
+                        <li><a href="script/api/ns_temporaries.html">temporaries</a></li>
                      </ul>
                   </li>
                   <li data-dont-default-collapse>
@@ -148,6 +164,7 @@
                               <li><a href="script/api/incident.html">Incident</a></li>
                               <li><a href="script/api/object-type.html">Object Type</a></li>
                               <li><a href="script/api/player-set.html">Player Set</a></li>
+                              <li><a href="script/api/traits.html">Player Traits</a></li>
                               <li><a href="script/api/sound.html">Sound</a></li>
                               <li><a href="script/api/variant-string-id.html">Variant ID</a></li>
                               <li><a href="script/api/waypoint-icon.html">Waypoint Icon</a></li>
@@ -162,6 +179,7 @@
             <li>
                <a>Concepts</a>
                <ul>
+                  <li><a href="concepts/bipeds-and-items.html">Bipeds and items</a></li>
                   <li><a href="concepts/firefight.html">Firefight</a></li>
                </ul>
             </li>
@@ -169,7 +187,6 @@
       </nav>
       <main>
          <h1>User-defined enums</h1>
-
       <p>
          An <dfn>enumerated type</dfn>, or <dfn>enum</dfn>, is in most programming languages a 
          data type consisting of a list of named integer constants. Megalo doesn't offer enums 
@@ -177,7 +194,7 @@
          under a single name using the <code>enum</code> keyword:
       </p>
       <pre>
-enum my_cool_enum
+<span class="keyword">enum</span> my_cool_enum
    value_a
    value_b
    value_c
@@ -201,12 +218,12 @@ global.number[0] = my_cool_enum.value_a</pre>
       </p>
       <pre>
 <span class="comment">-- An enum with five values:</span>
-enum alphabet a b c d e <span class="keyword">end</span>
+<span class="keyword">enum</span> alphabet a b c d e <span class="keyword">end</span>
 <span class="comment">--</span>
 <span class="comment">-- alphabet.a == 0</span>
 <span class="comment">-- alphabet.e == 4</span>
 
-enum an_enum_with_explicit_values
+<span class="keyword">enum</span> an_enum_with_explicit_values
    a
    b
    c = 5
@@ -221,7 +238,7 @@ enum an_enum_with_explicit_values
 <span class="comment">-- an_enum_with_explicit_values.e == 7</span>
 
 <span class="keyword">alias</span> foo = 5
-enum some_enum
+<span class="keyword">enum</span> some_enum
    bar = foo
 <span class="keyword">end</span>
 <span class="comment">--</span>
@@ -234,7 +251,7 @@ enum some_enum
          for each individual value. The following pieces of code are identical:
       </p>
       <pre>
-enum chess_piece_type
+<span class="keyword">enum</span> chess_piece_type
    none
    pawn
    rook
