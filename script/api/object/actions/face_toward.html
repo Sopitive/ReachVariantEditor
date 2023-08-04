@@ -22,13 +22,14 @@
         let resultY = ""
         function changeNumbers() {
         let numbers = document.querySelectorAll(".hljs-number");
-        numbers.forEach((number, index) => {
-            if (index == 4) {
-                number.innerHTML = resultX;
-            } else if (index == 5) {
-                number.innerHTML = resultY;
+        for (i=0; i<numbers.length-1; i++) {
+            if (i=numbers.length - 3) {
+                numbers[i].innerHTML = resultX;
             }
-        });
+            if (i=numbers.length - 2) {
+                numbers[i].innerHTML = resultY;
+            }
+        }
     }
     </script>
     <script>
@@ -255,6 +256,162 @@ Multiplied int cos/sin: ${Math.round(least_error_item.x)}, ${Math.round(least_er
         </dl>
         <h2>Example</h2>
 
+        <pre>
+            <code>
+-- make all WATCHING_YOU objects face toward the nearest player
+for each object with label "watching_you" do
+   alias nearest_player   = allocate temporary player
+   alias nearest_distance = allocate temporary number
+   nearest_player   = no_player
+   nearest_distance = 30000
+
+   for each player do
+      if current_player.biped != no_object then
+         alias current_vehicle  = allocate temporary object
+         alias current_distance = allocate temporary number
+
+         current_vehicle = no_object
+         current_vehicle = current_player.get_vehicle()
+         if current_vehicle != current_object then
+            --
+            -- We don't want to apply this effect to vehicles the player is in, as it 
+            -- will turn those vehicles into inoperable beyblades. They'll try to turn 
+            -- toward the player, but because the player is attached to whatever vehicle 
+            -- they're riding in, they'll be displaced by the turning, which makes the 
+            -- vehicle want to turn some more next frame; and so on, non-stop, until 
+            -- the player exits the vehicle. Let's avoid that edge-case.
+            
+            current_distance = current_object.get_distance_to(current_player.biped)
+            if current_distance < nearest_distance then
+               nearest_distance = current_distance
+               nearest_player   = current_player
+            end
+         end
+      end
+   end
+
+   if nearest_player != no_player then
+      current_object.face_toward(nearest_player.biped, 0, 0, 0)
+   end
+end
+
+-- make all SPIN_YAW objects rotate on the yaw axis by one degree every frame
+-- (60deg per second)
+for each object with label "spin_yaw" do
+   current_object.face_toward(current_object, 115, -2, 0)
+end
+
+-- make all SPIN_ROLL objects rotate on the roll axis by one degree every frame
+-- (60deg per second)
+--
+-- This one is harder because we need to use object attachment and invisible Hill 
+-- Markers to compose the rotations we want. The naive approach would be to spawn 
+-- disposable Hill Markers, rotate them as needed, and then immediately delete 
+-- them all. However, if we try that, then it seems like they get deleted *before* 
+-- the rotations actually take effect, and there seem to be negative effects on 
+-- game stability as well (as if the map is overloaded). Instead, we need to 
+-- keep our Hill Markers around and reuse them.
+--
+alias roll_global_basis      = allocate global.object
+alias unrotated_global_basis = allocate global.object
+alias roll_1deg_reference    = allocate global.object
+alias helper_marker_1        = allocate global.object
+alias helper_marker_2        = allocate global.object
+if roll_global_basis == no_object then
+   --
+   -- There are two rotation values that we really need:
+   --
+   --  - An object that isn't rotated
+   --
+   --  - An object that is nose-down, but otherwise not rotated
+   --
+   -- The former is the default rotation for any newly-created objects. The latter 
+   -- can be accomplished by exploiting some jank in `object.place_between_me_and`: 
+   -- it happens if you spawn something between an object and itself. We'll create 
+   -- two objects with these rotations, then, and keep them around so that our 
+   -- other Hill Markers can `copy_rotation_from` them.
+   --
+   for each object do
+      if roll_global_basis == no_object then
+         roll_global_basis      = current_object.place_between_me_and(current_object, hill_marker, 0)
+         unrotated_global_basis = roll_global_basis.place_at_me(hill_marker, none, none, 0, 0, 0, none)
+         
+         -- These are recyclable markers that each SPIN_ROLL object can use to set 
+         -- up a roll rotation by 1 degree. We'll also use them here, when setting 
+         -- up the 1-degree rotation reference.
+         helper_marker_1 = unrotated_global_basis.place_at_me(hill_marker, none, none, 0, 0, 0, none)
+         helper_marker_2 = unrotated_global_basis.place_at_me(hill_marker, none, none, 0, 0, 0, none)
+         
+         -- When we're done, this will be an object whose rotation is exactly one 
+         -- yaw-degree off from `roll_global_basis`. Right now, it starts off with 
+         -- the same rotation as `roll_global_basis`: exactly nose-down, local up 
+         -- coinciding with the world positive X-axis.
+         roll_1deg_reference = roll_global_basis.place_at_me(hill_marker, none, none, 0, 0, 0, none)
+         roll_1deg_reference.copy_rotation_from(roll_global_basis, true)
+         
+         -- Let's briefly use a more intuitive name for our helper marker.
+         alias yaw_adjust = helper_marker_1
+         
+         yaw_adjust.copy_rotation_from(unrotated_global_basis, true)
+         
+         -- Now, we'll attach our 1-degree reference to the `yaw_adjust` marker, and 
+         -- then rotate the `yaw_adjust` marker by one degree on the yaw axis. From 
+         -- the point of view of our nose-down object, this is a roll rotation.
+         -- 
+         -- Imagine taking a Warthog, turning it nose-down, and placing it on top of a 
+         -- turntable. Now imagine you're in the driver's seat. As the turntable rotates, 
+         -- from your point of view, you're doing a barrel roll... a barrel ROLL. Get it?
+         -- 
+         roll_1deg_reference.attach_to(yaw_adjust, 0, 0, 0, relative)
+         yaw_adjust.face_toward(yaw_adjust, 115, -2, 0)
+         
+         roll_1deg_reference.detach()
+         --
+         -- And now the 1-degree reference is set up! When we actually use it, we'll go 
+         -- into more detail about how it works.
+         --
+      end
+   end
+end
+--
+for each object with label "spin_roll" do
+   alias roll_marker = helper_marker_1
+   alias yaw_to_roll = helper_marker_2
+   
+   --
+   -- Let's recycle our helper markers from above. We'll have them copy the rotations 
+   -- we set up before, so we can continue where we left off. (We don't want to use 
+   -- the actual rotation markers from earlier, because we need them "fresh" for each 
+   -- SPIN_ROLL object we want to spin. Think of the earlier trigger like having Halo: 
+   -- Reach press Ctrl + C on some rotations, and now we're having it press Ctrl + V.)
+   --
+   
+   roll_marker.copy_rotation_from(roll_1deg_reference, true)
+   yaw_to_roll.copy_rotation_from(roll_global_basis, true)
+   
+   --
+   -- So now, there's only a slight difference between the rotation of roll_marker 
+   -- and the rotation of yaw_to_roll: specifically, one degree, along the world's 
+   -- yaw axis. Remember what I said above: from the perspective of roll_marker, 
+   -- that's going to be one degree of roll, not yaw. So how do we turn one degree 
+   -- of marker-relative roll into one degree of current_object-relative roll?
+   --
+   -- If we attach roll_marker to yaw_to_roll, and then have yaw_to_roll copy the 
+   -- rotation of current_object, then there will only be that *same* slight angle 
+   -- difference between roll_marker and current_object -- and that difference will 
+   -- represent one degree of roll relative to current_object.
+   --
+   
+   roll_marker.attach_to(yaw_to_roll, 0, 0, 0, relative)
+   yaw_to_roll.copy_rotation_from(current_object, true)
+   roll_marker.detach()
+
+   -- Rotate the current object to match `roll_marker`.
+   current_object.copy_rotation_from(roll_marker, true)
+end
+            </code>
+        </pre>
+
         <div class="models">
             <p class="reference-obj">
                 <span class="hljs-title">global</span><span class="hljs-symbol">.</span><span class="hljs-type">object</span><span class="hljs-symbol"><span class="hljs-symbol">[</span></span><span class="hljs-number">0</span><span class="hljs-symbol">]</span>
@@ -264,20 +421,20 @@ Multiplied int cos/sin: ${Math.round(least_error_item.x)}, ${Math.round(least_er
                 <span class="hljs-title">global</span><span class="hljs-symbol">.</span><span class="hljs-type">object</span><span class="hljs-symbol">[</span><span class="hljs-number">1</span><span class="hljs-symbol">]</span>
             </p>
 
-        <model-viewer id="model" loading="lazy" src="resources/models/spartan.glb" ar ar-modes="webxr scene-viewer quick-look" poster="poster.webp" shadow-intensity="1" camera-orbit="0deg 90deg auto">
+        <model-viewer id="model" loading="lazy" src="resources/models/spartan.glb" ar ar-modes="webxr scene-viewer quick-look" shadow-intensity="1" camera-orbit="0deg 90deg auto">
             <div class="progress-bar hide" slot="progress-bar">
                 <div class="update-bar"></div>
             </div>
         </model-viewer>
 
-        <model-viewer id="model2" loading="lazy" src="resources/models/spartan.glb" ar ar-modes="webxr scene-viewer quick-look" poster="poster.webp" shadow-intensity="1" camera-orbit="180deg 90deg auto">
+        <model-viewer id="model2" loading="lazy" src="resources/models/spartan.glb" ar ar-modes="webxr scene-viewer quick-look" shadow-intensity="1" camera-orbit="180deg 90deg auto">
             <div class="progress-bar hide" slot="progress-bar">
                 <div class="update-bar"></div>
             </div>
         </model-viewer>
         </div>
 
-        <label class="tooltip" for="conversion" style="font-weight: bold;">Angle to Argument Converter: 
+        <label class="tooltip" for="conversion" style="font-weight: bold;">Degrees to X/Y: 
             <div class="tooltiptext">
                 Use to convert angles to arguments for the face_toward function.
             </div>
@@ -285,48 +442,55 @@ Multiplied int cos/sin: ${Math.round(least_error_item.x)}, ${Math.round(least_er
         <input name="conversion" id="conversionBox" type="number" onchange="sincos_int(this.value)">
         <pre><code>
 global.object[0].face_toward(global.object[1], 0, 0, 0)</code></pre>
-        <h2>Notes</h2>
-        <ul>
-            <li>
-                <p>
-                    If you face an object toward itself, you can use the position offset to rotate it.
-                </p>
+<h2>Notes</h2>
+<ul>
+   <li>
+               <p>
+                  If you face an object toward itself, you can use the position offset to
+                  rotate it about its local yaw axis. The X-offset should be the sine of
+                  your desired yaw angle, and the Y-offset should be the cosine of your
+                  desired yaw angle.
+               </p>
+               <p>
+                  As a quick trigonometry overview: the sine and cosine functions take an
+                  angle (usually in radians) and give you a number between zero and one.
+                  If you treat the cosine as X and the sine as Y, and plot these numbers
+                  on a graph for every angle from 0 to 360, you'll end up drawing a
+                  circle. If you multiply the cosine and sine by the same number, then
+                  that number becomes the radius of the circle.
+               </p>
+               <p>
+                  You can only use integer offsets with the "face toward" function here,
+                  so cosine and sine values between 0 and 1 aren't useful except in the
+                  really basic cases (multiples of 90 degrees). However, if you multiply
+                  your cosine and sine — if you pick a large enough radius —
+                  then you'll end up with a cosine and sine that end up being <em>mostly</em>
+                  accurate when rounded to integers. Remember: all that matters is the
+                  underlying angle, so the radius is just a tool to smush the angle into
+                  something that <i>Halo: Reach</i> can understand.
+               </p>
+               <p>
+                  <i>Halo: Reach</i> follows the same conventions as a typical graphing
+                  calculator here. This means that the angle "zero" is an object's normal
+                  forward angle, and objects rotate counterclockwise as the angle increases.
+                  If you imagine yourself looking at an object from above, with the object
+                  pointing exactly to your right before you rotate it with this function,
+                  then this will exactly match what you see in a graphing calculator.
+               </p>
+               
+               
+               <p>
+                  You can use this calculator to compute the right x/y values to use for a 
+                  given yaw-angle change:
+               </p>
             </li>
-            <li>
-                <p>
-                    The Z-coordinate offset position doesn't affect the rotation of the object. If you wish to rotate on the Z axis, refer to <a href="script/api/object/actions/copy_rotation_from.html">object.copy_rotation_from</a>.
-                </p>
-            </li>
-            <li>
-                <p>
-                    The object.face_toward function only affects the heading (yaw) by default, however you can adjust the pitch and roll of an object using clever placements and attachments. The following code will roll a warthog 45 degrees:
-                </p>
-                <pre><code>
-
-alias adjust = current_object.object[0]
-alias offset = current_object.object[1]
-alias base   = current_object.object[2]
-
-for each object do
-    if current_object.is_of_type(warthog) then
-        if adjust == no_object then
-            offset = current_object.place_between_me_and(current_object, hill_marker, 0)
-            adjust = current_object.place_at_me(hill_marker, none, none, 0, 0, 0, none)
-            base   = current_object.place_between_me_and(current_object, hill_marker, 0)
-            offset.attach_to(adjust, 0, 0, 0, relative)
-            adjust.face_toward(adjust, -1, -1, 0)
-            offset.detach()
-            offset.attach_to(base, 0, 0, 0, relative)
-            base.face_toward(current_object, true)
-            offset.detach()
-            offset.attach_to(current_object, 0, 0, 0, relative)
-        end
-        current_object.copy_rotation_from(offset, true)
-    end
-end
-</code></pre>
-            </li>
-        </ul>
+   <li><p>
+               You can face an object toward itself to adjust its yaw-axis rotation. You can 
+               also use clever tricks with <a href="script/api/object/actions/place_between_me_and.html">object.place_between_me_and</a> 
+               to spawn an object nose-down, such that its up-vector points laterally. If you 
+               combine these two tricks, using object attachment, you can adjust any object's 
+               roll-axis rotation. The code example demonstrates the trick.
+            </p></li>
         <h2>See also</h2>
         <ul>
             <li><a href="script/api/object/actions/attach_to.html">object.attach_to</a></li>
