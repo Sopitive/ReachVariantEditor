@@ -8,8 +8,8 @@
 <script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
-      <title>Player Traits | ReachVariantTool Documentation</title>
-      <base href="../../" />
+      <title>game | ReachVariantTool Documentation</title>
+      <base href="../../../../" />
       <link rel="stylesheet" href="resources/main.css" />
       <noscript>
          <link rel="stylesheet" href="resources/noscript.css" />
@@ -64,9 +64,9 @@
         </button>
         <button id="dark-mode" class="fa fa-adjust"></button>
     </div>
+   <body>
       <nav id="sidebar">
          <ul>
-<li><a href="tools.html">Tools</a></li>
             <li><a href="index.html">Index</a></li>
             <li>
                <a>Main Window</a>
@@ -144,7 +144,7 @@
                   <li>
                      <a href="editor/script_window/string-table.html">All Other Strings</a>
                      <ul>
-                        <li><a href="editor/script_window/string-localization.html">Localization</a></li>
+                        <li><a href="editor/script_window/string-localization.html">Editing and Localization</a></li>
                      </ul>
                   </li>
                   <li><a href="editor/script_window/forge-labels.html">Forge Labels</a></li>
@@ -192,7 +192,7 @@
                         <li><a href="script/api/ns_enums.html">enums</a></li>
                         <li><a href="script/api/ns_game.html">game</a></li>
                         <li><a href="script/api/ns_global.html">global</a></li>
-                        <li><a href="script/api/ns_temporaries.html" >temporaries</a></li>
+                        <li><a href="script/api/ns_temporaries.html">temporaries</a></li>
                      </ul>
                   </li>
                   <li data-dont-default-collapse>
@@ -218,7 +218,7 @@
                               <li><a href="script/api/incident.html">Incident</a></li>
                               <li><a href="script/api/object-type.html">Object Type</a></li>
                               <li><a href="script/api/player-set.html">Player Set</a></li>
-                              <li><a href="script/api/player-traits.html">Player Traits</a></li>
+                              <li><a href="script/api/traits.html">Player Traits</a></li>
                               <li><a href="script/api/sound.html">Sound</a></li>
                               <li><a href="script/api/variant-string-id.html">Variant ID</a></li>
                               <li><a href="script/api/waypoint-icon.html">Waypoint Icon</a></li>
@@ -236,172 +236,75 @@
                   <li><a href="concepts/bipeds-and-items.html">Bipeds and items</a></li>
                   <li><a href="concepts/coordinates.html">Coordinates</a></li>
                   <li><a href="concepts/firefight.html">Firefight</a></li>
-                  <li><a href="concepts/game-variants.html">Commented Game Variants</a></li>
                </ul>
             </li>
-            <li><a href="tools.html">Tools</a></li>
-</ul>
+         </ul>
       </nav>
       <main>
-         <h1>Player Traits</h1>
+         <h1>Inline blocks</h1>
       <p>
-         The pages for player traits allow you to edit traits applied to the player 
-         during certain situations.
+         In mid-July 2023, the Master Chief Collection was updated to backport some Halo 4 
+         scripting features to Halo: Reach. One of these is the <code>begin</code> action. 
+         This is a low-level optimization that allows triggers to be compiled slightly more 
+         efficiently.
       </p>
-      <img src="editor/main_window/traits.png">
-      
-      <h2>Defense</h2>
-      <dl>
-         <dt>Damage Resistance</dt>
-            <dd>A multiplier which scales all damage that the player takes. Note that 
-            the "Invulnerable" value will not protect a player from level boundaries 
-            or scripted damage.</dd>
-         <dt>Health Multiplier</dt>
-            <dd>The player's max health.</dd>
-         <dt>Health Regen Rate</dt>
-            <dd>How fast the player's health regenerates.</dd>
-         <dt>Shield Multiplier</dt>
-            <dd>The player's max shields.</dd>
-         <dt>Shield Regen Rate</dt>
-            <dd>How fast the player's shields regenerate or drain. The drain values 
-            are named based on how long it takes for a player with 100% shields to 
-            fully lose their shields.</dd>
-         <dt>Overshield Regen Rate</dt>
-            <dd>How fast the player's shields regenerate or drain if they have 
-            overshields.</dd>
-         <dt>Headshot Immunity</dt>
-            <dd>Whether it is possible to instantly kill the player with a headshot 
-            from a precision weapon while their shields are drained.</dd>
-         <dt>Assassination Immunity</dt>
-            <dd>Whether it is possible to kill this player with an assassination or 
-            with a melee to the back.</dd>
-         <dt>Shield Vampirism</dt>
-            <dd>Whether this player gains shields whenever they damage an enemy 
-            player's shields.</dd>
-         <dt>Can't Die From Damage</dt>
-            <dd>Whether this player is totally immune to all forms of damage, except 
-            level boundaries.</dd>
-      </dl>
-      
-      <h2>Offense</h2>
-      <dl>
-         <dt>Weapon Damage Multiplier</dt>
-            <dd>A multiplier which scales all damage that the player deals with their 
-            weapons and grenades.</dd>
-         <dt>Melee Damage Multiplier</dt>
-            <dd>A multiplier which scales all damage that the player deals with melee 
-            attacks.</dd>
-         <dt>Primary Weapon</dt>
-            <dd>The primary weapon that the player will spawn with, if they have this 
-            set of traits while spawning.</dd>
-         <dt>Secondary Weapon</dt>
-            <dd>The secondary weapon that the player will spawn with, if they have this 
-            set of traits while spawning.</dd>
-         <dt>Armor Ability</dt>
-            <dd>The Armor Ability that the player will spawn with, if they have this 
-            set of traits while spawning.</dd>
-         <dt>Grenade Count</dt>
-            <dd>The grenades that the player will spawn with, if they have this set of 
-            traits while spawning.</dd>
-         <dt>Grenade Regeneration</dt>
-            <dd>If enabled, the player will be given one frag grenade and one plasma 
-            grenade on every fifth second of the round.</dd>
-         <dt>Weapon Pickup</dt>
-            <dd>Controls whether the player is allowed to pick up weapons, grenades, 
-            and Armor Abilities.</dd>
-         <dt>Infinite Ammo</dt>
-            <dd>Controls whether the player has limited ammo, and whether they have to 
-            reload.</dd>
-         <dt>Ability Usage</dt>
-            <dd>Controls whether the player can use their equipped Armor Ability.</dd>
-         <dt>Abilities Drop on Death</dt>
-            <dd>If enabled, this player will drop their Armor Ability when killed, 
-            allowing other players to pick it up.</dd>
-         <dt>Infinite Abilities</dt>
-            <dd>Controls whether the player has an energy limit and cooldown on their 
-            Armor Ability.</dd>
-      </dl>
-      
-      <h2>Movement</h2>
-      <dl>
-         <dt>Movement Speed</dt>
-            <dd>Scales the player's movement speed.</dd>
-         <dt>Jump height</dt>
-            <dd>Scales the player's Jump Height. The "Unchanged" value is "below" zero.</dd>
-         <dt>Player Gravity</dt>
-            <dd>Scales the player's gravity.</dd>
-         <dt>Unknown</dt>
-            <dd>Community reverse-engineering efforts identify this as enabling or 
-            disabling the ability to double-jump, but testing fails to produce the 
-            expected result.</dd>
-         <dt>Vehicle Use</dt>
-            <dd>Controls whether the player can enter vehicles, and which seats they 
-            can enter.</dd>
-      </dl>
-      
-      <h2>Appearance</h2>
-      <dl>
-         <dt>Active Camo</dt>
-            <dd>Controls whether the player has Active Camo.</dd>
-         <dt>Visible Waypoint</dt>
-            <dd>Controls who, if anyone, can see a waypoint on the player. This setting 
-            is overridden by scripted waypoints.</dd>
-         <dt>Visible Name</dt>
-            <dd>Controls who, if anyone, can see the player's gamertag when aiming near 
-            them.</dd>
-         <dt>Aura</dt>
-            <dd>
-               <p>One of the following visual effects applied to the player:</p>
-               <dl>
-                  <dt>Unchanged</dt>
-                     <dd>No change.</dd>
-                  <dt>None</dt>
-                     <dd>No effect.</dd>
-                  <dt>Team Primary Color</dt>
-                     <dd>The player's primary armor color is overridden by their team 
-                     color even if a Forced Color is set. If a Forced Color is set, it 
-                     will still influence the armor's secondary color.</dd>
-                  <dt>Darken Armor Color</dt>
-                     <dd>The player's armor color will be noticeably darker.</dd>
-                  <dt>Pastel Armor Color</dt>
-                     <dd>The player's armor color will be noticeably lighter.</dd>
-                  <dt>Unknown 5</dt>
-                     <dd>Unknown. No obvious visual effect in-game.</dd>
-                  <dt>Unknown 6</dt>
-                     <dd>Unknown. No obvious visual effect in-game.</dd>
-               </dl>
-            </dd>
-         <dt>Forced Color</dt>
-            <dd>Override a player's armor color — both the one set in their 
-            customization options, and the one applied by team membership during team 
-            games.</dd>
-      </dl>
-      
-      <h2>Sensors</h2>
-      <dl>
-         <dt>Motion Tracker Mode</dt>
-            <dd>
-               <p>One of the following values:</p>
-               <dl>
-                  <dt>Unchanged</dt>
-                     <dd>No change.</dd>
-                  <dt>No Radar</dt>
-                     <dd>The player has no motion tracker.</dd>
-                  <dt>Show Only Allies</dt>
-                     <dd>Enemies do not appear on the motion tracker.</dd>
-                  <dt>Normal</dt>
-                     <dd>All players can appear on the motion tracker if they are moving 
-                     fast enough.</dd>
-                  <dt>Enhanced</dt>
-                     <dd>All players will appear on the motion tracker, regardless of 
-                     their movement speed.</dd>
-               </dl>
-            </dd>
-         <dt>Motion Tracker Range</dt>
-            <dd>Determine how far away the motion tracker can "see."</dd>
-         <dt>Directional Damage Indicator</dt>
-            <dd>Unknown. Single-player tests failed to discover this option's effect.</dd>
-      </dl>
+      <pre lang="MegaloEdit">
+trigger general
+   action for_each player
+      temporary number is_survivor false
+      temporary number is_zombie   false
+
+      action begin
+         condition if current_player.is_zombie == 1
+         action set is_zombie = true
+      end
+      action begin
+         condition if current_player.is_zombie == 0
+         action set is_survivor = true
+      end
+   end
+end</pre>
+      <p>
+         ReachVariantTool uses the term <dfn>inlined triggers</dfn> for this feature, in 
+         reference to how it works under the hood.
+      </p>
+      <p>
+         Ordinarily, blocks of code are compiled into "trigger" data structures in the Megalo 
+         data format, and an "action" is compiled into the script code to "call" these triggers 
+         and execute their contents. (In fact, ReachVariantTool implements <a href="script/function.html">user-defined functions</a> 
+         by abusing this system and compiling a trigger that gets called from multiple places.) 
+         However, there's a limit on how many triggers a gametype can contain.
+      </p>
+      <p>
+         What this new feature does is take some of the data that triggers normally contain 
+         (specifically, the data that says, "this part of the code belongs to me; it is inside 
+         me"), and it writes that data directly into the action itself. This means that the 
+         block of code doesn't become a "real" trigger that contributes to a gametype's overall 
+         trigger limit; the block of code is <dfn>inlined</dfn> directly into the very same 
+         action that executes it.
+      </p>
+      <p>
+         In order to inline a block in ReachVariantTool, prefix it with an <dfn>inline specifier</dfn>:
+      </p>
+        <pre>
+            <code>
+inline: do
+   -- ...
+end
+            </code>
+        </pre>
+      <p>
+         You can only inline <code>do</code>, <code>if</code>, <code>altif</code>, and <code>alt</code> 
+         blocks, and you cannot inline a block that is an <a href="script/events.html">event handler</a>. This is 
+         because <code>for</code> blocks and event handler blocks require extra information that's only 
+         stored in real triggers, not inlined ones.
+      </p>
+      <p>
+         Functions cannot be marked as inline at this time. It would theoretically be possible to 
+         compile function calls as inline triggers, without creating a full trigger for the function's 
+         body, provided the function doesn't need any functionality that requires full trigger behavior 
+         (i.e. the function doesn't have a for-loop as its entire body); however, this is not implemented.
+      </p>
    
       </main>
       <script src="resources/sidebar.js"></script>

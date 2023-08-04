@@ -722,7 +722,7 @@ pre code {
     color: var(--aliasName);
 }
 
-.hljs-title {
+.hljs-title, .hljs-built_in {
     color: var(--title);
 }
 
