@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+   <head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<meta name="viewport" content="width=device-width">
+<link rel="icon" type="image/x-icon" href="resources/favicon.ico">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+      <meta charset="UTF-8" />
+      <title>player.set-vehicle-spawning-enabled | ReachVariantTool Documentation</title>
+      <base href="../../../../" />
+      <link rel="stylesheet" href="resources/main.css" />
+      <noscript>
+         <link rel="stylesheet" href="resources/noscript.css" />
+      </noscript>
+      <script src="resources/head.js"></script>
+   </head>
+   <body>
+<div class="scroll-container">
+         <div class="scrollbar"></div>
+         <button class="bottom-button">
+            <i class="fa fa-arrow-down"></i>
+         </button>
+         <button class="top-button">
+            <i class="fa fa-arrow-up"></i>
+         </button>
+</div>
+<div class="header">
+        <button class="dropdown">
+            MCC Gametypers<i class="fa fa-caret-down"></i>
+            <ul class="dropdown-content">
+                <a class="dropdown-item" target="_blank" href="https://discord.gg/Z2ZvPsCbcc"><li>Discord</li></a>
+            </ul>
+            
+        </button>
+        <button class="dropdown">
+            The Anvil<i class="fa fa-caret-down"></i>
+            <ul class="dropdown-content">
+                <a class="dropdown-item" target="_blank" href="https://discord.gg/kVN58A2ydm"><li>Discord</li></a>
+                <a class="dropdown-item" target="_blank" href="https://theanvil.net/forums/"><li>Forums</li></a>
+                <a class="dropdown-item" target="_blank" href="https://theanvil.net/maps/"><li>Maps</li></a>
+                <a class="dropdown-item" target="_blank" href="https://theanvil.net/mods/"><li>Mods</li></a>
+            </ul>
+            
+        </button>
+        <button class="dropdown">
+            Halo Customs<i class="fa fa-caret-down"></i>
+            <ul class="dropdown-content">
+                <a class="dropdown-item" target="_blank" href="https://halocustoms.com/discord"><li>Discord</li></a>
+                <a class="dropdown-item" target="_blank" href="https://halocustoms.com/maps/"><li>Maps</li></a>
+                <a class="dropdown-item" target="_blank" href="https://halocustoms.com/"><li>Forums</li></a>
+                <a class="dropdown-item" target="_blank" href="https://www.reddit.com/r/HaloCustoms/"><li>Reddit</li></a>
+                <a class="dropdown-item" target="_blank" href="https://halocustoms.com/maps/categories/gametypes.40/"><li>Gametypes</li></a>            </ul>
+            
+        </button>
+        <button class="dropdown">
+            Halo Mods<i class="fa fa-caret-down"></i>
+            <ul class="dropdown-content">
+                <a class="dropdown-item" target="_blank" href="https://discord.gg/halomods"><li>Discord</li></a>
+                <a class="dropdown-item" target="_blank" href="https://www.reddit.com/r/halomods/"><li>Reddit</li></a>
+                
+            </ul>
+        </button>
+        <button id="dark-mode" class="fa fa-adjust"></button>
+    </div>
+      <nav id="sidebar">
+         <ul>
+<li><a href="tools.html">Tools</a></li>
+            <li><a href="index.html">Index</a></li>
+            <li><a href="script/api/index.html">Script API reference</a></li>
+            <hr />
+            <li data-disallow-collapse>
+               <a href="script/api/player.html">Player</a>
+               <ul>
+                  <li data-delete-if-empty data-dont-default-collapse>
+                     <a>Properties</a>
+                     <ul>
+                        <li><a href="script/api/player/properties/biped.html">biped</a></li>
+<li><a href="script/api/player/properties/rating.html">rating</a></li>
+<li><a href="script/api/player/properties/score.html">score</a></li>
+<li><a href="script/api/player/properties/script_stat.html">script_stat[<var>n</var>]</a></li>
+<li><a href="script/api/player/properties/team.html">team</a></li>
+<li><a href="script/api/player/properties/unknown_09.html">unknown_09</a></li>
+
+                     </ul>
+                  </li>
+                  <li data-delete-if-empty data-dont-default-collapse>
+                     <a>Accessors</a>
+                     <ul>
+                        <li><a href="script/api/player/accessors/frag_grenades.html">frag_grenades</a></li>
+<li><a href="script/api/player/accessors/plasma_grenades.html">plasma_grenades</a></li>
+
+                     </ul>
+                  </li>
+                  <li data-delete-if-empty data-dont-default-collapse>
+                     <a>Member conditions</a>
+                     <ul>
+                        <li><a href="script/api/player/conditions/assisted_kill_of.html">assisted_kill_of</a></li>
+<li><a href="script/api/player/conditions/is_elite.html">is_elite</a></li>
+<li><a href="script/api/player/conditions/is_fireteam_leader.html">is_fireteam_leader</a></li>
+<li><a href="script/api/player/conditions/is_monitor.html">is_monitor</a></li>
+<li><a href="script/api/player/conditions/is_not_respawning.html">is_not_respawning</a></li>
+<li><a href="script/api/player/conditions/is_spartan.html">is_spartan</a></li>
+<li><a href="script/api/player/conditions/killer_type_is.html">killer_type_is</a></li>
+
+                     </ul>
+                  </li>
+                  <li data-delete-if-empty data-dont-default-collapse>
+                     <a>Member actions</a>
+                     <ul>
+                        <li><a href="script/api/player/actions/add_weapon.html">add_weapon</a></li>
+<li><a href="script/api/player/actions/apply_traits.html">apply_traits</a></li>
+<li><a href="script/api/player/actions/force_into_vehicle.html">force_into_vehicle</a></li>
+<li><a href="script/api/player/actions/try_get_armor_ability.html">get_armor_ability</a></li>
+<li><a href="script/api/player/actions/get_crosshair_target.html">get_crosshair_target</a></li>
+<li><a href="script/api/player/actions/try_get_death_damage_mod.html">get_death_damage_mod</a></li>
+<li><a href="script/api/player/actions/try_get_death_damage_type.html">get_death_damage_type</a></li>
+<li><a href="script/api/player/actions/get_fireteam.html">get_fireteam</a></li>
+<li><a href="script/api/player/actions/get-button-time.html">get_button_time</a></li>
+<li><a href="script/api/player/actions/try_get_killer.html">get_killer</a></li>
+<li><a href="script/api/player/actions/get_scoreboard_pos.html">get_scoreboard_pos</a></li>
+<li><a href="script/api/player/actions/get_spree_count.html">get_spree_count</a></li>
+<li><a href="script/api/player/actions/try_get_vehicle.html">get_vehicle</a></li>
+<li><a href="script/api/player/actions/try_get_weapon.html">get_weapon</a></li>
+<li><a href="script/api/player/actions/increment_req_money_by.html">increment_req_money_by</a></li>
+<li><a href="script/api/player/actions/record_griefer_penalty.html">record_griefer_penalty</a></li>
+<li><a href="script/api/player/actions/set_biped.html">set_biped</a></li>
+<li><a href="script/api/player/actions/set_co_op_spawning.html">set_co_op_spawning</a></li>
+<li><a href="script/api/player/actions/set-vehicle-spawning-enabled.html">set_vehicle_spawning_enabled</a></li>
+<li><a href="script/api/player/actions/set_co_op_spawning.html">set_co_op_spawning</a></li>
+<li><a href="script/api/player/actions/set_fireteam.html">set_fireteam</a></li>
+<li><a href="script/api/player/actions/set_loadout_palette.html">set_loadout_palette</a></li>
+<li><a href="script/api/player/actions/set_primary_respawn_object.html">set_primary_respawn_object</a></li>
+<li><a href="script/api/player/actions/set_req_purchase_modes.html">set_req_purchase_modes</a></li>
+<li><a href="script/api/player/actions/set_requisition_palette.html">set_requisition_palette</a></li>
+<li><a href="script/api/player/actions/set_round_card_icon.html">set_round_card_icon</a></li>
+<li><a href="script/api/player/actions/set_round_card_text.html">set_round_card_text</a></li>
+<li><a href="script/api/player/actions/set_round_card_title.html">set_round_card_title</a></li>
+<li><a href="script/api/player/actions/try_get_armor_ability.html">try_get_armor_ability</a></li>
+<li><a href="script/api/player/actions/try_get_death_damage_mod.html">try_get_death_damage_mod</a></li>
+<li><a href="script/api/player/actions/try_get_death_damage_type.html">try_get_death_damage_type</a></li>
+<li><a href="script/api/player/actions/try_get_killer.html">try_get_killer</a></li>
+<li><a href="script/api/player/actions/try_get_vehicle.html">try_get_vehicle</a></li>
+<li><a href="script/api/player/actions/try_get_weapon.html">try_get_weapon</a></li>
+
+                     </ul>
+                  </li>
+               </ul>
+            </li>
+         <li><a href="tools.html">Tools</a></li>
+</ul>
+      </nav>
+      <main>
+         <header><h1>player.set_vehicle_spawning_enabled</h1></header>
+
+               <p>
+                  Set whether the player will respawn in a vehicle.
+               </p>
+
+            
+
+<h2>Arguments</h2>
+<dl>
+    <dt><a href="script/api/bool.html">enable</a></dt>
+       <dd><p>The word <var>true</var> or the word <var>false</var>.</p></dd>
+</dl>
+
+<h2>See also</h2>
+<ul>
+   <li><a href="script/api/object/actions/enable_spawn_zone.html">object.enable_spawn_zone</a></li>
+   <li><a href="script/api/object/actions/set_spawn_location_fireteams.html">object.set_spawn_location_fireteams</a></li>
+   <li><a href="script/api/object/actions/set_spawn_location_permissions.html">object.set_spawn_location_permissions</a></li>
+   <li><a href="script/api/player/conditions/is_not_respawning.html">player.is_not_respawning</a></li>
+   <li><a href="script/api/player/actions/set_primary_respawn_object.html">player.set_primary_respawn_object</a></li>
+   <li><a href="script/api/team/actions/set_co_op_spawning.html">team.set_co_op_spawning</a></li>
+   <li><a href="script/api/team/actions/set_primary_respawn_object.html">team.set_primary_respawn_object</a></li>
+</ul>
+        
+      </main>
+      <script src="resources/sidebar.js"></script>
+      <script src="resources/header-links.js"></script>
+   </body>
+</html>
