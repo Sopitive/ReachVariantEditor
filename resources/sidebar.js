@@ -93,10 +93,12 @@
 
     preElements.forEach(element => {
         element.addEventListener('click', (e) => {
-            modelCodeDisplay.style = "opacity: 1; width: 90%; left: 50%; top: 50%";
-            modelCodeDisplay.innerHTML = element.innerHTML;
-            closeButton.style.display = "block";
-            e.stopPropagation()
+            if (!isTextHighlightedInCodeBlock(element)) {
+                modelCodeDisplay.style = "opacity: 1; width: 90%; left: 50%; top: 50%";
+                modelCodeDisplay.innerHTML = element.innerHTML;
+                closeButton.style.display = "block";
+                e.stopPropagation()
+            }
         });
         let copyButton = document.createElement("button");
         copyButton.classList.add("copy-button");
@@ -226,6 +228,23 @@
     darkToggle.addEventListener('click', () => {
         toggleDarkTheme()
     })
+
+    function isTextHighlightedInCodeBlock(codeBlockElement) {
+        const selection = window.getSelection();
+      
+        if (selection && selection.toString().length > 0) {
+          const selectedRange = selection.getRangeAt(0);
+          const codeBlockRange = codeBlockElement.ownerDocument.createRange();
+          codeBlockRange.selectNodeContents(codeBlockElement);
+      
+          if (codeBlockRange.compareBoundaryPoints(Range.START_TO_START, selectedRange) <= 0 &&
+              codeBlockRange.compareBoundaryPoints(Range.END_TO_END, selectedRange) >= 0) {
+            return true;
+          }
+        }
+        return false;
+      }
+      
 
     function toggleDarkTheme() {
         if (darkToggle.classList.contains("light")) {
