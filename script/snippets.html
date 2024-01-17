@@ -543,15 +543,15 @@ subject.detach()</code></pre>
          <pre><code>
 alias subject   = global.object[0]
 alias target    = global.object[1]
-alias temporary = global.object[2]
+alias temp = global.object[2]
 
 <span class="comment">-- Move (subject) 20 Forge units (200 Megalo units) above (target), by creating</span>
 <span class="comment">-- a Hill Marker 10 Forge units above (target) and moving (subject) 10 Forge</span>
 <span class="comment">-- units above that marker:</span>
-temporary = target.place_at_me(hill_marker, none, none, 0, 0, 100, none)
-subject.attach_to(temporary, 0, 0, 100, relative)
+temp = target.place_at_me(hill_marker, none, none, 0, 0, 100, none)
+subject.attach_to(temp, 0, 0, 100, relative)
 subject.detach()
-temporary.delete() <span class="comment">-- make sure to delete the temporary Hill Marker afterward!</span></code></pre>
+temp.delete() <span class="comment">-- make sure to delete the temporary Hill Marker afterward!</span></code></pre>
       </section>
       
       <section>

@@ -1,14 +1,9 @@
 <!doctype html>
 <html lang="en">
    <head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<meta name="viewport" content="width=device-width">
-<link rel="icon" type="image/x-icon" href="resources/favicon.ico">
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
-<script src="https://sopitive.github.io/highlightjs-rvt-script/dist/rvt-script.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
       <meta charset="UTF-8" />
-      <title>String Localization | ReachVariantTool Documentation</title>
+      
+      <title>String Editing and Localization | ReachVariantTool Documentation</title>
       <base href="../../" />
       <link rel="stylesheet" href="resources/main.css" />
       <noscript>
@@ -17,56 +12,8 @@
       <script src="resources/head.js"></script>
    </head>
    <body>
-<div class="scroll-container">
-         <div class="scrollbar"></div>
-         <button class="bottom-button">
-            <i class="fa fa-arrow-down"></i>
-         </button>
-         <button class="top-button">
-            <i class="fa fa-arrow-up"></i>
-         </button>
-</div>
-<div class="header">
-        <button class="dropdown">
-            MCC Gametypers<i class="fa fa-caret-down"></i>
-            <ul class="dropdown-content">
-                <a class="dropdown-item" target="_blank" href="https://discord.gg/Z2ZvPsCbcc"><li>Discord</li></a>
-            </ul>
-            
-        </button>
-        <button class="dropdown">
-            The Anvil<i class="fa fa-caret-down"></i>
-            <ul class="dropdown-content">
-                <a class="dropdown-item" target="_blank" href="https://discord.gg/kVN58A2ydm"><li>Discord</li></a>
-                <a class="dropdown-item" target="_blank" href="https://theanvil.net/forums/"><li>Forums</li></a>
-                <a class="dropdown-item" target="_blank" href="https://theanvil.net/maps/"><li>Maps</li></a>
-                <a class="dropdown-item" target="_blank" href="https://theanvil.net/mods/"><li>Mods</li></a>
-            </ul>
-            
-        </button>
-        <button class="dropdown">
-            Halo Customs<i class="fa fa-caret-down"></i>
-            <ul class="dropdown-content">
-                <a class="dropdown-item" target="_blank" href="https://halocustoms.com/discord"><li>Discord</li></a>
-                <a class="dropdown-item" target="_blank" href="https://halocustoms.com/maps/"><li>Maps</li></a>
-                <a class="dropdown-item" target="_blank" href="https://halocustoms.com/"><li>Forums</li></a>
-                <a class="dropdown-item" target="_blank" href="https://www.reddit.com/r/HaloCustoms/"><li>Reddit</li></a>
-                <a class="dropdown-item" target="_blank" href="https://halocustoms.com/maps/categories/gametypes.40/"><li>Gametypes</li></a>            </ul>
-            
-        </button>
-        <button class="dropdown">
-            Halo Mods<i class="fa fa-caret-down"></i>
-            <ul class="dropdown-content">
-                <a class="dropdown-item" target="_blank" href="https://discord.gg/halomods"><li>Discord</li></a>
-                <a class="dropdown-item" target="_blank" href="https://www.reddit.com/r/halomods/"><li>Reddit</li></a>
-                
-            </ul>
-        </button>
-        <button id="dark-mode" class="fa fa-adjust"></button>
-    </div>
       <nav id="sidebar">
          <ul>
-<li><a href="tools.html">Tools</a></li>
             <li><a href="index.html">Index</a></li>
             <li>
                <a>Main Window</a>
@@ -144,7 +91,7 @@
                   <li>
                      <a href="editor/script_window/string-table.html">All Other Strings</a>
                      <ul>
-                        <li><a href="editor/script_window/string-localization.html">Localization</a></li>
+                        <li><a href="editor/script_window/string-localization.html">Editing and Localization</a></li>
                      </ul>
                   </li>
                   <li><a href="editor/script_window/forge-labels.html">Forge Labels</a></li>
@@ -192,7 +139,7 @@
                         <li><a href="script/api/ns_enums.html">enums</a></li>
                         <li><a href="script/api/ns_game.html">game</a></li>
                         <li><a href="script/api/ns_global.html">global</a></li>
-                        <li><a href="script/api/ns_temporaries.html" >temporaries</a></li>
+                        <li><a href="script/api/ns_temporaries.html">temporaries</a></li>
                      </ul>
                   </li>
                   <li data-dont-default-collapse>
@@ -218,7 +165,7 @@
                               <li><a href="script/api/incident.html">Incident</a></li>
                               <li><a href="script/api/object-type.html">Object Type</a></li>
                               <li><a href="script/api/player-set.html">Player Set</a></li>
-                              <li><a href="script/api/player-traits.html">Player Traits</a></li>
+                              <li><a href="script/api/traits.html">Player Traits</a></li>
                               <li><a href="script/api/sound.html">Sound</a></li>
                               <li><a href="script/api/variant-string-id.html">Variant ID</a></li>
                               <li><a href="script/api/waypoint-icon.html">Waypoint Icon</a></li>
@@ -236,14 +183,12 @@
                   <li><a href="concepts/bipeds-and-items.html">Bipeds and items</a></li>
                   <li><a href="concepts/coordinates.html">Coordinates</a></li>
                   <li><a href="concepts/firefight.html">Firefight</a></li>
-                  <li><a href="concepts/game-variants.html">Commented Game Variants</a></li>
                </ul>
             </li>
-            <li><a href="tools.html">Tools</a></li>
-</ul>
+         </ul>
       </nav>
       <main>
-         <h1>String Localization</h1>
+         <h1>String Editing and Localization</h1>
       <p>
          When editing strings in a game variant, it is usually possible to provide
          translations into multiple languages. (In some cases, this feature is not
@@ -254,6 +199,41 @@
          map files.
       </p>
       <img src="editor/script_window/string-editor.png">
+      
+      <h2>Round card preview</h2>
+      <p>
+         Many gametypes show an instructional "card" at the start of every round. The 
+         text shown can be controlled <a href="script/api/player/actions/set_objective_text.html">through scripting</a>. 
+         However, the text is truncated to a relatively short length, and it isn't 
+         automatically word wrapped, so you have to insert line breaks manually.
+      </p>
+      <p>
+         If you have the <a target="_blank" href="https://c20.reclaimers.net/hr/hr-ek/">Halo: Reach Editing Kit</a> 
+         installed through Steam, and if you've properly extracted the bundled assets, 
+         then you'll have a copy of Halo: Reach's main fonts on hand. ReachVariantTool 
+         will detect this and allow you to open a preview window for the instructional 
+         "card," by checking the "Show round card preview" checkbox.
+      </p>
+      <img src="editor/script_window/string-editor-round-card-preview.png">
+      <p>
+         Because this preview uses the game's own font files, it should support every 
+         character set that the fonts themselves support. The game's font for body 
+         text, in particular, supports a fairly wide variety of Unicode symbols:
+      </p>
+      <img src="editor/script_window/string-editor-round-card-preview-unicode.png">
+      <p>
+         However, <a href="script/string-special-chars.html">the game's special icon characters</a> 
+         are not supported at this time. They aren't part of the normal font files; 
+         they get baked in via some alternate system.
+      </p>
+      <p>
+         Please also be aware that due to fundamental differences in how typical Windows 
+         programs render text, versus how Halo: Reach renders text, this is not an exact 
+         preview. It should be accurate enough if you don't try to press your text right 
+         up against the round card's right-side border.
+      </p>
+      
+      <h2>Localized string library</h2>
       <p>
          The string library is shown below.
       </p>
